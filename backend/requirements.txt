@@ -1,1 +1,3 @@
 Flask>=2.0.0
+supabase>=2.20.0
+dotenv
