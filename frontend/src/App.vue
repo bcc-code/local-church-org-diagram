@@ -1,7 +1,7 @@
 <template>
-  <div class="page">
-    <h1>Org Chart Demo</h1>
-    <div ref="chartEl" class="chart-container"></div>
+  <div class="p-4 bg-cyan-700">
+    <h1 class="text-2xl font-semibold mb-4">Org Chart Demo</h1>
+    <div ref="chartEl" class="rounded-xl bg-white overflow-hidden"></div>
   </div>
 
 </template>
@@ -65,16 +65,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style>
-.page {
-  padding: 16px;
-}
-
-.chart-container {
-  width: 100%;
-  height: 100%;
-  border: 1px solid #e4e2e9;
-  background: #fff;
-}
-</style>
