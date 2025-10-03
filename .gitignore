@@ -1,0 +1,30 @@
+# Node/Vite
+frontend/node_modules/
+frontend/dist/
+
+# TypeScript
+frontend/*.tsbuildinfo
+
+# Python/Flask
+backend/__pycache__/
+backend/*.pyc
+backend/instance/
+backend/.env
+
+# Python virtual environments
+.venv/
+venv/
+ENV/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Misc
+*.swp
+*.swo
