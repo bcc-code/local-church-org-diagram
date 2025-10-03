@@ -8,7 +8,8 @@ load_dotenv()
 
 app = Flask(__name__)
 supabase: Client = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"])
-supabase.options.schema = "public"
+
+TENANT_ID = os.environ.get("TENANT_ID")
 
 
 @app.route("/")
@@ -18,14 +19,20 @@ def hello():
 
 @app.route("/tree", methods=["GET"])
 def get_tree():
-    groups = supabase.table("groups").select("*").execute().data
+    q = supabase.table("groups").select("*")
+    if TENANT_ID:
+        q = q.eq("tenant_id", TENANT_ID)
+    else:
+        q = q.is_("tenant_id", None)
+
+    groups = q.execute()
     return [
         {
             "group_id": group["id"],
             "label": group["name"],
             "parent_group_id": group["parent_id"],
         }
-        for group in groups
+        for group in groups.data
     ]
 
 
