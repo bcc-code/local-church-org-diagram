@@ -1,0 +1,13 @@
+[
+  {
+    "id": "1",
+    "parentId": null,
+    "name": "Alice Smith",
+    "title": "Lead Pastor"
+  },
+  { "id": "2", "parentId": "1", "name": "Bob Johnson", "title": "Elder" },
+  { "id": "3", "parentId": "1", "name": "Carol Lee", "title": "Elder" },
+  { "id": "4", "parentId": "2", "name": "Dan Wu", "title": "Deacon" },
+  { "id": "5", "parentId": "2", "name": "Eve Adams", "title": "Deacon" },
+  { "id": "6", "parentId": "3", "name": "Frank Patel", "title": "Youth Leader" }
+]
