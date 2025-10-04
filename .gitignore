@@ -9,15 +9,11 @@ frontend/*.tsbuildinfo
 backend/__pycache__/
 backend/*.pyc
 backend/instance/
-backend/.env
 
 # Python virtual environments
 .venv/
 venv/
 ENV/
-
-# VS Code
-.vscode/
 
 # macOS
 .DS_Store
@@ -28,3 +24,5 @@ ENV/
 # Misc
 *.swp
 *.swo
+
+.env
