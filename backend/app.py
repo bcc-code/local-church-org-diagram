@@ -8,17 +8,8 @@ import swagger_client as bcc_api_client
 
 load_dotenv()
 
-app = Flask(__name__)
-supabase: Client = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"])
-oauth_client = OAuth2Client(
-    token_endpoint="https://api.bcc.no/oauth2/token",
-    scope="bcc-core-api",
-    client_id=os.environ["BCC_OAUTH_CLIENT_ID"],
-    client_secret=os.environ["BCC_OAUTH_CLIENT_SECRET"],
-)
+app = Flask("org-diagram")
 
-bcc_client_config = bcc_api_client.Configuration()
-bcc_client_config.host = "https://api.bcc.no"
 
 TENANT_ID = os.environ.get("TENANT_ID")
 
@@ -59,4 +50,18 @@ def get_users():
 
 
 if __name__ == "__main__":
+    supabase: Client = create_client(
+        os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"]
+    )
+
+    oauth_client = OAuth2Client(
+        token_endpoint="https://api.bcc.no/oauth2/token",
+        scope="bcc-core-api",
+        client_id=os.environ["BCC_OAUTH_CLIENT_ID"],
+        client_secret=os.environ["BCC_OAUTH_CLIENT_SECRET"],
+    )
+
+    bcc_client_config = bcc_api_client.Configuration()
+    bcc_client_config.host = "https://api.bcc.no"
+
     app.run(debug=True)
