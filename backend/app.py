@@ -15,17 +15,19 @@ TENANT_ID = os.environ.get("TENANT_ID")
 
 
 @app.route("/")
-def hello():
+def up():
     return "OK!"
 
 
 @app.route("/tree", methods=["GET"])
 def get_tree():
-    q = supabase.table("groups").select("*")
+    q = supabase.table("groups").select(
+        "id, name, parent_id, group_membership(bcc_person_uid)"
+    )
     if TENANT_ID:
-        q = q.eq("tenant_id", TENANT_ID)
+        q = q.eq("tenant_id", TENANT_ID).eq("group_membership.tenant_id", TENANT_ID)
     else:
-        q = q.is_("tenant_id", None)
+        q = q.is_("tenant_id", None).is_("group_membership.tenant_id", None)
 
     groups = q.execute()
     return [
@@ -33,6 +35,9 @@ def get_tree():
             "group_id": group["id"],
             "label": group["name"],
             "parent_group_id": group["parent_id"],
+            "person_uids": [
+                membership["bcc_person_uid"] for membership in group["group_membership"]
+            ],
         }
         for group in groups.data
     ]
