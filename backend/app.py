@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, json, request
+from flask import Flask, json, request, send_file
 from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
 from supabase import Client, create_client
 import swagger_client as bcc_api_client
@@ -59,6 +59,12 @@ def get_persons():
         filter=json.dumps({"uid": {"_in": uids}}),
     ).data  # type: ignore
     return [{"person_uid": p.uid, "name": p.display_name} for p in persons]
+
+
+@app.before_request
+def demo_mode():
+    if os.environ.get("DEMO_MODE") == "1" and request.path != "/":
+        return send_file(f"demo_requests{request.path}.json")
 
 
 if __name__ == "__main__":
