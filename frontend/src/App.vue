@@ -1,6 +1,26 @@
 <template>
   <div class="p-4 bg-cyan-700">
     <h1 class="text-2xl font-semibold mb-4">Org Chart Demo</h1>
+    <div class="mb-4 flex gap-2">
+      <Button>Primary</Button>
+      <Dialog>
+        <DialogTrigger as-child>
+          <Button variant="outline">Open Dialog</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invite user</DialogTitle>
+            <DialogDescription>Send an invitation link to this user.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose as-child>
+              <Button variant="secondary">Close</Button>
+            </DialogClose>
+            <Button>Send</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
     <div ref="chartEl" class="rounded-xl bg-white overflow-hidden"></div>
   </div>
 
@@ -9,9 +29,19 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref, createApp } from 'vue';
 import OrgNodeCard from './components/OrgNodeCard.vue';
+import Button from '@/components/ui/button/Button.vue';
+import Dialog from '@/components/ui/dialog/Dialog.vue';
+import DialogTrigger from '@/components/ui/dialog/DialogTrigger.vue';
+import DialogContent from '@/components/ui/dialog/DialogContent.vue';
+import DialogHeader from '@/components/ui/dialog/DialogHeader.vue';
+import DialogTitle from '@/components/ui/dialog/DialogTitle.vue';
+import DialogDescription from '@/components/ui/dialog/DialogDescription.vue';
+import DialogFooter from '@/components/ui/dialog/DialogFooter.vue';
+import DialogClose from '@/components/ui/dialog/DialogClose.vue';
 
 export default defineComponent({
   name: 'App',
+  components: { Button, Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose },
   setup() {
     const chartEl = ref<HTMLDivElement | null>(null);
 
