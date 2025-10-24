@@ -1,5 +1,5 @@
 <template>
-    <div ref="chartEl" class="rounded-xl h-auto bg-white" />
+    <div ref="chartEl" class="rounded-xl h-auto bg-neutral-0 shadow-lg border border-neutral-200" />
 </template>
 
 <script lang="ts">

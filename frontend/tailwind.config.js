@@ -8,7 +8,50 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["Archivo", "system-ui", "sans-serif"],
+        serif: ["IBM Plex Serif", "serif"],
+      },
       colors: {
+        // BCC Color System
+        neutral: {
+          0: "var(--neutral-0)",
+          50: "var(--neutral-50)",
+          100: "var(--neutral-100)",
+          200: "var(--neutral-200)",
+          300: "var(--neutral-300)",
+          400: "var(--neutral-400)",
+          500: "var(--neutral-500)",
+          600: "var(--neutral-600)",
+          700: "var(--neutral-700)",
+          800: "var(--neutral-800)",
+          900: "var(--neutral-900)",
+        },
+        brand: {
+          50: "var(--brand-50)",
+          100: "var(--brand-100)",
+          200: "var(--brand-200)",
+          300: "var(--brand-300)",
+          400: "var(--brand-400)",
+          500: "var(--brand-500)",
+          600: "var(--brand-600)",
+          700: "var(--brand-700)",
+          800: "var(--brand-800)",
+          900: "var(--brand-900)",
+        },
+        "silver-tree": {
+          50: "var(--silver-tree-50)",
+          100: "var(--silver-tree-100)",
+          200: "var(--silver-tree-200)",
+          300: "var(--silver-tree-300)",
+          400: "var(--silver-tree-400)",
+          500: "var(--silver-tree-500)",
+          600: "var(--silver-tree-600)",
+          700: "var(--silver-tree-700)",
+          800: "var(--silver-tree-800)",
+          900: "var(--silver-tree-900)",
+        },
+        // Shadcn-compatible colors using BCC tokens
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -50,12 +93,12 @@ module.exports = {
       },
       keyframes: {
         "accordion-down": {
-          from: { height: 0 },
+          from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: 0 },
+          to: { height: "0" },
         },
       },
       animation: {

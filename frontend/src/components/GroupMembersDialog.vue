@@ -1,16 +1,17 @@
 <template>
     <Dialog>
         <DialogTrigger as-child>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon"
+                class="bg-neutral-0 border-neutral-300 hover:bg-neutral-50 text-neutral-700">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
             </Button>
         </DialogTrigger>
-        <DialogContent class="max-w-md">
+        <DialogContent class="max-w-md bg-neutral-0 border-neutral-200">
             <DialogHeader>
-                <DialogTitle>{{ groupName }} - Medlemmer</DialogTitle>
-                <DialogDescription>
+                <DialogTitle class="text-heading-lg text-neutral-900">{{ groupName }} - Medlemmer</DialogTitle>
+                <DialogDescription class="text-body-sm text-neutral-600">
                     <span v-if="isLoading">Laster medlemmer...</span>
                     <span v-else-if="groupMembers.length === 0">Ingen medlemmer i denne gruppen.</span>
                     <span v-else>{{ groupMembers.length }} medlemmer i gruppen:</span>
@@ -23,7 +24,8 @@
 
             <DialogFooter>
                 <DialogClose as-child>
-                    <Button variant="secondary">Lukk</Button>
+                    <Button variant="secondary"
+                        class="bg-neutral-100 text-neutral-900 hover:bg-neutral-200">Lukk</Button>
                 </DialogClose>
             </DialogFooter>
         </DialogContent>
