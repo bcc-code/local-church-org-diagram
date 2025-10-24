@@ -1,13 +1,815 @@
 [
   {
-    "id": "1",
-    "parentId": null,
-    "name": "Alice Smith",
-    "title": "Lead Pastor"
+    "group_id": 1,
+    "label": "BCC K\u00f8benhavn",
+    "parent_group_id": null,
+    "person_uids": []
   },
-  { "id": "2", "parentId": "1", "name": "Bob Johnson", "title": "Elder" },
-  { "id": "3", "parentId": "1", "name": "Carol Lee", "title": "Elder" },
-  { "id": "4", "parentId": "2", "name": "Dan Wu", "title": "Deacon" },
-  { "id": "5", "parentId": "2", "name": "Eve Adams", "title": "Deacon" },
-  { "id": "6", "parentId": "3", "name": "Frank Patel", "title": "Youth Leader" }
+  {
+    "group_id": 2,
+    "label": "Forstander",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 3,
+    "label": "Bestyrelse",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 4,
+    "label": "Talsperson",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 5,
+    "label": "Brunstad Kontakt",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 6,
+    "label": "PMO",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 7,
+    "label": "TASK",
+    "parent_group_id": 1,
+    "person_uids": [
+      "57a10f21-9f6a-4b34-b634-089b4c77dbce",
+      "a88f5a8b-8d99-47c7-b5b2-db19a4cb32c6"
+    ]
+  },
+  {
+    "group_id": 8,
+    "label": "B\u00f8rn",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 9,
+    "label": "VK",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 10,
+    "label": "\u00c6K",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 11,
+    "label": "Festudvalg",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 12,
+    "label": "K\u00f8kken",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 13,
+    "label": "Ungdom",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 14,
+    "label": "Drift TFV",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 15,
+    "label": "Teknik",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 16,
+    "label": "HKOnline",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 17,
+    "label": "Musik",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 18,
+    "label": "Workstaff",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 19,
+    "label": "Aktioner",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 20,
+    "label": "Samfundss\u00f8ndag",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 21,
+    "label": "\u00d8konomi",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 22,
+    "label": "\u00d8lsemagle",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 23,
+    "label": "Medlemsudvalg",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 24,
+    "label": "Anken\u00e6vn",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 25,
+    "label": "Kommunikation",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 26,
+    "label": "Compliance / interne revision",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 27,
+    "label": "Artist",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 28,
+    "label": "BUK Sport KBH",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 29,
+    "label": "Danish Dynamite",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 30,
+    "label": "Fodbold",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 31,
+    "label": "Framers",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 32,
+    "label": "Ishockey (drenge)",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 33,
+    "label": "KSK",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 34,
+    "label": "Pigeholdet",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 35,
+    "label": "T\u00e5rnfalkene",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 36,
+    "label": "Volley (drenge)",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 37,
+    "label": "Volleyball Aces",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 38,
+    "label": "B\u00f8rnekor",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 39,
+    "label": "Fodbold U13 (drenge)",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 40,
+    "label": "Fodbold U13 (piger)",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 41,
+    "label": "Ishockey/sk\u00f8jtning",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 42,
+    "label": "AK",
+    "parent_group_id": 7,
+    "person_uids": []
+  },
+  {
+    "group_id": 43,
+    "label": "S\u00f8ndagskole",
+    "parent_group_id": 8,
+    "person_uids": []
+  },
+  {
+    "group_id": 44,
+    "label": "Oprykkerne",
+    "parent_group_id": 8,
+    "person_uids": []
+  },
+  {
+    "group_id": 45,
+    "label": "Tweens",
+    "parent_group_id": 8,
+    "person_uids": []
+  },
+  {
+    "group_id": 46,
+    "label": "Hold 1",
+    "parent_group_id": 12,
+    "person_uids": []
+  },
+  {
+    "group_id": 47,
+    "label": "Hold 2",
+    "parent_group_id": 12,
+    "person_uids": []
+  },
+  {
+    "group_id": 48,
+    "label": "Hold 3",
+    "parent_group_id": 12,
+    "person_uids": []
+  },
+  {
+    "group_id": 49,
+    "label": "BUK",
+    "parent_group_id": 13,
+    "person_uids": []
+  },
+  {
+    "group_id": 50,
+    "label": "Bibelundervisning",
+    "parent_group_id": 13,
+    "person_uids": []
+  },
+  {
+    "group_id": 51,
+    "label": "Samvirk",
+    "parent_group_id": 13,
+    "person_uids": []
+  },
+  {
+    "group_id": 52,
+    "label": "Musik",
+    "parent_group_id": 13,
+    "person_uids": []
+  },
+  {
+    "group_id": 53,
+    "label": "Driftskomit\u00e9",
+    "parent_group_id": 14,
+    "person_uids": []
+  },
+  {
+    "group_id": 54,
+    "label": "Byg",
+    "parent_group_id": 14,
+    "person_uids": []
+  },
+  {
+    "group_id": 55,
+    "label": "Installationer/Brand",
+    "parent_group_id": 14,
+    "person_uids": []
+  },
+  {
+    "group_id": 56,
+    "label": "Udend\u00f8rs/Affald",
+    "parent_group_id": 14,
+    "person_uids": []
+  },
+  {
+    "group_id": 57,
+    "label": "Adgangskontrol",
+    "parent_group_id": 14,
+    "person_uids": []
+  },
+  {
+    "group_id": 58,
+    "label": "S&O",
+    "parent_group_id": 14,
+    "person_uids": []
+  },
+  {
+    "group_id": 59,
+    "label": "M\u00f8devagt",
+    "parent_group_id": 14,
+    "person_uids": []
+  },
+  {
+    "group_id": 60,
+    "label": "Lukkevagt",
+    "parent_group_id": 14,
+    "person_uids": []
+  },
+  {
+    "group_id": 61,
+    "label": "Caf\u00e9en",
+    "parent_group_id": 14,
+    "person_uids": []
+  },
+  {
+    "group_id": 62,
+    "label": "M\u00e5gevej",
+    "parent_group_id": 14,
+    "person_uids": []
+  },
+  {
+    "group_id": 63,
+    "label": "AV",
+    "parent_group_id": 15,
+    "person_uids": []
+  },
+  {
+    "group_id": 64,
+    "label": "Flow",
+    "parent_group_id": 15,
+    "person_uids": []
+  },
+  {
+    "group_id": 65,
+    "label": "Udvikling/Vedligehold",
+    "parent_group_id": 16,
+    "person_uids": []
+  },
+  {
+    "group_id": 66,
+    "label": "Fotografer",
+    "parent_group_id": 16,
+    "person_uids": []
+  },
+  {
+    "group_id": 67,
+    "label": "BKM.dk",
+    "parent_group_id": 16,
+    "person_uids": []
+  },
+  {
+    "group_id": 68,
+    "label": "\u00d8lsemaglekomit\u00e9",
+    "parent_group_id": 22,
+    "person_uids": []
+  },
+  {
+    "group_id": 69,
+    "label": "Udleje",
+    "parent_group_id": 22,
+    "person_uids": []
+  },
+  {
+    "group_id": 70,
+    "label": "Byggeri",
+    "parent_group_id": 22,
+    "person_uids": []
+  },
+  {
+    "group_id": 71,
+    "label": "Vicev\u00e6rt",
+    "parent_group_id": 22,
+    "person_uids": []
+  },
+  {
+    "group_id": 72,
+    "label": "Leder",
+    "parent_group_id": 23,
+    "person_uids": []
+  },
+  {
+    "group_id": 73,
+    "label": "Medlem",
+    "parent_group_id": 23,
+    "person_uids": []
+  },
+  {
+    "group_id": 74,
+    "label": "Leder",
+    "parent_group_id": 24,
+    "person_uids": []
+  },
+  {
+    "group_id": 75,
+    "label": "Medlem",
+    "parent_group_id": 24,
+    "person_uids": []
+  },
+  {
+    "group_id": 76,
+    "label": "U8",
+    "parent_group_id": 30,
+    "person_uids": []
+  },
+  {
+    "group_id": 77,
+    "label": "G10",
+    "parent_group_id": 30,
+    "person_uids": []
+  },
+  {
+    "group_id": 78,
+    "label": "J10",
+    "parent_group_id": 30,
+    "person_uids": []
+  },
+  {
+    "group_id": 79,
+    "label": "G13",
+    "parent_group_id": 30,
+    "person_uids": []
+  },
+  {
+    "group_id": 80,
+    "label": "J13",
+    "parent_group_id": 30,
+    "person_uids": []
+  },
+  {
+    "group_id": 81,
+    "label": "G16",
+    "parent_group_id": 30,
+    "person_uids": []
+  },
+  {
+    "group_id": 82,
+    "label": "J16",
+    "parent_group_id": 30,
+    "person_uids": []
+  },
+  {
+    "group_id": 83,
+    "label": "G23",
+    "parent_group_id": 30,
+    "person_uids": []
+  },
+  {
+    "group_id": 84,
+    "label": "Piger 2010",
+    "parent_group_id": 42,
+    "person_uids": []
+  },
+  {
+    "group_id": 85,
+    "label": "Piger 2011",
+    "parent_group_id": 42,
+    "person_uids": []
+  },
+  {
+    "group_id": 86,
+    "label": "Piger 2012",
+    "parent_group_id": 42,
+    "person_uids": []
+  },
+  {
+    "group_id": 87,
+    "label": "Piger 2013",
+    "parent_group_id": 42,
+    "person_uids": []
+  },
+  {
+    "group_id": 88,
+    "label": "Piger 2014",
+    "parent_group_id": 42,
+    "person_uids": []
+  },
+  {
+    "group_id": 89,
+    "label": "Piger 2015",
+    "parent_group_id": 42,
+    "person_uids": []
+  },
+  {
+    "group_id": 90,
+    "label": "Drenge 2010",
+    "parent_group_id": 42,
+    "person_uids": []
+  },
+  {
+    "group_id": 91,
+    "label": "Drenge 2011",
+    "parent_group_id": 42,
+    "person_uids": []
+  },
+  {
+    "group_id": 92,
+    "label": "Drenge 2012",
+    "parent_group_id": 42,
+    "person_uids": []
+  },
+  {
+    "group_id": 93,
+    "label": "Drenge 2013",
+    "parent_group_id": 42,
+    "person_uids": []
+  },
+  {
+    "group_id": 94,
+    "label": "Drenge 2014",
+    "parent_group_id": 42,
+    "person_uids": []
+  },
+  {
+    "group_id": 95,
+    "label": "Drenge 2015",
+    "parent_group_id": 42,
+    "person_uids": []
+  },
+  {
+    "group_id": 96,
+    "label": "Junior",
+    "parent_group_id": 43,
+    "person_uids": []
+  },
+  {
+    "group_id": 97,
+    "label": "Explorer 1",
+    "parent_group_id": 43,
+    "person_uids": []
+  },
+  {
+    "group_id": 98,
+    "label": "Explorer 2",
+    "parent_group_id": 43,
+    "person_uids": []
+  },
+  {
+    "group_id": 99,
+    "label": "Musik",
+    "parent_group_id": 43,
+    "person_uids": []
+  },
+  {
+    "group_id": 100,
+    "label": "Mentor",
+    "parent_group_id": 43,
+    "person_uids": []
+  },
+  {
+    "group_id": 101,
+    "label": "Aktiviteter",
+    "parent_group_id": 43,
+    "person_uids": []
+  },
+  {
+    "group_id": 102,
+    "label": "Teknik",
+    "parent_group_id": 43,
+    "person_uids": []
+  },
+  {
+    "group_id": 103,
+    "label": "Koordinator",
+    "parent_group_id": 46,
+    "person_uids": []
+  },
+  {
+    "group_id": 104,
+    "label": "Mad",
+    "parent_group_id": 46,
+    "person_uids": []
+  },
+  {
+    "group_id": 105,
+    "label": "Dessert",
+    "parent_group_id": 46,
+    "person_uids": []
+  },
+  {
+    "group_id": 106,
+    "label": "Kaffeansvarlig",
+    "parent_group_id": 46,
+    "person_uids": []
+  },
+  {
+    "group_id": 107,
+    "label": "Reception",
+    "parent_group_id": 46,
+    "person_uids": []
+  },
+  {
+    "group_id": 108,
+    "label": "Tjener",
+    "parent_group_id": 46,
+    "person_uids": []
+  },
+  {
+    "group_id": 109,
+    "label": "Reng\u00f8ring",
+    "parent_group_id": 46,
+    "person_uids": []
+  },
+  {
+    "group_id": 110,
+    "label": "Opvask",
+    "parent_group_id": 46,
+    "person_uids": []
+  },
+  {
+    "group_id": 111,
+    "label": "Blomster + pynt",
+    "parent_group_id": 46,
+    "person_uids": []
+  },
+  {
+    "group_id": 112,
+    "label": "Vielser",
+    "parent_group_id": 46,
+    "person_uids": []
+  },
+  {
+    "group_id": 113,
+    "label": "Koordinator",
+    "parent_group_id": 47,
+    "person_uids": []
+  },
+  {
+    "group_id": 114,
+    "label": "Mad",
+    "parent_group_id": 47,
+    "person_uids": []
+  },
+  {
+    "group_id": 115,
+    "label": "Dessert",
+    "parent_group_id": 47,
+    "person_uids": []
+  },
+  {
+    "group_id": 116,
+    "label": "Kaffeansvarlig",
+    "parent_group_id": 47,
+    "person_uids": []
+  },
+  {
+    "group_id": 117,
+    "label": "Reception",
+    "parent_group_id": 47,
+    "person_uids": []
+  },
+  {
+    "group_id": 118,
+    "label": "Tjener",
+    "parent_group_id": 47,
+    "person_uids": []
+  },
+  {
+    "group_id": 119,
+    "label": "Reng\u00f8ring",
+    "parent_group_id": 47,
+    "person_uids": []
+  },
+  {
+    "group_id": 120,
+    "label": "Opvask",
+    "parent_group_id": 47,
+    "person_uids": []
+  },
+  {
+    "group_id": 121,
+    "label": "Blomster + pynt",
+    "parent_group_id": 47,
+    "person_uids": []
+  },
+  {
+    "group_id": 122,
+    "label": "Vielser",
+    "parent_group_id": 47,
+    "person_uids": []
+  },
+  {
+    "group_id": 123,
+    "label": "Koordinator",
+    "parent_group_id": 48,
+    "person_uids": []
+  },
+  {
+    "group_id": 124,
+    "label": "Mad",
+    "parent_group_id": 48,
+    "person_uids": []
+  },
+  {
+    "group_id": 125,
+    "label": "Dessert",
+    "parent_group_id": 48,
+    "person_uids": []
+  },
+  {
+    "group_id": 126,
+    "label": "Kaffeansvarlig",
+    "parent_group_id": 48,
+    "person_uids": []
+  },
+  {
+    "group_id": 127,
+    "label": "Reception",
+    "parent_group_id": 48,
+    "person_uids": []
+  },
+  {
+    "group_id": 128,
+    "label": "Tjener",
+    "parent_group_id": 48,
+    "person_uids": []
+  },
+  {
+    "group_id": 129,
+    "label": "Reng\u00f8ring",
+    "parent_group_id": 48,
+    "person_uids": []
+  },
+  {
+    "group_id": 130,
+    "label": "Opvask",
+    "parent_group_id": 48,
+    "person_uids": []
+  },
+  {
+    "group_id": 131,
+    "label": "Blomster + pynt",
+    "parent_group_id": 48,
+    "person_uids": []
+  },
+  {
+    "group_id": 132,
+    "label": "Vielser",
+    "parent_group_id": 48,
+    "person_uids": []
+  },
+  {
+    "group_id": 133,
+    "label": "BUK Bites",
+    "parent_group_id": 49,
+    "person_uids": []
+  },
+  {
+    "group_id": 134,
+    "label": "M\u00f8der",
+    "parent_group_id": 60,
+    "person_uids": []
+  },
+  {
+    "group_id": 135,
+    "label": "Ungdomsm\u00f8der",
+    "parent_group_id": 60,
+    "person_uids": []
+  }
 ]

@@ -15,12 +15,22 @@
         </div>
         <Dialog>
             <DialogTrigger as-child>
-                <Button variant="outline">Open Dialog</Button>
+                <div class="flex ml-auto">
+                    <Button variant="outline" size="icon">
+                        +
+                    </Button>
+                </div>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Invite user</DialogTitle>
-                    <DialogDescription>Send an invitation link to this user.</DialogDescription>
+                    <DialogDescription>Send an invitation link to this user.
+
+                        <div v-for="peopleId in peopleIds22" :key="peopleId" class="text-sm text-gray-500 mt-2">
+                            Person ID: {{ peopleId }}
+                        </div>
+                    </DialogDescription>
+
                 </DialogHeader>
                 <DialogFooter>
                     <DialogClose as-child>
@@ -34,11 +44,13 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 interface Props {
     name: string;
     title?: string;
+    groupId?: number;
+    peopleIds?: string[];
     width?: number;
     height?: number;
 }
@@ -58,6 +70,35 @@ import DialogClose from '@/components/ui/dialog/DialogClose.vue';
 const test = () => {
     console.log('clicked');
 };
+
+
+const peopleIds22 = ref<{
+    name: string;
+    person_uid: string;
+}[]>([]);
+
+
+
+const fetchPeopleIds = async () => {
+    if (!props.groupId) return;
+    try {
+        const res = await fetch('/persons.json');
+        const people: { name: string; person_uid: string; group_id: number }[] = await res.json();
+        console.log('Fetched people:', people);
+
+        // Filter people based on props.peopleIds if provided
+        if (props.peopleIds && props.peopleIds.length > 0) {
+            peopleIds22.value = people.filter(person =>
+                props.peopleIds!.includes(person.person_uid)
+            );
+        } else {
+            peopleIds22.value = people;
+        }
+    } catch (error) {
+        console.error('Failed to fetch people IDs', error);
+    }
+};
+fetchPeopleIds();
 
 const computedInitials = computed(() => {
     const n = props.name || '';
