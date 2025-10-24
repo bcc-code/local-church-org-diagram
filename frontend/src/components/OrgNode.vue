@@ -12,7 +12,7 @@
                 {{ title }}
             </div>
         </div>
-        <div class="flex ml-auto">
+        <div class="flex ml-auto" v-if="props.peopleCount > 0">
             <GroupMembersDialog :group-id="groupId" :people-ids="peopleIds" :group-name="name" />
         </div>
     </div>
@@ -30,7 +30,7 @@ interface Props {
     width?: number;
     height?: number;
     parentGroupId?: number | string | null;
-    peopleCount?: number;
+    peopleCount: number;
     raw?: any;
 }
 
