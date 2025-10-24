@@ -1,0 +1,7 @@
+{
+  "editor.formatOnSave": true,
+  "[python]": {
+    "editor.wordWrapColumn": 80
+  },
+  "python.analysis.extraPaths": ["./bcc_api"]
+}

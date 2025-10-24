@@ -3,12 +3,14 @@
 This project contains a Vue.js frontend (TypeScript) and a Flask backend (Python).
 
 ## Structure
+
 - `frontend/` — Vue.js 3 + TypeScript app (Vite)
 - `backend/` — Flask app
 
 ## Getting Started
 
 ### Frontend
+
 1. Install dependencies:
    ```sh
    cd frontend
@@ -20,6 +22,7 @@ This project contains a Vue.js frontend (TypeScript) and a Flask backend (Python
    ```
 
 ### Backend
+
 1. Install dependencies:
    ```sh
    cd backend
@@ -30,6 +33,17 @@ This project contains a Vue.js frontend (TypeScript) and a Flask backend (Python
    python app.py
    ```
 
----
+## DEMO_MODE
 
-Replace placeholder code as needed for your application.
+Set the environment variable `DEMO_MODE=1` to enable demo mode in the backend Flask app.
+Configure it in your `.env` file or in the terminal session as shown below.
+When enabled, all API endpoints (except `/`) will return static JSON responses from files in the `backend/demo_requests/` directory, matching the request path (e.g., `/tree` returns `demo_requests/tree.json`).
+
+**Usage:**
+
+```sh
+export DEMO_MODE=1
+python app.py
+```
+
+This is useful for development and testing without requiring live backend or external API access.
