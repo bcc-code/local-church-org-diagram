@@ -33,7 +33,7 @@ export default defineComponent({
                 const count = Array.isArray(g.person_uids) ? g.person_uids.length : 0;
                 const title =
                     count === 0
-                        ? 'Tom gruppe'
+                        ? 'Tomt gruppe'
                         : count === 1
                             ? '1 person'
                             : `${count} personer`;
