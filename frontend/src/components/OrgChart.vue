@@ -70,7 +70,7 @@ export default defineComponent({
                     .neighbourMargin(() => 20)
                     .nodeHeight(() => 120)
                     .nodeWidth(() => 250)
-                    .compact(true)
+                    .compact(false)
                     .nodeContent((node: any, _i: number, _arr: any[], state: any) => {
                         const w = state.nodeWidth(node);
                         const h = state.nodeHeight(node);
