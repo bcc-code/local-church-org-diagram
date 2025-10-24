@@ -18,21 +18,7 @@
             </DialogHeader>
 
             <div v-if="!isLoading" class="max-h-64 overflow-y-auto space-y-2 py-2">
-                <div v-for="member in groupMembers" :key="member.person_uid"
-                    class="flex items-center p-2 border border-gray-200 rounded-lg bg-gray-50">
-                    <div
-                        class="w-8 h-8 rounded-full bg-[#4c6ef5] text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
-                        {{ getInitials(member.name) }}
-                    </div>
-                    <div class="ml-2 min-w-0">
-                        <div class="text-sm font-medium text-gray-900">
-                            {{ member.name }}
-                        </div>
-                        <div class="text-xs text-gray-500">
-                            ID: {{ member.person_uid }}
-                        </div>
-                    </div>
-                </div>
+                <MemberCard v-for="member in groupMembers" :key="member.person_uid" :member="member" />
             </div>
 
             <DialogFooter>
@@ -55,6 +41,7 @@ import DialogTitle from '@/components/ui/dialog/DialogTitle.vue';
 import DialogDescription from '@/components/ui/dialog/DialogDescription.vue';
 import DialogFooter from '@/components/ui/dialog/DialogFooter.vue';
 import DialogClose from '@/components/ui/dialog/DialogClose.vue';
+import MemberCard from './MemberCard.vue';
 
 interface Props {
     groupId?: number | string;
@@ -72,15 +59,6 @@ const props = defineProps<Props>();
 
 const groupMembers = ref<GroupMember[]>([]);
 const isLoading = ref(true);
-
-const getInitials = (name: string): string => {
-    return name
-        .split(' ')
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((s) => s[0]?.toUpperCase())
-        .join('');
-};
 
 const fetchGroupMembers = async () => {
     if (!props.groupId) {
