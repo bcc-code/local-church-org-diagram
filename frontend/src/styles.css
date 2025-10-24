@@ -3,72 +3,301 @@
 @import "tailwindcss/utilities";
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
+  /* BCC Neutral Colors */
+  --neutral-0: #ffffff;
+  --neutral-50: #f9fafb;
+  --neutral-100: #f3f4f6;
+  --neutral-200: #e5e7eb;
+  --neutral-300: #d1d5db;
+  --neutral-400: #9ca3af;
+  --neutral-500: #6b7280;
+  --neutral-600: #4b5563;
+  --neutral-700: #374151;
+  --neutral-800: #1f2937;
+  --neutral-900: #111827;
 
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
+  /* BCC Brand Colors */
+  --brand-50: #f5f8f8;
+  --brand-100: #eaeeef;
+  --brand-200: #d2dadb;
+  --brand-300: #acbdbd;
+  --brand-400: #8ea6a6;
+  --brand-500: #437571;
+  --brand-600: #004e48;
+  --brand-700: #023d38;
+  --brand-800: #021f1c;
+  --brand-900: #020a0b;
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
+  /* BCC Silver Tree (Primary Green) */
+  --silver-tree-50: #f3faf7;
+  --silver-tree-100: #d8efe5;
+  --silver-tree-200: #b4dccb;
+  --silver-tree-300: #84c2aa;
+  --silver-tree-400: #54a084;
+  --silver-tree-500: #338167;
+  --silver-tree-600: #266653;
+  --silver-tree-700: #1f5243;
+  --silver-tree-800: #1c4238;
+  --silver-tree-900: #193730;
 
-  --primary: 240 5.9% 10%;
-  --primary-foreground: 0 0% 98%;
+  /* BCC Semantic Colors */
+  --green-50: #eefff4;
+  --green-100: #d7ffe7;
+  --green-500: #09de62;
+  --green-600: #01b84e;
+  --green-700: #059040;
+  --green-800: #0a7137;
+  --green-900: #0a5d2f;
 
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
+  --blue-50: #eef9ff;
+  --blue-500: #34a9ff;
+  --blue-600: #1b8af5;
+  --blue-700: #1472e1;
+  --blue-800: #175bb6;
+  --blue-900: #194e8f;
 
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
+  --red-50: #fff1f1;
+  --red-500: #f93a4f;
+  --red-600: #e71738;
+  --red-700: #c30d2e;
+  --red-800: #a30e2e;
+  --red-900: #8b102f;
 
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
+  --yellow-50: #fefde8;
+  --yellow-500: #ecc406;
+  --yellow-600: #cc9902;
+  --yellow-700: #a26d06;
+  --yellow-800: #86550d;
+  --yellow-900: #724611;
 
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
+  /* BCC Design System Semantic Tokens */
+  --background: var(--neutral-0);
+  --foreground: var(--neutral-900);
 
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 240 10% 3.9%;
+  --card: var(--neutral-0);
+  --card-foreground: var(--neutral-900);
+
+  --popover: var(--neutral-0);
+  --popover-foreground: var(--neutral-900);
+
+  --primary: var(--silver-tree-600);
+  --primary-foreground: var(--neutral-0);
+
+  --secondary: var(--neutral-100);
+  --secondary-foreground: var(--neutral-900);
+
+  --muted: var(--neutral-100);
+  --muted-foreground: var(--neutral-600);
+
+  --accent: var(--neutral-100);
+  --accent-foreground: var(--neutral-900);
+
+  --destructive: var(--red-600);
+  --destructive-foreground: var(--neutral-0);
+
+  --border: var(--neutral-200);
+  --input: var(--neutral-200);
+  --ring: var(--silver-tree-600);
 
   --radius: 0.5rem;
+
+  /* BCC Text Colors */
+  --text-primary: var(--neutral-900);
+  --text-secondary: var(--neutral-600);
+  --text-tertiary: var(--neutral-400);
+  --text-interactive: var(--silver-tree-600);
+  --text-interactive-hover: var(--silver-tree-700);
+
+  /* BCC Background Colors */
+  --bg-primary: var(--neutral-0);
+  --bg-secondary: var(--neutral-50);
+  --bg-tertiary: var(--neutral-100);
+  --bg-brand: var(--brand-600);
+
+  /* BCC Button Colors */
+  --bg-button-primary: var(--silver-tree-600);
+  --bg-button-primary-hover: var(--silver-tree-700);
+  --bg-button-secondary: var(--neutral-0);
+  --bg-button-secondary-hover: var(--neutral-50);
+
+  --text-button-primary: var(--neutral-0);
+  --text-button-secondary: var(--neutral-900);
+
+  --border-button-primary: var(--silver-tree-700);
+  --border-button-secondary: var(--neutral-300);
 }
 
 .dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
+  --background: var(--neutral-900);
+  --foreground: var(--neutral-0);
 
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
+  --card: var(--neutral-900);
+  --card-foreground: var(--neutral-0);
 
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
+  --popover: var(--neutral-900);
+  --popover-foreground: var(--neutral-0);
 
-  --primary: 0 0% 98%;
-  --primary-foreground: 240 5.9% 10%;
+  --primary: var(--silver-tree-500);
+  --primary-foreground: var(--neutral-900);
 
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
+  --secondary: var(--neutral-800);
+  --secondary-foreground: var(--neutral-0);
 
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
+  --muted: var(--neutral-800);
+  --muted-foreground: var(--neutral-400);
 
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
+  --accent: var(--neutral-800);
+  --accent-foreground: var(--neutral-0);
 
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
+  --destructive: var(--red-700);
+  --destructive-foreground: var(--neutral-0);
 
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 240 4.9% 83.9%;
+  --border: var(--neutral-800);
+  --input: var(--neutral-800);
+  --ring: var(--silver-tree-500);
 }
 
-/* Base element styling using CSS variables to avoid @apply for editor compatibility */
+/* BCC Typography */
+@layer components {
+  .text-title-xl {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2em;
+  }
+  .text-title-lg {
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.2em;
+  }
+  .text-title {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2em;
+  }
+  .text-title-sm {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2em;
+  }
+  .text-title-xs {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.2em;
+  }
+
+  .text-heading-xl {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.5em;
+  }
+  .text-heading-lg {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.5em;
+  }
+  .text-heading {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.5em;
+  }
+  .text-heading-sm {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5em;
+  }
+  .text-heading-xs {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.5em;
+  }
+
+  .text-body-lg {
+    font-size: 1.125rem;
+    font-weight: 400;
+    line-height: 1.75em;
+  }
+  .text-body {
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5em;
+  }
+  .text-body-sm {
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.5em;
+  }
+  .text-body-xs {
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.5em;
+  }
+
+  .text-caption-large {
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.25em;
+  }
+  .text-caption {
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.25em;
+  }
+  .text-caption-sm {
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.25em;
+  }
+  .text-caption-xs {
+    font-size: 0.625rem;
+    font-weight: 400;
+    line-height: 1.25em;
+  }
+
+  .text-label-lg {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.25em;
+  }
+  .text-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25em;
+  }
+  .text-label-sm {
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.25em;
+  }
+  .text-label-xs {
+    font-size: 0.625rem;
+    font-weight: 500;
+    line-height: 1.25em;
+  }
+
+  /* BCC Button Styles */
+  .btn-primary {
+    @apply bg-silver-tree-600 hover:bg-silver-tree-700 active:bg-silver-tree-500 text-neutral-0 border-silver-tree-700 hover:border-silver-tree-800;
+  }
+
+  .btn-secondary {
+    @apply bg-neutral-0 hover:bg-neutral-50 active:bg-neutral-100 text-neutral-900 border-neutral-300 hover:border-neutral-900;
+  }
+}
+
+/* Base element styling using CSS variables */
 * {
   border-color: hsl(var(--border));
 }
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+  font-family:
+    "Archivo",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
 }

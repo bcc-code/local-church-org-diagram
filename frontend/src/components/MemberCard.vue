@@ -1,14 +1,15 @@
 <template>
-    <div class="flex items-center p-2 border border-gray-200 rounded-lg bg-gray-50">
+    <div
+        class="flex items-center p-3 border border-neutral-200 rounded-lg bg-neutral-50 hover:bg-neutral-100 transition-colors">
         <div
-            class="w-8 h-8 rounded-full bg-[#4c6ef5] text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+            class="w-8 h-8 rounded-full bg-silver-tree-600 text-neutral-0 flex items-center justify-center font-bold text-xs flex-shrink-0">
             {{ initials }}
         </div>
-        <div class="ml-2 min-w-0">
-            <div class="text-sm font-medium text-gray-900">
+        <div class="ml-3 min-w-0">
+            <div class="text-body-sm font-medium text-neutral-900">
                 {{ member.name }}
             </div>
-            <div class="text-xs text-gray-500">
+            <div class="text-caption text-neutral-600">
                 ID: {{ member.person_uid }}
             </div>
         </div>
