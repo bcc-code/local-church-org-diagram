@@ -73,7 +73,7 @@ const fetchGroupMembers = async () => {
         // Filter people based on props.peopleIds if provided
         if (props.peopleIds && props.peopleIds.length > 0) {
             groupMembers.value = people.filter(person =>
-                props.peopleIds!.includes(person.person_uid)
+                props.peopleIds.includes(person.person_uid)
             );
         } else {
             // Fallback: filter by group_id if available
