@@ -1,13 +1,5 @@
 <template>
-    <Dialog>
-        <DialogTrigger as-child>
-            <Button variant="outline" size="icon"
-                class="bg-neutral-0 border-neutral-300 hover:bg-neutral-50 text-neutral-700">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-            </Button>
-        </DialogTrigger>
+    <Dialog v-model:open="isOpen">
         <DialogContent class="max-w-md bg-neutral-0 border-neutral-200">
             <DialogHeader>
                 <DialogTitle class="text-heading-lg text-neutral-900">{{ groupName }} - Medlemmer</DialogTitle>
@@ -33,10 +25,9 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import Button from '@/components/ui/button/Button.vue';
 import Dialog from '@/components/ui/dialog/Dialog.vue';
-import DialogTrigger from '@/components/ui/dialog/DialogTrigger.vue';
 import DialogContent from '@/components/ui/dialog/DialogContent.vue';
 import DialogHeader from '@/components/ui/dialog/DialogHeader.vue';
 import DialogTitle from '@/components/ui/dialog/DialogTitle.vue';
@@ -61,6 +52,14 @@ const props = defineProps<Props>();
 
 const groupMembers = ref<GroupMember[]>([]);
 const isLoading = ref(true);
+const isOpen = ref(false);
+
+const open = () => {
+    isOpen.value = true;
+    if (!groupMembers.value.length) {
+        fetchGroupMembers();
+    }
+};
 
 const fetchGroupMembers = async () => {
     if (!props.groupId) {
@@ -75,7 +74,7 @@ const fetchGroupMembers = async () => {
         // Filter people based on props.peopleIds if provided
         if (props.peopleIds && props.peopleIds.length > 0) {
             groupMembers.value = people.filter(person =>
-                props.peopleIds.includes(person.person_uid)
+                props.peopleIds!.includes(person.person_uid)
             );
         } else {
             // Fallback: filter by group_id if available
@@ -90,7 +89,8 @@ const fetchGroupMembers = async () => {
     }
 };
 
-onMounted(() => {
-    fetchGroupMembers();
+// Expose the open method to parent component
+defineExpose({
+    open
 });
 </script>
