@@ -30,7 +30,7 @@ export default defineComponent({
         const toOrgNodes = (groups: Group[]): OrgNodeData[] => {
             return groups.map((g) => {
 
-                const title = g.member_count > 0 ? `${g.member_count} medlemmer` : 'Ingen medlemmer';
+                const title = g.member_count > 0 ? `${g.member_count} medlemmer` : '';
 
                 return {
                     id: g.group_id,
