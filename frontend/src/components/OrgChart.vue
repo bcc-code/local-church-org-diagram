@@ -10,7 +10,8 @@ type Group = {
     group_id: number;
     label: string;
     parent_group_id: number | null;
-    member_count: number
+    member_count: number;
+    type?: string;
 };
 
 type OrgNodeData = {
@@ -19,6 +20,7 @@ type OrgNodeData = {
     name: string;
     title: string;
     raw: Group;
+    staffGroups?: Group[];
 };
 
 export default defineComponent({
@@ -28,9 +30,24 @@ export default defineComponent({
         const chartEl = ref<HTMLDivElement | null>(null);
 
         const toOrgNodes = (groups: Group[]): OrgNodeData[] => {
-            return groups.map((g) => {
+            // Separate staff groups from regular groups
+            const staffGroups = groups.filter(g => g.type === 'staff-group');
+            const regularGroups = groups.filter(g => g.type !== 'staff-group');
 
+            // Create a map of parent_group_id -> staff groups
+            const staffGroupsByParent = new Map<number, Group[]>();
+            staffGroups.forEach(sg => {
+                if (sg.parent_group_id) {
+                    if (!staffGroupsByParent.has(sg.parent_group_id)) {
+                        staffGroupsByParent.set(sg.parent_group_id, []);
+                    }
+                    staffGroupsByParent.get(sg.parent_group_id)!.push(sg);
+                }
+            });
+
+            return regularGroups.map((g) => {
                 const title = g.member_count > 0 ? `${g.member_count} medlemmer` : '';
+                const staffGroups = staffGroupsByParent.get(g.group_id) || [];
 
                 return {
                     id: g.group_id,
@@ -38,6 +55,7 @@ export default defineComponent({
                     name: g.label,
                     title,
                     raw: g,
+                    staffGroups,
                 };
             });
         };
@@ -61,8 +79,8 @@ export default defineComponent({
                     .parentNodeId((d: OrgNodeData) => d.parentId)
                     .childrenMargin(() => 100)
                     .neighbourMargin(() => 50)
-                    .nodeHeight(() => 85)
-                    .nodeWidth(() => 170)
+                    .nodeHeight(() => 100)
+                    .nodeWidth(() => 200)
                     .compact(false)
                     .nodeContent((node: any, _i: number, _arr: any[], state: any) => {
                         const w = state.nodeWidth(node);
@@ -106,6 +124,7 @@ export default defineComponent({
                             memberCount: data.raw.member_count,
                             parentGroupId: data.parentId,
                             raw: data.raw,
+                            staffGroups: data.staffGroups || [],
                         });
                         app.mount(host);
                         mountedApps[nodeId] = app;

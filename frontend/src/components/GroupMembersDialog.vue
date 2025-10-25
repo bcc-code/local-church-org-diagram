@@ -1,38 +1,14 @@
 <template>
-    <Dialog v-model:open="isOpen">
-        <DialogContent class="max-w-md bg-neutral-0 border-neutral-200">
-            <DialogClose as-child class="absolute right-3 top-2">
-                <Button size="sm"
-                    class="bg-red-500 text-white hover:text-white hover:bg-red-600 opacity-80 hover:opacity-100">
-                    X
-                </Button>
-            </DialogClose>
-            <DialogHeader>
-                <DialogTitle class="text-heading-lg text-neutral-900">{{ groupName }} - Medlemmer</DialogTitle>
-                <DialogDescription class="text-body-sm text-neutral-600">
-                    <span v-if="isLoading">Laster medlemmer...</span>
-                    <span v-else-if="groupMembers.length === 0">Ingen medlemmer i denne gruppen.</span>
-                    <span v-else>{{ groupMembers.length }} medlemmer i gruppen:</span>
-                </DialogDescription>
-            </DialogHeader>
-
-            <div v-if="!isLoading" class="max-h-64 overflow-y-auto space-y-2 py-2">
-                <MemberCard v-for="member in groupMembers" :key="member.person_uid" :member="member" />
-            </div>
-        </DialogContent>
-    </Dialog>
+    <BaseDialog ref="baseDialog" :title="`${groupName} - Medlemmer`" :description="dialogDescription">
+        <div v-if="!isLoading" class="space-y-3">
+            <MemberCard v-for="member in groupMembers" :key="member.person_uid" :member="member" />
+        </div>
+    </BaseDialog>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import Button from '@/components/ui/button/Button.vue';
-import Dialog from '@/components/ui/dialog/Dialog.vue';
-import DialogContent from '@/components/ui/dialog/DialogContent.vue';
-import DialogHeader from '@/components/ui/dialog/DialogHeader.vue';
-import DialogTitle from '@/components/ui/dialog/DialogTitle.vue';
-import DialogDescription from '@/components/ui/dialog/DialogDescription.vue';
-import DialogFooter from '@/components/ui/dialog/DialogFooter.vue';
-import DialogClose from '@/components/ui/dialog/DialogClose.vue';
+import { ref, computed } from 'vue';
+import BaseDialog from './BaseDialog.vue';
 import MemberCard from './MemberCard.vue';
 
 interface Props {
@@ -50,12 +26,20 @@ const props = defineProps<Props>();
 
 const groupMembers = ref<GroupMember[]>([]);
 const isLoading = ref(true);
-const isOpen = ref(false);
+const baseDialog = ref<InstanceType<typeof BaseDialog> | null>(null);
+
+const dialogDescription = computed(() => {
+    if (isLoading.value) return 'Laster medlemmer...';
+    if (groupMembers.value.length === 0) return 'Ingen medlemmer i denne gruppen.';
+    return `${groupMembers.value.length} medlemmer i gruppen:`;
+});
 
 const open = () => {
-    isOpen.value = true;
-    if (!groupMembers.value.length) {
-        fetchGroupMembers();
+    if (baseDialog.value) {
+        baseDialog.value.open();
+        if (!groupMembers.value.length) {
+            fetchGroupMembers();
+        }
     }
 };
 
@@ -77,7 +61,6 @@ const fetchGroupMembers = async () => {
     }
 };
 
-// Expose the open method to parent component
 defineExpose({
     open
 });
