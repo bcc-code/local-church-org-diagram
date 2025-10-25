@@ -18,147 +18,6 @@
     "person_uids": []
   },
   {
-    "group_id": 4,
-    "label": "Talsperson",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 5,
-    "label": "Brunstad Kontakt",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 6,
-    "label": "PMO",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 7,
-    "label": "TASK",
-    "parent_group_id": 1,
-    "person_uids": [
-      "57a10f21-9f6a-4b34-b634-089b4c77dbce",
-      "a88f5a8b-8d99-47c7-b5b2-db19a4cb32c6"
-    ]
-  },
-  {
-    "group_id": 8,
-    "label": "B\u00f8rn",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 9,
-    "label": "VK",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 10,
-    "label": "\u00c6K",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 11,
-    "label": "Festudvalg",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 12,
-    "label": "K\u00f8kken",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 13,
-    "label": "Ungdom",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 14,
-    "label": "Drift TFV",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 15,
-    "label": "Teknik",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 16,
-    "label": "HKOnline",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 17,
-    "label": "Musik",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 18,
-    "label": "Workstaff",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 19,
-    "label": "Aktioner",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 20,
-    "label": "Samfundss\u00f8ndag",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 21,
-    "label": "\u00d8konomi",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 22,
-    "label": "\u00d8lsemagle",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 23,
-    "label": "Medlemsudvalg",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 24,
-    "label": "Anken\u00e6vn",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 25,
-    "label": "Kommunikation",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
-    "group_id": 26,
-    "label": "Compliance / interne revision",
-    "parent_group_id": 1,
-    "person_uids": []
-  },
-  {
     "group_id": 27,
     "label": "Artist",
     "parent_group_id": 7,
@@ -753,6 +612,135 @@
     "person_uids": []
   },
   {
+    "group_id": 6,
+    "label": "PMO",
+    "parent_group_id": 141,
+    "person_uids": []
+  },
+  {
+    "group_id": 7,
+    "label": "TASK",
+    "parent_group_id": 140,
+    "person_uids": [
+      "57a10f21-9f6a-4b34-b634-089b4c77dbce",
+      "a88f5a8b-8d99-47c7-b5b2-db19a4cb32c6"
+    ]
+  },
+  {
+    "group_id": 9,
+    "label": "VK",
+    "parent_group_id": 140,
+    "person_uids": []
+  },
+  {
+    "group_id": 10,
+    "label": "\u00c6K",
+    "parent_group_id": 140,
+    "person_uids": []
+  },
+  {
+    "group_id": 4,
+    "label": "Talsperson",
+    "parent_group_id": 141,
+    "person_uids": []
+  },
+  {
+    "group_id": 13,
+    "label": "Ungdom",
+    "parent_group_id": 140,
+    "person_uids": []
+  },
+  {
+    "group_id": 12,
+    "label": "K\u00f8kken",
+    "parent_group_id": 143,
+    "person_uids": []
+  },
+  {
+    "group_id": 11,
+    "label": "Festudvalg",
+    "parent_group_id": 143,
+    "person_uids": []
+  },
+  {
+    "group_id": 14,
+    "label": "Drift TFV",
+    "parent_group_id": 142,
+    "person_uids": []
+  },
+  {
+    "group_id": 15,
+    "label": "Teknik",
+    "parent_group_id": 143,
+    "person_uids": []
+  },
+  {
+    "group_id": 16,
+    "label": "HKOnline",
+    "parent_group_id": 141,
+    "person_uids": []
+  },
+  {
+    "group_id": 17,
+    "label": "Musik",
+    "parent_group_id": 143,
+    "person_uids": []
+  },
+  {
+    "group_id": 18,
+    "label": "Workstaff",
+    "parent_group_id": 144,
+    "person_uids": []
+  },
+  {
+    "group_id": 19,
+    "label": "Aktioner",
+    "parent_group_id": 144,
+    "person_uids": []
+  },
+  {
+    "group_id": 20,
+    "label": "Samfundss\u00f8ndag",
+    "parent_group_id": 140,
+    "person_uids": []
+  },
+  {
+    "group_id": 21,
+    "label": "\u00d8konomi",
+    "parent_group_id": 141,
+    "person_uids": []
+  },
+  {
+    "group_id": 22,
+    "label": "\u00d8lsemagle",
+    "parent_group_id": 142,
+    "person_uids": []
+  },
+  {
+    "group_id": 23,
+    "label": "Medlemsudvalg",
+    "parent_group_id": 141,
+    "person_uids": []
+  },
+  {
+    "group_id": 24,
+    "label": "Anken\u00e6vn",
+    "parent_group_id": 141,
+    "person_uids": []
+  },
+  {
+    "group_id": 25,
+    "label": "Kommunikation",
+    "parent_group_id": 141,
+    "person_uids": []
+  },
+  {
+    "group_id": 26,
+    "label": "Compliance / interne revision",
+    "parent_group_id": 141,
+    "person_uids": []
+  },
+  {
     "group_id": 126,
     "label": "Kaffeansvarlig",
     "parent_group_id": 48,
@@ -810,6 +798,48 @@
     "group_id": 135,
     "label": "Ungdomsm\u00f8der",
     "parent_group_id": 60,
+    "person_uids": []
+  },
+  {
+    "group_id": 8,
+    "label": "B\u00f8rn",
+    "parent_group_id": 140,
+    "person_uids": []
+  },
+  {
+    "group_id": 140,
+    "label": "Medlemstilbud",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 141,
+    "label": "Administration",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 142,
+    "label": "Ejendomme",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 143,
+    "label": "M\u00f8der og fester",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 144,
+    "label": "Indsamling",
+    "parent_group_id": 1,
+    "person_uids": []
+  },
+  {
+    "group_id": 5,
+    "label": "Brunstad Kontakt",
+    "parent_group_id": 141,
     "person_uids": []
   }
 ]
