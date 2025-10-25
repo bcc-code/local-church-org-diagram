@@ -51,7 +51,7 @@ export default defineComponent({
 
         onMounted(async () => {
             try {
-                const res = await fetch('/org-data.json');
+                const res = await fetch('api/tree');
                 const groups: Group[] = await res.json();
                 const data: OrgNodeData[] = toOrgNodes(groups);
 

@@ -69,7 +69,7 @@ const fetchGroupMembers = async () => {
     }
 
     try {
-        const res = await fetch('/persons.json');
+        const res = await fetch('api/persons');
         const people: GroupMember[] = await res.json();
 
         // Filter people based on props.peopleIds if provided
