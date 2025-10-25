@@ -59,16 +59,16 @@ export default defineComponent({
                     .data(data)
                     .nodeId((d: OrgNodeData) => d.id)
                     .parentNodeId((d: OrgNodeData) => d.parentId)
-                    .childrenMargin(() => 40)
-                    .neighbourMargin(() => 20)
-                    .nodeHeight(() => 120)
-                    .nodeWidth(() => 250)
+                    .childrenMargin(() => 100)
+                    .neighbourMargin(() => 50)
+                    .nodeHeight(() => 85)
+                    .nodeWidth(() => 170)
                     .compact(false)
                     .nodeContent((node: any, _i: number, _arr: any[], state: any) => {
                         const w = state.nodeWidth(node);
                         const h = state.nodeHeight(node);
                         const id = state.nodeId(node.data);
-                        return `<div class="org-node-mount" data-node-id="${id}" style="width:${w}px;height:${h}px;"></div>`;
+                        return `<div class="org-node-mount" data-node-id="${id}" style=";min-width:${w}px;height:${h}px;"></div>`;
                     })
                     .render();
 
