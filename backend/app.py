@@ -132,9 +132,7 @@ def get_tree():
             "group_id": group["id"],
             "label": group["name"],
             "parent_group_id": group["parent_id"],
-            "person_uids": [
-                membership["bcc_person_uid"] for membership in group["group_membership"]
-            ],
+            "member_count": len(group["group_membership"]),
         }
         for group in groups.data
     ]
@@ -142,10 +140,28 @@ def get_tree():
 
 @app.route("/api/persons", methods=["GET"])
 def get_persons():
-    uids = request.args.getlist("uids")
-    if not uids:
-        return {"error": "No uids provided"}, 400
+    group_id = request.args.get("group_id")
+    if not group_id:
+        return {"error": "No group_id provided"}, 400
 
+    uids = []
+    q = (
+        supabase.table("group_membership")
+        .select("bcc_person_uid")
+        .eq("group_id", group_id)
+    )
+    if TENANT_ID:
+        q = q.eq("tenant_id", TENANT_ID)
+    else:
+        q = q.is_("tenant_id", None)
+    memberships = q.execute()
+    for membership in memberships.data:
+        uids.append(membership["bcc_person_uid"])
+
+    if not uids:
+        return []
+
+    # Lookup person names from BCC API
     if bcc_auth.token is None or bcc_auth.token.is_expired():
         bcc_auth.renew_token()
     persons_api.api_client.configuration.access_token = str(bcc_auth.token)
@@ -154,7 +170,13 @@ def get_persons():
         fields="*",
         filter=json.dumps({"uid": {"_in": uids}}),
     ).data  # type: ignore
-    return [{"person_uid": p.uid, "name": p.display_name} for p in persons]
+    return [
+        {
+            "person_uid": p.uid,
+            "name": p.display_name,
+        }
+        for p in persons
+    ]
 
 
 @app.before_request
