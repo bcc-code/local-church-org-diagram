@@ -50,6 +50,31 @@ The Flask backend serves both the API endpoints and the built Vue frontend as a 
 - `import_from_excel.ipynb` - Jupyter notebook to import org structure from Excel into Supabase
 - Processes hierarchical Excel data (L1/L2/L3 columns) into groups table
 
+## Local Development Workflow (Recommended)
+
+For the best development experience with hot module replacement (HMR):
+
+**Terminal 1 - Run Flask backend:**
+```bash
+cd backend
+python app.py                    # Runs on http://localhost:5000
+# OR for demo mode:
+DEMO_MODE=1 python app.py
+```
+
+**Terminal 2 - Run Vite dev server:**
+```bash
+cd frontend
+npm run dev                      # Runs on http://localhost:5173
+```
+
+**Develop on:** `http://localhost:5173`
+
+The Vite dev server proxies `/api/*` requests to Flask backend, giving you:
+- Instant HMR updates for frontend changes
+- Real backend API integration
+- Best debugging experience
+
 ## Common Development Commands
 
 ### Frontend
@@ -57,7 +82,7 @@ The Flask backend serves both the API endpoints and the built Vue frontend as a 
 ```bash
 cd frontend
 npm install          # Install dependencies
-npm run dev          # Start dev server (http://localhost:5173)
+npm run dev          # Start dev server with HMR (http://localhost:5173)
 npm run build        # Build for production
 npm run preview      # Preview production build
 ```
@@ -67,16 +92,13 @@ npm run preview      # Preview production build
 ```bash
 cd backend
 pip install -r ../requirements.txt  # Install dependencies (from repo root)
-
-# Development: Build frontend first, then run Flask
-cd ../frontend && npm run build && cd ../backend
 python app.py                       # Run Flask server (http://localhost:5000)
 
 # Demo mode (no API/DB required)
 DEMO_MODE=1 python app.py
 ```
 
-### Full Stack (Production-like)
+### Production Build
 
 ```bash
 # Build frontend
@@ -148,7 +170,9 @@ SUPABASE_KEY=...
 
 - The `bcc_api/` directory contains generated code - do not manually edit
 - Demo mode is useful for development without credentials or external API access
-- **Frontend must be built before running Flask** - Vite builds to `backend/public/`, which Flask serves
+- **For local development**, use Vite dev server (`npm run dev`) with Flask backend running in parallel
+- **For production**, build frontend first (`npm run build`) - Vite builds to `backend/public/`, which Flask serves
+- Vite dev server proxies `/api/*` requests to Flask backend at `http://localhost:5000`
 - The frontend currently uses a static JSON file (`org-data.json`) by default - see `App.vue` for how to switch to `/api/tree`
 - d3-org-chart is loaded from CDN, not npm - see `frontend/index.html`
 - OAuth tokens are automatically renewed when expired via `requests_oauth2client`

@@ -22,7 +22,7 @@ TENANT_ID = os.environ.get("TENANT_ID")
 @app.route("/")
 def index():
     """Serve the Vue frontend"""
-    return send_from_directory(app.static_folder, "index.html")
+    return send_from_directory(app.static_folder, "index.html")  # type: ignore
 
 
 @app.route("/api/tree", methods=["GET"])
@@ -68,6 +68,7 @@ def get_persons():
 
 @app.before_request
 def demo_mode():
+    """Serve demo JSON files in demo mode for API requests"""
     if os.environ.get("DEMO_MODE") == "1" and request.path.startswith("/api/"):
         # Remove /api prefix for demo file lookup
         demo_path = request.path.replace("/api", "", 1)
