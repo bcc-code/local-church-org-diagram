@@ -21,13 +21,48 @@ from swagger_client.models.person import Person
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("app")
 
 app = Flask("org-diagram", static_folder="public", static_url_path="")
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.urandom(24))
 oauth = OAuth(app)
 
 TENANT_ID = os.environ.get("TENANT_ID")
+DEMO_MODE = os.environ.get("DEMO_MODE", "0") == "1"
+FLASK_DEBUG = os.environ.get("FLASK_DEBUG", "0") == "1"
+
+if not DEMO_MODE:
+    logger.info("Configuring app in PRODUCTION mode")
+    oauth.register(
+        name="bcc",
+        client_id=os.environ.get("BCC_OIDC_CLIENT_ID"),
+        client_secret=os.environ.get("BCC_OIDC_CLIENT_SECRET"),
+        server_metadata_url="https://login.bcc.no/.well-known/openid-configuration",
+        client_kwargs={"scope": "openid profile email"},
+    )
+
+    supabase: Client = create_client(
+        os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"]
+    )
+
+    bcc_oauth_client = OAuth2Client(
+        token_endpoint="https://login.bcc.no/oauth/token",
+        client_id=os.environ["BCC_OAUTH_CLIENT_ID"],
+        client_secret=os.environ["BCC_OAUTH_CLIENT_SECRET"],
+    )
+
+    bcc_auth = OAuth2ClientCredentialsAuth(
+        bcc_oauth_client,
+        scope="persons.name#read",
+        audience="api.bcc.no",
+    )
+
+    bcc_client_config = bcc_api_client.Configuration()
+    bcc_client_config.host = "https://core.api.bcc.no"
+    api_client = bcc_api_client.ApiClient(configuration=bcc_client_config)
+    persons_api = bcc_api_client.PersonsApi(api_client)
+else:
+    logger.info("Running in DEMO mode")
 
 
 @app.route("/")
@@ -39,7 +74,7 @@ def index():
 @app.route("/login")
 def login():
     """Initiate OIDC login flow"""
-    if os.environ.get("DEMO_MODE") == "1":
+    if DEMO_MODE:
         # In demo mode, just set a fake user session
         session["user"] = {"email": "demo@example.com", "name": "Demo User"}
         return redirect("/")
@@ -145,34 +180,4 @@ def serve_spa(path):
 
 
 if __name__ == "__main__":
-    if not os.environ.get("DEMO_MODE"):
-        oauth.register(
-            name="bcc",
-            client_id=os.environ.get("BCC_OIDC_CLIENT_ID"),
-            client_secret=os.environ.get("BCC_OIDC_CLIENT_SECRET"),
-            server_metadata_url="https://login.bcc.no/.well-known/openid-configuration",
-            client_kwargs={"scope": "openid profile email"},
-        )
-
-        supabase: Client = create_client(
-            os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"]
-        )
-
-        bcc_oauth_client = OAuth2Client(
-            token_endpoint="https://login.bcc.no/oauth/token",
-            client_id=os.environ["BCC_OAUTH_CLIENT_ID"],
-            client_secret=os.environ["BCC_OAUTH_CLIENT_SECRET"],
-        )
-
-        bcc_auth = OAuth2ClientCredentialsAuth(
-            bcc_oauth_client,
-            scope="persons.name#read",
-            audience="api.bcc.no",
-        )
-
-        bcc_client_config = bcc_api_client.Configuration()
-        bcc_client_config.host = "https://core.api.bcc.no"
-        api_client = bcc_api_client.ApiClient(configuration=bcc_client_config)
-        persons_api = bcc_api_client.PersonsApi(api_client)
-
-    app.run(debug=True)
+    app.run(debug=FLASK_DEBUG)
