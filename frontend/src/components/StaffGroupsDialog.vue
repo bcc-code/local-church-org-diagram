@@ -8,7 +8,8 @@
                     {{ staffGroup.label }}
                 </div>
                 <div class="text-caption text-neutral-600">
-                    {{ staffGroup.member_count > 0 ? `${staffGroup.member_count} medlemmer` : 'Ingen medlemmer' }}
+                    {{ staffGroup.member_count > 0 ? `${staffGroup.member_count} ${TEXTS.MEMBERS}` : `Ingen
+                    ${TEXTS.MEMBERS}` }}
                 </div>
             </div>
         </div>
@@ -22,29 +23,23 @@
 import { ref, computed } from 'vue';
 import BaseDialog from './BaseDialog.vue';
 import GroupMembersDialog from './GroupMembersDialog.vue';
-
-interface StaffGroup {
-    group_id: number;
-    label: string;
-    parent_group_id: number | null;
-    member_count: number;
-    type?: string;
-}
+import { TEXTS } from '@/constants';
+import type { Group } from '@/types';
 
 interface Props {
     groupName: string;
-    staffGroups: StaffGroup[];
+    staffGroups: Group[];
 }
 
 const props = defineProps<Props>();
 
 const baseDialog = ref<InstanceType<typeof BaseDialog> | null>(null);
-const selectedStaffGroup = ref<StaffGroup | null>(null);
+const selectedStaffGroup = ref<Group | null>(null);
 const membersDialog = ref<InstanceType<typeof GroupMembersDialog> | null>(null);
 
 const dialogDescription = computed(() => {
-    if (props.staffGroups.length === 0) return 'Ingen staber i denne gruppen.';
-    return `${props.staffGroups.length} staber i gruppen:`;
+    if (props.staffGroups.length === 0) return `Ingen ${TEXTS.STAFF_GROUPS} i denne gruppen.`;
+    return `${props.staffGroups.length} ${TEXTS.STAFF_GROUPS} i gruppen:`;
 });
 
 const open = () => {
@@ -53,7 +48,7 @@ const open = () => {
     }
 };
 
-const handleStaffGroupClick = (staffGroup: StaffGroup) => {
+const handleStaffGroupClick = (staffGroup: Group) => {
     if (staffGroup.member_count > 0) {
         selectedStaffGroup.value = staffGroup;
         if (baseDialog.value) {

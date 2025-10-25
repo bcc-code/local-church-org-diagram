@@ -18,11 +18,7 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-
-interface GroupMember {
-    name: string;
-    person_uid: string;
-}
+import type { GroupMember } from '@/types';
 
 interface Props {
     member: GroupMember;

@@ -1,10 +1,9 @@
 <template>
     <Dialog v-model:open="isOpen">
-        <DialogContent class="max-w-md bg-neutral-0 border-neutral-200">
+        <DialogContent :class="`${UI_CONFIG.DIALOG.MAX_WIDTH} bg-neutral-0 border-neutral-200`">
             <DialogClose as-child class="absolute right-3 top-2">
-                <Button size="sm"
-                    class="bg-red-500 text-white hover:text-white hover:bg-red-600 opacity-80 hover:opacity-100">
-                    X
+                <Button size="sm" variant="destructive" class="opacity-80 hover:opacity-100">
+                    ×
                 </Button>
             </DialogClose>
             <DialogHeader>
@@ -14,7 +13,7 @@
                 </DialogDescription>
             </DialogHeader>
 
-            <div class="max-h-64 overflow-y-auto space-y-2 py-2">
+            <div :class="`${UI_CONFIG.DIALOG.MAX_HEIGHT} overflow-y-auto space-y-2 py-2`">
                 <slot />
             </div>
         </DialogContent>
@@ -30,13 +29,10 @@ import DialogHeader from '@/components/ui/dialog/DialogHeader.vue';
 import DialogTitle from '@/components/ui/dialog/DialogTitle.vue';
 import DialogDescription from '@/components/ui/dialog/DialogDescription.vue';
 import DialogClose from '@/components/ui/dialog/DialogClose.vue';
+import { UI_CONFIG } from '@/constants';
+import type { DialogProps } from '@/types';
 
-interface Props {
-    title: string;
-    description: string;
-}
-
-const props = defineProps<Props>();
+defineProps<DialogProps>();
 
 const isOpen = ref(false);
 

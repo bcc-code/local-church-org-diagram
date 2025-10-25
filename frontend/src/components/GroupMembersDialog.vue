@@ -1,15 +1,24 @@
 <template>
     <BaseDialog ref="baseDialog" :title="`${groupName} - Medlemmer`" :description="dialogDescription">
-        <div v-if="!isLoading" class="space-y-3">
-            <MemberCard v-for="member in groupMembers" :key="member.person_uid" :member="member" />
+        <div v-if="hasError()" class="p-4 bg-red-50 border border-red-200 rounded-md">
+            <p class="text-red-800 text-sm">{{ state.error }}</p>
+        </div>
+        <div v-else-if="!isLoading() && hasData()" class="space-y-3">
+            <MemberCard v-for="member in state.data" :key="member.person_uid" :member="member" />
+        </div>
+        <div v-else-if="!isLoading() && !hasData()" class="p-4 text-center text-neutral-600">
+            <p>{{ TEXTS.NO_MEMBERS }}</p>
         </div>
     </BaseDialog>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 import BaseDialog from './BaseDialog.vue';
 import MemberCard from './MemberCard.vue';
+import { useAsyncData, useApiClient } from '@/composables/useApi';
+import { TEXTS } from '@/constants';
+import type { GroupMember } from '@/types';
 
 interface Props {
     groupId?: number | string;
@@ -17,48 +26,32 @@ interface Props {
     groupName: string;
 }
 
-interface GroupMember {
-    name: string;
-    person_uid: string;
-}
-
 const props = defineProps<Props>();
 
-const groupMembers = ref<GroupMember[]>([]);
-const isLoading = ref(true);
+const { state, execute, isLoading, hasError, hasData } = useAsyncData<GroupMember[]>();
+const { fetchGroupMembers } = useApiClient();
 const baseDialog = ref<InstanceType<typeof BaseDialog> | null>(null);
 
 const dialogDescription = computed(() => {
-    if (isLoading.value) return 'Laster medlemmer...';
-    if (groupMembers.value.length === 0) return 'Ingen medlemmer i denne gruppen.';
-    return `${groupMembers.value.length} medlemmer i gruppen:`;
+    if (isLoading()) return TEXTS.LOADING_MEMBERS;
+    if (hasError()) return TEXTS.COULD_NOT_LOAD_MEMBERS;
+    if (hasData() && state.value.data) return `${state.value.data.length} ${TEXTS.MEMBERS} i gruppen:`;
+    return TEXTS.NO_MEMBERS;
 });
 
 const open = () => {
     if (baseDialog.value) {
         baseDialog.value.open();
-        if (!groupMembers.value.length) {
-            fetchGroupMembers();
+        if (!hasData() && props.groupId) {
+            loadGroupMembers();
         }
     }
 };
 
-const fetchGroupMembers = async () => {
-    if (!props.groupId) {
-        isLoading.value = false;
-        return;
-    }
+const loadGroupMembers = async () => {
+    if (!props.groupId) return;
 
-    try {
-        const res = await fetch('api/persons' + `?group_id=${props.groupId}`);
-        const people: GroupMember[] = await res.json();
-        groupMembers.value = [...people];
-
-    } catch (error) {
-        console.error('Failed to fetch group members', error);
-    } finally {
-        isLoading.value = false;
-    }
+    await execute(() => fetchGroupMembers(props.groupId!));
 };
 
 defineExpose({
