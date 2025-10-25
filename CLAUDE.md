@@ -61,6 +61,7 @@ The Flask backend serves both the API endpoints and the built Vue frontend as a 
 For the best development experience with hot module replacement (HMR):
 
 **Terminal 1 - Run Flask backend:**
+
 ```bash
 cd backend
 python app.py                    # Runs on http://localhost:5000
@@ -69,6 +70,7 @@ DEMO_MODE=1 python app.py
 ```
 
 **Terminal 2 - Run Vite dev server:**
+
 ```bash
 cd frontend
 npm run dev                      # Runs on http://localhost:5173
@@ -77,6 +79,7 @@ npm run dev                      # Runs on http://localhost:5173
 **Develop on:** `http://localhost:5173`
 
 The Vite dev server proxies `/api/*` requests to Flask backend, giving you:
+
 - Instant HMR updates for frontend changes
 - Real backend API integration
 - Best debugging experience
