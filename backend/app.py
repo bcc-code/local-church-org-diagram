@@ -1,8 +1,18 @@
 import logging
 import os
 
+from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
-from flask import Flask, json, request, send_file, send_from_directory
+from flask import (
+    Flask,
+    json,
+    request,
+    send_file,
+    send_from_directory,
+    session,
+    redirect,
+    url_for,
+)
 from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
 from supabase import Client, create_client
 import swagger_client as bcc_api_client
@@ -14,7 +24,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask("org-diagram", static_folder="public", static_url_path="")
-
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.urandom(24))
+oauth = OAuth(app)
 
 TENANT_ID = os.environ.get("TENANT_ID")
 
@@ -23,6 +34,51 @@ TENANT_ID = os.environ.get("TENANT_ID")
 def index():
     """Serve the Vue frontend"""
     return send_from_directory(app.static_folder, "index.html")  # type: ignore
+
+
+@app.route("/login")
+def login():
+    """Initiate OIDC login flow"""
+    if os.environ.get("DEMO_MODE") == "1":
+        # In demo mode, just set a fake user session
+        session["user"] = {"email": "demo@example.com", "name": "Demo User"}
+        return redirect("/")
+
+    redirect_uri = url_for("authorize", _external=True)
+    return oauth.bcc.authorize_redirect(redirect_uri)  # type: ignore
+
+
+@app.route("/authorize")
+def authorize():
+    """OIDC callback endpoint"""
+    token = oauth.bcc.authorize_access_token()  # type: ignore
+    userinfo = token.get("userinfo")
+
+    if userinfo:
+        session["user"] = {
+            "email": userinfo.get("email"),
+            "name": userinfo.get("name"),
+            "sub": userinfo.get("sub"),
+        }
+        logger.info(f"User logged in: {userinfo.get('email')}")
+
+    return redirect("/")
+
+
+@app.route("/logout")
+def logout():
+    """Clear user session"""
+    session.pop("user", None)
+    return redirect("/")
+
+
+@app.route("/api/user")
+def get_current_user():
+    """Get current authenticated user information"""
+    user = session.get("user")
+    if user:
+        return user
+    return {"authenticated": False}, 401
 
 
 @app.route("/api/tree", methods=["GET"])
@@ -90,6 +146,14 @@ def serve_spa(path):
 
 if __name__ == "__main__":
     if not os.environ.get("DEMO_MODE"):
+        oauth.register(
+            name="bcc",
+            client_id=os.environ.get("BCC_OIDC_CLIENT_ID"),
+            client_secret=os.environ.get("BCC_OIDC_CLIENT_SECRET"),
+            server_metadata_url="https://login.bcc.no/.well-known/openid-configuration",
+            client_kwargs={"scope": "openid profile email"},
+        )
+
         supabase: Client = create_client(
             os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"]
         )

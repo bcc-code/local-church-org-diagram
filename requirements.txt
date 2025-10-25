@@ -2,4 +2,5 @@ Flask>=2.0.0
 supabase>=2.20.0
 dotenv
 requests_oauth2client>=1.7.0
+authlib>=1.3.0
 -e ./bcc_api

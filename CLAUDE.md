@@ -22,14 +22,20 @@ The Flask backend serves both the API endpoints and the built Vue frontend as a 
 
 ### Backend (`backend/`)
 
-- **Stack**: Flask (Python)
+- **Stack**: Flask (Python) + Authlib (for OIDC)
 - **Serves**: Built Vue frontend from `public/` directory + API endpoints
 - **API Endpoints**:
   - `GET /api/tree` - Returns org structure from Supabase (groups with member UIDs)
   - `GET /api/persons?uids=...` - Returns person details from BCC Core API
+  - `GET /api/user` - Returns current authenticated user info
+- **Authentication Routes**:
+  - `GET /login` - Initiates OIDC login flow with BCC
+  - `GET /authorize` - OIDC callback endpoint
+  - `GET /logout` - Clears user session
 - **Frontend Routes**:
   - `GET /` - Serves index.html
   - `GET /<path>` - Catch-all for SPA routing (serves static files or index.html)
+- **Authentication**: OpenID Connect via BCC login (https://login.bcc.no)
 - **Demo Mode**: Set `DEMO_MODE=1` in `.env` to serve static responses from `demo_requests/` directory for `/api/*` routes
 
 ### BCC API Client (`bcc_api/`)
@@ -126,11 +132,23 @@ pip install -r requirements.txt  # Installs Flask, Supabase, BCC API client, etc
 Required for live mode (in `backend/.env`):
 
 ```bash
+# Supabase Configuration
 SUPABASE_URL=https://...
 SUPABASE_KEY=...
+
+# BCC OAuth2 Client Credentials (for API access)
 BCC_OAUTH_CLIENT_ID=...
 BCC_OAUTH_CLIENT_SECRET=...
-TENANT_ID=...  # Optional, for multi-tenant filtering
+
+# BCC OpenID Connect (for user authentication)
+BCC_OIDC_CLIENT_ID=...
+BCC_OIDC_CLIENT_SECRET=...
+
+# Flask Session Secret (generate with: python -c "import os; print(os.urandom(24).hex())")
+FLASK_SECRET_KEY=...
+
+# Optional: Multi-tenant filtering
+TENANT_ID=...
 ```
 
 For demo mode, only set:
@@ -138,6 +156,8 @@ For demo mode, only set:
 ```bash
 DEMO_MODE=1
 ```
+
+A `.env.example` file is provided in the `backend/` directory with all available configuration options.
 
 ### Tools `.env` file
 
@@ -154,8 +174,9 @@ SUPABASE_KEY=...
 2. **Frontend ↔ Static Data**: Frontend loads `/org-data.json` from static files (option 1)
 3. **Frontend ↔ Backend API**: Frontend can fetch from `/api/tree` and `/api/persons` (option 2)
 4. **Backend ↔ Supabase**: Flask app queries `groups` table with joined `group_membership` data
-5. **Backend ↔ BCC API**: OAuth2 flow to fetch person details by UIDs
-6. **Demo Mode Flow**: All `/api/*` endpoints serve static JSON from `demo_requests/{path}.json` (without `/api` prefix)
+5. **Backend ↔ BCC API**: OAuth2 client credentials flow to fetch person details by UIDs
+6. **User Authentication**: OpenID Connect flow with BCC for user login (session-based)
+7. **Demo Mode Flow**: All `/api/*` endpoints serve static JSON from `demo_requests/{path}.json` (without `/api` prefix)
 
 ## Data Flow (Live Mode)
 
@@ -166,6 +187,19 @@ SUPABASE_KEY=...
 5. Backend returns combined data to frontend
 6. Frontend renders org chart with d3-org-chart
 
+## Authentication Flow (OIDC)
+
+1. User visits `/login` endpoint
+2. Backend redirects to BCC login page (https://login.bcc.no)
+3. User authenticates with BCC credentials
+4. BCC redirects back to `/authorize` callback with authorization code
+5. Backend exchanges code for tokens (access_token, id_token)
+6. Backend extracts user info from ID token (email, name, sub)
+7. User info stored in Flask session
+8. User redirected to homepage
+9. Frontend can check `/api/user` to get current user info
+10. User can logout via `/logout` endpoint (clears session)
+
 ## Important Notes
 
 - The `bcc_api/` directory contains generated code - do not manually edit
@@ -175,6 +209,10 @@ SUPABASE_KEY=...
 - Vite dev server proxies `/api/*` requests to Flask backend at `http://localhost:5000`
 - The frontend currently uses a static JSON file (`org-data.json`) by default - see `App.vue` for how to switch to `/api/tree`
 - d3-org-chart is loaded from CDN, not npm - see `frontend/index.html`
-- OAuth tokens are automatically renewed when expired via `requests_oauth2client`
+- **Two OAuth flows**:
+  - OAuth2 client credentials: Used by backend to access BCC Core API (tokens auto-renewed via `requests_oauth2client`)
+  - OpenID Connect: Used for user authentication (session-based, managed by Authlib)
+- User sessions are stored server-side with Flask's session management
+- OIDC discovery endpoint: `https://login.bcc.no/.well-known/openid-configuration`
 - All API routes are prefixed with `/api/` to avoid conflicts with frontend routing
 - Commit messages should be short and concise
