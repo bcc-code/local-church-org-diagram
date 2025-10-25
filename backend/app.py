@@ -68,25 +68,26 @@ def demo_mode():
 
 
 if __name__ == "__main__":
-    supabase: Client = create_client(
-        os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"]
-    )
+    if not os.environ.get("DEMO_MODE"):
+        supabase: Client = create_client(
+            os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"]
+        )
 
-    bcc_oauth_client = OAuth2Client(
-        token_endpoint="https://login.bcc.no/oauth/token",
-        client_id=os.environ["BCC_OAUTH_CLIENT_ID"],
-        client_secret=os.environ["BCC_OAUTH_CLIENT_SECRET"],
-    )
+        bcc_oauth_client = OAuth2Client(
+            token_endpoint="https://login.bcc.no/oauth/token",
+            client_id=os.environ["BCC_OAUTH_CLIENT_ID"],
+            client_secret=os.environ["BCC_OAUTH_CLIENT_SECRET"],
+        )
 
-    bcc_auth = OAuth2ClientCredentialsAuth(
-        bcc_oauth_client,
-        scope="persons.name#read",
-        audience="api.bcc.no",
-    )
+        bcc_auth = OAuth2ClientCredentialsAuth(
+            bcc_oauth_client,
+            scope="persons.name#read",
+            audience="api.bcc.no",
+        )
 
-    bcc_client_config = bcc_api_client.Configuration()
-    bcc_client_config.host = "https://core.api.bcc.no"
-    api_client = bcc_api_client.ApiClient(configuration=bcc_client_config)
-    persons_api = bcc_api_client.PersonsApi(api_client)
+        bcc_client_config = bcc_api_client.Configuration()
+        bcc_client_config.host = "https://core.api.bcc.no"
+        api_client = bcc_api_client.ApiClient(configuration=bcc_client_config)
+        persons_api = bcc_api_client.PersonsApi(api_client)
 
     app.run(debug=True)
