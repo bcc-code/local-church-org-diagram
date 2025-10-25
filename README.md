@@ -25,11 +25,11 @@ This project contains a Vue.js frontend (TypeScript) and a Flask backend (Python
 
 1. Install dependencies:
    ```sh
-   cd backend
    pip install -r requirements.txt
    ```
 2. Run the Flask server:
    ```sh
+   cd backend
    python app.py
    ```
 

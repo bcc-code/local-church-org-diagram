@@ -8,5 +8,8 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  build: {
+    outDir: '../backend/public',
+    emptyOutDir: true,
   },
 });

@@ -1,7 +1,8 @@
+import logging
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, json, request, send_file
+from flask import Flask, json, request, send_file, send_from_directory
 from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
 from supabase import Client, create_client
 import swagger_client as bcc_api_client
@@ -9,18 +10,22 @@ from swagger_client.models.person import Person
 
 load_dotenv()
 
-app = Flask("org-diagram")
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = Flask("org-diagram", static_folder="public", static_url_path="")
 
 
 TENANT_ID = os.environ.get("TENANT_ID")
 
 
 @app.route("/")
-def up():
-    return "OK!"
+def index():
+    """Serve the Vue frontend"""
+    return send_from_directory(app.static_folder, "index.html")
 
 
-@app.route("/tree", methods=["GET"])
+@app.route("/api/tree", methods=["GET"])
 def get_tree():
     q = supabase.table("groups").select(
         "id, name, parent_id, group_membership(bcc_person_uid)"
@@ -44,7 +49,7 @@ def get_tree():
     ]
 
 
-@app.route("/persons", methods=["GET"])
+@app.route("/api/persons", methods=["GET"])
 def get_persons():
     uids = request.args.getlist("uids")
     if not uids:
@@ -63,8 +68,23 @@ def get_persons():
 
 @app.before_request
 def demo_mode():
-    if os.environ.get("DEMO_MODE") == "1" and request.path != "/":
-        return send_file(f"demo_requests{request.path}.json")
+    if os.environ.get("DEMO_MODE") == "1" and request.path.startswith("/api/"):
+        # Remove /api prefix for demo file lookup
+        demo_path = request.path.replace("/api", "", 1)
+        return send_file(f"demo_requests{demo_path}.json")
+
+
+@app.route("/<path:path>")
+def serve_spa(path):
+    """Catch-all route for SPA client-side routing"""
+    if app.static_folder is None:
+        return "Static folder not configured", 500
+
+    file_path = os.path.join(app.static_folder, path)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return send_from_directory(app.static_folder, path)
+    # For any other path, serve index.html (Vue Router will handle it)
+    return send_from_directory(app.static_folder, "index.html")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,5 @@
 # Node/Vite
 frontend/node_modules/
-frontend/dist/
 
 # TypeScript
 frontend/*.tsbuildinfo
@@ -9,6 +8,7 @@ frontend/*.tsbuildinfo
 backend/__pycache__/
 backend/*.pyc
 backend/instance/
+backend/public/
 
 # Python virtual environments
 .venv/
