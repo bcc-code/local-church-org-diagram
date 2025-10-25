@@ -3,5 +3,39 @@
   "[python]": {
     "editor.wordWrapColumn": 80
   },
-  "python.analysis.extraPaths": ["./bcc_api"]
+  "python.analysis.extraPaths": ["./bcc_api"],
+  "appService.zipIgnorePattern": [
+    "__pycache__{,/**}",
+    "*.py[cod]",
+    "*$py.class",
+    ".Python{,/**}",
+    "build{,/**}",
+    "develop-eggs{,/**}",
+    "dist{,/**}",
+    "downloads{,/**}",
+    "eggs{,/**}",
+    ".eggs{,/**}",
+    "lib{,/**}",
+    "lib64{,/**}",
+    "parts{,/**}",
+    "sdist{,/**}",
+    "var{,/**}",
+    "wheels{,/**}",
+    "share/python-wheels{,/**}",
+    "*.egg-info{,/**}",
+    ".installed.cfg",
+    "*.egg",
+    "MANIFEST",
+    ".env{,/**}",
+    ".venv{,/**}",
+    "env{,/**}",
+    "venv{,/**}",
+    "ENV{,/**}",
+    "env.bak{,/**}",
+    "venv.bak{,/**}",
+    ".vscode{,/**}",
+    "frontend{,/**}"
+  ],
+  "appService.defaultWebAppToDeploy": "/subscriptions/17d25552-b59d-4e27-9d48-a382e48a3532/resourceGroups/org-diagram_group/providers/Microsoft.Web/sites/org-diagram",
+  "appService.showDeployConfirmation": false
 }

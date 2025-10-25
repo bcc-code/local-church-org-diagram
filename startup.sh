@@ -13,7 +13,7 @@ PORT=${PORT:-8000}
 
 echo "Starting Gunicorn with $WORKERS workers on port $PORT..."
 
-cd $(dirname $0)
+cd $(dirname $0)/backend
 
 gunicorn app:app \
     --workers $WORKERS \
