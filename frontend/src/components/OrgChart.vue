@@ -10,7 +10,7 @@ type Group = {
     group_id: number;
     label: string;
     parent_group_id: number | null;
-    person_uids: string[];
+    member_count: number
 };
 
 type OrgNodeData = {
@@ -18,7 +18,6 @@ type OrgNodeData = {
     parentId: number | string | null;
     name: string;
     title: string;
-    peopleCount: number;
     raw: Group;
 };
 
@@ -30,20 +29,14 @@ export default defineComponent({
 
         const toOrgNodes = (groups: Group[]): OrgNodeData[] => {
             return groups.map((g) => {
-                const count = Array.isArray(g.person_uids) ? g.person_uids.length : 0;
-                const title =
-                    count === 0
-                        ? 'Tomt gruppe'
-                        : count === 1
-                            ? '1 person'
-                            : `${count} personer`;
+
+                const title = g.member_count > 0 ? `${g.member_count} medlemmer` : 'Ingen medlemmer';
 
                 return {
                     id: g.group_id,
                     parentId: g.parent_group_id,
                     name: g.label,
                     title,
-                    peopleCount: count,
                     raw: g,
                 };
             });
@@ -110,9 +103,8 @@ export default defineComponent({
                             width,
                             height,
                             groupId: data.id,
-                            peopleIds: data.raw.person_uids,
+                            memberCount: data.raw.member_count,
                             parentGroupId: data.parentId,
-                            peopleCount: data.peopleCount,
                             raw: data.raw,
                         });
                         app.mount(host);

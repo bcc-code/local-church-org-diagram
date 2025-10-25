@@ -16,8 +16,7 @@
         </div>
     </div>
 
-    <GroupMembersDialog v-if="props.peopleCount > 0" ref="membersDialog" :group-id="groupId" :people-ids="peopleIds"
-        :group-name="name" />
+    <GroupMembersDialog v-if="props.memberCount > 0" ref="membersDialog" :group-id="groupId" :group-name="name" />
 </template>
 
 <script lang="ts" setup>
@@ -28,12 +27,11 @@ interface Props {
     name: string;
     title?: string;
     groupId?: number | string;
-    peopleIds?: string[];
+    memberCount: number;
     width?: number;
     height?: number;
     depth?: number;
     parentGroupId?: number | string | null;
-    peopleCount: number;
     raw?: any;
 }
 
@@ -52,7 +50,7 @@ const computedInitials = computed(() => {
 });
 
 const handleNodeClick = () => {
-    if (props.peopleCount > 0 && membersDialog.value) {
+    if (props.memberCount > 0 && membersDialog.value) {
         membersDialog.value.open();
     }
 };

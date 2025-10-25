@@ -22,7 +22,6 @@ import { computed } from 'vue';
 interface GroupMember {
     name: string;
     person_uid: string;
-    group_id: number;
 }
 
 interface Props {

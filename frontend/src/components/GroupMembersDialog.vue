@@ -38,14 +38,13 @@ import MemberCard from './MemberCard.vue';
 
 interface Props {
     groupId?: number | string;
-    peopleIds?: string[];
+    memberCount?: number;
     groupName: string;
 }
 
 interface GroupMember {
     name: string;
     person_uid: string;
-    group_id: number;
 }
 
 const props = defineProps<Props>();
@@ -68,20 +67,10 @@ const fetchGroupMembers = async () => {
     }
 
     try {
-        const res = await fetch('api/persons');
+        const res = await fetch('api/persons' + `?group_id=${props.groupId}`);
         const people: GroupMember[] = await res.json();
+        groupMembers.value = [...people];
 
-        // Filter people based on props.peopleIds if provided
-        if (props.peopleIds && props.peopleIds.length > 0) {
-            groupMembers.value = people.filter(person =>
-                props.peopleIds!.includes(person.person_uid)
-            );
-        } else {
-            // Fallback: filter by group_id if available
-            groupMembers.value = people.filter(person =>
-                person.group_id === Number(props.groupId)
-            );
-        }
     } catch (error) {
         console.error('Failed to fetch group members', error);
     } finally {
