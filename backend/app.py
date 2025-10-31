@@ -170,13 +170,20 @@ def get_persons():
         fields="*",
         filter=json.dumps({"uid": {"_in": uids}}),
     ).data  # type: ignore
-    return [
+
+    results = [
         {
             "person_uid": p.uid,
             "name": p.display_name,
         }
         for p in persons
     ]
+
+    not_found_uids = [uid for uid in uids if uid not in {p.uid for p in persons}]
+    for uid in not_found_uids:
+        results.append({"person_uid": uid, "name": "?"})
+
+    return results
 
 
 @app.route("/api/group-membership", methods=["POST"])
@@ -190,15 +197,15 @@ def add_group_member():
         return {"error": "No JSON data provided"}, 400
 
     group_id = data.get("group_id")
-    bcc_person_uid = data.get("bcc_person_uid")
+    person_uid = data.get("person_uid")
 
-    if not group_id or not bcc_person_uid:
-        return {"error": "Both group_id and bcc_person_uid are required"}, 400
+    if not group_id or not person_uid:
+        return {"error": "Both group_id and person_uid are required"}, 400
 
     # Prepare the membership data
     membership_data = {
         "group_id": group_id,
-        "bcc_person_uid": bcc_person_uid,
+        "bcc_person_uid": person_uid,
     }
 
     if TENANT_ID:
