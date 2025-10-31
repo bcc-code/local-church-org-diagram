@@ -76,8 +76,58 @@ export function useApiClient() {
     return response.json();
   };
 
+  const searchPersons = async (query: string) => {
+    const response = await fetch(
+      `${API_CONFIG.BASE_URL}/persons/search?q=${encodeURIComponent(query)}`
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to search persons: ${response.statusText}`);
+    }
+    return response.json();
+  };
+
+  const addGroupMember = async (groupId: number | string, personUid: string) => {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/group-membership`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        group_id: groupId,
+        person_uid: personUid,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to add group member: ${response.statusText}`);
+    }
+    return response.json();
+  };
+
+  const removeGroupMember = async (
+    groupId: number | string,
+    personUid: string
+  ) => {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/group-membership`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        group_id: groupId,
+        person_uid: personUid,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to remove group member: ${response.statusText}`);
+    }
+    return response.json();
+  };
+
   return {
     fetchGroups,
     fetchGroupMembers,
+    searchPersons,
+    addGroupMember,
+    removeGroupMember,
   };
 }
