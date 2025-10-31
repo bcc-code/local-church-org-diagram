@@ -23,8 +23,8 @@
         </div>
     </div>
 
-    <GroupMembersDialog v-if="props.memberCount > 0 && props.groupId !== undefined && props.groupId !== null"
-        ref="membersDialog" :group-id="props.groupId" :group-name="name" />
+    <GroupMembersDialog v-if="props.groupId !== undefined && props.groupId !== null" ref="membersDialog"
+        :group-id="props.groupId" :group-name="name" :admin-mode="props.adminMode" />
     <StaffGroupsDialog v-if="props.staffGroups && props.staffGroups.length > 0" ref="staffDialog" :group-name="name"
         :staff-groups="props.staffGroups" />
 </template>
@@ -46,10 +46,12 @@ interface Props {
     parentGroupId?: number | string | null;
     raw?: any;
     staffGroups?: Group[];
+    adminMode?: boolean;
     isExpanded?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
+    adminMode: false,
     isExpanded: false,
 });
 
@@ -57,10 +59,10 @@ const membersDialog = ref<InstanceType<typeof GroupMembersDialog> | null>(null);
 const staffDialog = ref<InstanceType<typeof StaffGroupsDialog> | null>(null);
 
 const handleNodeClick = () => {
-    // Priority: if has staff groups, show those first; otherwise show members if any
+    // Priority: if has staff groups, show those first; otherwise show members dialog
     if (props.staffGroups && props.staffGroups.length > 0 && staffDialog.value) {
         staffDialog.value.open();
-    } else if (props.memberCount > 0 && membersDialog.value) {
+    } else if (membersDialog.value) {
         membersDialog.value.open();
     }
 };

@@ -32,6 +32,14 @@ import { useAsyncData, useApiClient } from '@/composables/useApi';
 import { TEXTS, UI_CONFIG } from '@/constants';
 import type { Group, OrgNodeData } from '@/types';
 
+interface Props {
+  adminMode?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  adminMode: false,
+});
+
 const chartEl = ref<HTMLDivElement | null>(null);
 const { state, execute } = useAsyncData<Group[]>();
 const { fetchGroups } = useApiClient();
@@ -169,6 +177,7 @@ const renderChart = (data: OrgNodeData[]) => {
                     parentGroupId: data.parentId,
                     raw: data.raw,
                     staffGroups: data.staffGroups || [],
+                    adminMode: props.adminMode,
                     isExpanded,
                 });
                 app.mount(host);
