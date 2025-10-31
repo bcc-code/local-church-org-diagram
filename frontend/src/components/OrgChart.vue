@@ -138,116 +138,50 @@ const renderChart = (data: OrgNodeData[]) => {
                 const nodeId = chart.getChartState().nodeId(node.data).toString();
                 const isExpanding = !node._collapsed;
 
-                console.log('onExpandOrCollapse:', node.data.name, 'nodeId:', nodeId, 'depth:', node.depth, 'isExpanding:', isExpanding, 'isCollapsing:', isCollapsing);
+                console.log('onExpandOrCollapse:', node.data.name, 'isExpanding:', isExpanding);
 
-                // If expanding a node
+                // If expanding a node, collapse all others and center on this one
                 if (isExpanding) {
-                    // Prevent processing the same expand multiple times
-                    if (isCollapsing) {
-                        console.log('Already collapsing, skipping');
-                        return;
-                    }
+                    if (isCollapsing) return;
 
-                    // Store this as the last expanded node
-                    lastExpandedNodeId = nodeId;
                     isCollapsing = true;
+                    lastExpandedNodeId = nodeId;
 
-                    console.log('Set lastExpandedNodeId to:', lastExpandedNodeId);
-
-                    // Wait longer for the expand animation to fully complete
+                    // Wait longer for expand to complete, then check if we need to collapse
                     setTimeout(() => {
-                        // Only proceed if this is still the last expanded node
                         if (lastExpandedNodeId !== nodeId) {
-                            console.log('Another node was expanded, skipping');
                             isCollapsing = false;
                             return;
                         }
 
-                        // Build the path from root to this node (all ancestors) using data
-                        const pathIds = new Set<string>();
+                        // Check if there are other nodes at the same depth that are expanded
                         const allNodes = chart.getChartState().allNodes || [];
-
-                        // Start with the clicked node
-                        let currentData = node.data;
-                        pathIds.add(nodeId);
-
-                        // Walk up the tree using parentId from data
-                        while (currentData && currentData.parentId) {
-                            const parentId = currentData.parentId.toString();
-                            pathIds.add(parentId);
-
-                            // Find the parent node
-                            const parentNode = allNodes.find((n: any) => {
-                                return chart.getChartState().nodeId(n.data).toString() === parentId;
-                            });
-
-                            if (parentNode) {
-                                currentData = parentNode.data;
-                            } else {
-                                break;
-                            }
-                        }
-
-                        console.log('Path to keep open:', Array.from(pathIds));
-
-                        // Find all expanded nodes that are NOT in the path
-                        const nodesToCollapse = allNodes.filter((n: any) => {
+                        const nodesAtSameDepth = allNodes.filter((n: any) => {
                             const nId = chart.getChartState().nodeId(n.data).toString();
-                            // Has visible children (is expanded) AND not in the path to the clicked node
-                            return (n.children && n.children.length > 0) && !pathIds.has(nId);
+                            return n.depth === node.depth && nId !== nodeId && n.children && n.children.length > 0;
                         });
 
-                        console.log('Found', nodesToCollapse.length, 'nodes to collapse');
-                        console.log('Nodes to collapse:', nodesToCollapse.map((n: any) => n.data.name));
+                        console.log('Nodes at same depth that are expanded:', nodesAtSameDepth.length);
 
-                        // Collapse all nodes not in the path (without rendering each time)
-                        nodesToCollapse.forEach((otherNode: any) => {
-                            const otherNodeId = chart.getChartState().nodeId(otherNode.data).toString();
-                            console.log('Collapsing:', otherNode.data.name, 'ID:', otherNodeId);
-                            chart.setExpanded(otherNodeId, false);
-                        });
+                        // Only collapse if there are other expanded nodes at the same depth
+                        if (nodesAtSameDepth.length > 0) {
+                            console.log('Collapsing all other nodes and centering on:', node.data.name);
 
-                        // Re-expand all nodes in the path to ensure they stay open
-                        // Need to expand in order from parent to child (top to bottom)
-                        console.log('Re-expanding path nodes to keep them open (in order)');
+                            // Collapse all nodes
+                            chart.collapseAll();
 
-                        // Build ordered path from root to clicked node
-                        const orderedPath: string[] = [];
-                        let pathData = node.data;
-                        orderedPath.unshift(nodeId); // Add clicked node at the beginning
+                            // Re-expand this node and render
+                            chart.setExpanded(nodeId, true).render();
 
-                        // Walk up to build the path
-                        while (pathData && pathData.parentId) {
-                            const parentId = pathData.parentId.toString();
-                            orderedPath.unshift(parentId); // Add parent at the beginning
-
-                            const parentNode = allNodes.find((n: any) => {
-                                return chart.getChartState().nodeId(n.data).toString() === parentId;
-                            });
-
-                            if (parentNode) {
-                                pathData = parentNode.data;
-                            } else {
-                                break;
-                            }
+                            // Center on this node
+                            chart.setCentered(nodeId).render();
+                        } else {
+                            console.log('No other nodes at same depth are expanded, skipping collapse');
                         }
 
-                        console.log('Ordered path (root to clicked):', orderedPath);
-
-                        // Expand from root to clicked node (parent to child order)
-                        orderedPath.forEach((pathId: string) => {
-                            console.log('Ensuring expanded:', pathId);
-                            chart.setExpanded(pathId, true);
-                        });
-
-                        // Render once after all changes
-                        console.log('Rendering all changes');
-                        chart.render();
-
-                        console.log('Collapse complete');
                         isCollapsing = false;
                         lastExpandedNodeId = null;
-                    }, 500);
+                    }, 800);
                 }
             })
             .render();
