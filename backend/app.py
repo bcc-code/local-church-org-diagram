@@ -219,6 +219,46 @@ def add_group_member():
     }, 201
 
 
+@app.route("/api/group-membership", methods=["DELETE"])
+def remove_group_member():
+    """Remove a member from a group"""
+    if DEMO_MODE:
+        return {"success": True}, 200
+
+    data = request.get_json()
+    if not data:
+        return {"error": "No JSON data provided"}, 400
+
+    group_id = data.get("group_id")
+    person_uid = data.get("person_uid")
+
+    if not group_id or not person_uid:
+        return {"error": "Both group_id and person_uid are required"}, 400
+
+    # Build the delete query
+    q = (
+        supabase.table("group_membership")
+        .delete()
+        .eq("group_id", group_id)
+        .eq("bcc_person_uid", person_uid)
+    )
+
+    if TENANT_ID:
+        q = q.eq("tenant_id", TENANT_ID)
+    else:
+        q = q.is_("tenant_id", None)
+
+    result = q.execute()
+
+    if not result.data:
+        return {"error": "Member not found in group"}, 404
+
+    return {
+        "success": True,
+        "data": result.data[0] if result.data else None,
+    }, 200
+
+
 @app.before_request
 def demo_mode():
     """Serve demo JSON files in demo mode for API requests"""
