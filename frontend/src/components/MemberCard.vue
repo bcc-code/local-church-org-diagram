@@ -7,9 +7,9 @@
         </div>
         <div class="ml-3 min-w-0">
             <div class="text-body-sm font-medium text-neutral-900">
-                {{ member.name }}
+                {{ displayName }}
             </div>
-            <div class="text-caption text-neutral-600">
+            <div v-if="member.name" class="text-caption text-neutral-600">
                 ID: {{ member.person_uid }}
             </div>
         </div>
@@ -26,7 +26,14 @@ interface Props {
 
 const props = defineProps<Props>();
 
+const displayName = computed(() => {
+    return props.member.name || props.member.person_uid;
+});
+
 const initials = computed(() => {
+    if (!props.member.name) {
+        return 'ID';
+    }
     return props.member.name
         .split(' ')
         .filter(Boolean)

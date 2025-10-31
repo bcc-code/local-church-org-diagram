@@ -5,6 +5,7 @@ export const TEXTS = {
   STAFF_GROUPS: "staber",
   LOADING_MEMBERS: "Laster medlemmer...",
   NO_MEMBERS: "Ingen medlemmer i denne gruppen.",
+  NO_MEMBERS_SHORT: "Ingen medlemmer",
   COULD_NOT_LOAD_MEMBERS: "Kunne ikke laste medlemmer.",
   ERROR_LOADING_DATA: "Failed to load org data",
   ERROR_D3_NOT_LOADED: "d3-org-chart not loaded",
@@ -20,7 +21,7 @@ export const UI_CONFIG = {
     COMPACT: false,
   },
   DIALOG: {
-    MAX_HEIGHT: "max-h-64",
+    MAX_HEIGHT: "max-h-96",
     MAX_WIDTH: "max-w-md",
   },
   TRANSITIONS: {

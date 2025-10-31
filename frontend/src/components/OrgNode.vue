@@ -1,6 +1,10 @@
 <template>
-    <div @click="handleNodeClick"
-        class="box-border w-full h-full p-3 border border-neutral-200 rounded-lg bg-neutral-0 shadow-sm flex items-center hover:bg-neutral-50 transition-colors cursor-pointer">
+    <div @click="handleNodeClick" :class="[
+        'box-border w-full h-full p-3 border rounded-lg shadow-sm flex items-center transition-colors cursor-pointer',
+        props.isExpanded
+            ? 'bg-brand-50 border-brand-300 hover:bg-brand-100'
+            : 'bg-neutral-0 border-neutral-200 hover:bg-neutral-50'
+    ]">
         <div class="ml-3 min-w-0 flex-1">
             <div class="text-body-sm font-semibold text-neutral-900 whitespace-nowrap overflow-hidden text-ellipsis"
                 :title="name">
@@ -41,6 +45,7 @@ interface Props {
     parentGroupId?: number | string | null;
     raw?: any;
     staffGroups?: Group[];
+    isExpanded?: boolean;
 }
 
 const props = defineProps<Props>();
