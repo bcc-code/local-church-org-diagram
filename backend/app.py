@@ -186,6 +186,63 @@ def get_persons():
     return results
 
 
+@app.route("/api/persons/search", methods=["GET"])
+def search_persons():
+    """Search for persons by name (for autocomplete)"""
+    search_query = request.args.get("q", "").strip()
+
+    if not search_query:
+        return {"error": "Query parameter 'q' is required"}, 400
+
+    if len(search_query) < 3:
+        return {"error": "Search query must be at least 3 characters"}, 400
+
+    # Ensure we have a valid token
+    if bcc_auth.token is None or bcc_auth.token.is_expired():
+        bcc_auth.renew_token()
+    persons_api.api_client.configuration.access_token = str(bcc_auth.token)
+
+    # Search using _contains operator on displayName
+    persons: list[Person] = persons_api.find_persons(
+        fields="*",
+        filter=json.dumps({"displayName": {"_contains": search_query}}),
+        limit=50,  # Get more results for better sorting
+    ).data  # type: ignore
+
+    # Score and sort results by match quality
+    scored_results = []
+    query_lower = search_query.lower()
+
+    for p in persons:
+        display_name = p.display_name or ""
+        display_name_lower = display_name.lower()
+
+        # Calculate match score (higher is better)
+        if display_name_lower == query_lower:
+            score = 1000  # Exact match
+        elif display_name_lower.startswith(query_lower):
+            score = 500  # Starts with
+        else:
+            score = 100 + (  # Contains
+                len(display_name_lower) - display_name_lower.find(query_lower)
+            )
+
+        scored_results.append(
+            {
+                "score": score,
+                "person_uid": p.uid,
+                "name": p.display_name,
+            }
+        )
+
+    # Sort by score (descending) and return top 5
+    scored_results.sort(key=lambda x: x["score"], reverse=True)
+    top_results = scored_results[:5]
+
+    # Remove score from response
+    return [{"person_uid": r["person_uid"], "name": r["name"]} for r in top_results]
+
+
 @app.route("/api/group-membership", methods=["POST"])
 def add_group_member():
     """Add a member to a group"""
