@@ -179,6 +179,39 @@ def get_persons():
     ]
 
 
+@app.route("/api/group-membership", methods=["POST"])
+def add_group_member():
+    """Add a member to a group"""
+    if DEMO_MODE:
+        return {"success": True}, 200
+
+    data = request.get_json()
+    if not data:
+        return {"error": "No JSON data provided"}, 400
+
+    group_id = data.get("group_id")
+    bcc_person_uid = data.get("bcc_person_uid")
+
+    if not group_id or not bcc_person_uid:
+        return {"error": "Both group_id and bcc_person_uid are required"}, 400
+
+    # Prepare the membership data
+    membership_data = {
+        "group_id": group_id,
+        "bcc_person_uid": bcc_person_uid,
+    }
+
+    if TENANT_ID:
+        membership_data["tenant_id"] = TENANT_ID
+
+    result = supabase.table("group_membership").insert(membership_data).execute()
+
+    return {
+        "success": True,
+        "data": result.data[0] if result.data else None,
+    }, 201
+
+
 @app.before_request
 def demo_mode():
     """Serve demo JSON files in demo mode for API requests"""
