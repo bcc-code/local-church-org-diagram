@@ -118,6 +118,11 @@ def get_current_user():
 
 @app.route("/api/tree", methods=["GET"])
 def get_tree():
+    if DEMO_MODE:
+        with open("demo_requests/tree.json") as f:
+            demo_members = json.load(f)
+        return demo_members
+
     q = supabase.table("groups").select(
         "id, name, parent_id, group_membership(bcc_person_uid)"
     )
@@ -143,6 +148,11 @@ def get_persons():
     group_id = request.args.get("group_id")
     if not group_id:
         return {"error": "No group_id provided"}, 400
+
+    if DEMO_MODE:
+        with open("demo_requests/persons.json") as f:
+            demo_members = json.load(f)
+        return demo_members
 
     uids = []
     q = (
@@ -197,47 +207,72 @@ def search_persons():
     if len(search_query) < 3:
         return {"error": "Search query must be at least 3 characters"}, 400
 
-    # Ensure we have a valid token
+    if DEMO_MODE:
+        with open("demo_requests/members.json") as f:
+            demo_members = json.load(f)
+        return _score_and_rank_persons(demo_members, search_query)
+
+    # Production mode - use BCC API
     if bcc_auth.token is None or bcc_auth.token.is_expired():
         bcc_auth.renew_token()
     persons_api.api_client.configuration.access_token = str(bcc_auth.token)
 
-    # Search using _contains operator on displayName
     persons: list[Person] = persons_api.find_persons(
         fields="*",
         filter=json.dumps({"displayName": {"_contains": search_query}}),
         limit=50,  # Get more results for better sorting
     ).data  # type: ignore
 
-    # Score and sort results by match quality
+    # Convert API response to common format
+    persons_data = [
+        {"person_uid": p.uid, "name": p.display_name or ""} for p in persons
+    ]
+
+    return _score_and_rank_persons(persons_data, search_query)
+
+
+def _score_and_rank_persons(persons_data, search_query, limit=5):
+    """
+    Score and rank persons by match quality.
+
+    Args:
+        persons_data: List of dicts with 'person_uid' and 'name' keys
+        search_query: The search string to match against
+        limit: Maximum number of results to return
+
+    Returns:
+        List of top matches with 'person_uid' and 'name' keys
+    """
     scored_results = []
     query_lower = search_query.lower()
 
-    for p in persons:
-        display_name = p.display_name or ""
-        display_name_lower = display_name.lower()
+    for person in persons_data:
+        name = person["name"]
+        name_lower = name.lower()
+
+        # Skip if name doesn't contain the query
+        if query_lower not in name_lower:
+            continue
 
         # Calculate match score (higher is better)
-        if display_name_lower == query_lower:
+        if name_lower == query_lower:
             score = 1000  # Exact match
-        elif display_name_lower.startswith(query_lower):
+        elif name_lower.startswith(query_lower):
             score = 500  # Starts with
         else:
-            score = 100 + (  # Contains
-                len(display_name_lower) - display_name_lower.find(query_lower)
-            )
+            score = 100 + (len(name_lower) - name_lower.find(query_lower))  # Contains
 
         scored_results.append(
             {
                 "score": score,
-                "person_uid": p.uid,
-                "name": p.display_name,
+                "person_uid": person["person_uid"],
+                "name": person["name"],
             }
         )
 
-    # Sort by score (descending) and return top 5
+    # Sort by score (descending) and return top results
     scored_results.sort(key=lambda x: x["score"], reverse=True)
-    top_results = scored_results[:5]
+    top_results = scored_results[:limit]
 
     # Remove score from response
     return [{"person_uid": r["person_uid"], "name": r["name"]} for r in top_results]
@@ -259,7 +294,6 @@ def add_group_member():
     if not group_id or not person_uid:
         return {"error": "Both group_id and person_uid are required"}, 400
 
-    # Prepare the membership data
     membership_data = {
         "group_id": group_id,
         "bcc_person_uid": person_uid,
@@ -292,7 +326,6 @@ def remove_group_member():
     if not group_id or not person_uid:
         return {"error": "Both group_id and person_uid are required"}, 400
 
-    # Build the delete query
     q = (
         supabase.table("group_membership")
         .delete()
@@ -314,15 +347,6 @@ def remove_group_member():
         "success": True,
         "data": result.data[0] if result.data else None,
     }, 200
-
-
-@app.before_request
-def demo_mode():
-    """Serve demo JSON files in demo mode for API requests"""
-    if os.environ.get("DEMO_MODE") == "1" and request.path.startswith("/api/"):
-        # Remove /api prefix for demo file lookup
-        demo_path = request.path.replace("/api", "", 1)
-        return send_file(f"demo_requests{demo_path}.json")
 
 
 @app.route("/<path:path>")
