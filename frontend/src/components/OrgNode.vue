@@ -1,6 +1,11 @@
 <template>
     <div @click="handleNodeClick"
-        class="box-border w-full h-full p-3 border border-neutral-200 rounded-lg bg-neutral-0 shadow-sm flex items-center hover:bg-neutral-50 transition-colors cursor-pointer">
+        :class="[
+            'box-border w-full h-full p-3 rounded-lg shadow-sm flex items-center hover:bg-neutral-50 transition-colors cursor-pointer',
+            props.isExpanded
+                ? 'border-2 border-brand-500 bg-brand-50'
+                : 'border border-neutral-200 bg-neutral-0'
+        ]">
         <div class="ml-3 min-w-0 flex-1">
             <div class="text-body-sm font-semibold text-neutral-900 whitespace-nowrap overflow-hidden text-ellipsis"
                 :title="name">
@@ -41,9 +46,12 @@ interface Props {
     parentGroupId?: number | string | null;
     raw?: any;
     staffGroups?: Group[];
+    isExpanded?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+    isExpanded: false,
+});
 
 const membersDialog = ref<InstanceType<typeof GroupMembersDialog> | null>(null);
 const staffDialog = ref<InstanceType<typeof StaffGroupsDialog> | null>(null);

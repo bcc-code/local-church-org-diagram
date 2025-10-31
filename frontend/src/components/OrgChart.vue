@@ -1,6 +1,7 @@
 <template>
+
     <div v-if="state.loading"
-        class="rounded-xl h-96 bg-neutral-0 shadow-lg border border-neutral-200 flex items-center justify-center">
+        class="rounded-xl bg-neutral-0 min-h-full shadow-lg border border-neutral-200 flex grow items-center justify-center">
         <div class="text-center">
             <div class="w-8 h-8 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin mx-auto mb-4">
             </div>
@@ -8,7 +9,7 @@
         </div>
     </div>
     <div v-else-if="state.error"
-        class="rounded-xl h-96 bg-neutral-0 shadow-lg border border-neutral-200 flex items-center justify-center">
+        class="rounded-xl grow min-h-full bg-neutral-0 shadow-lg border border-neutral-200 flex items-center justify-center">
         <div class="text-center p-6">
             <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -21,7 +22,7 @@
         </div>
     </div>
     <div v-else-if="state.data" ref="chartEl"
-        class="rounded-xl h-auto bg-neutral-0 shadow-lg border border-neutral-200" />
+        class="rounded-xl flex min-h-full grow bg-neutral-0 shadow-lg border border-neutral-200" />
 </template>
 
 <script lang="ts" setup>
@@ -67,7 +68,9 @@ const toOrgNodes = (groups: Group[]): OrgNodeData[] => {
     });
 
     return regularGroups.map((g) => {
-        const title = g.member_count > 0 ? `${g.member_count} ${TEXTS.MEMBERS}` : '';
+        const title = g.member_count > 0
+            ? `${g.member_count} ${TEXTS.MEMBERS}`
+            : TEXTS.NO_MEMBERS_SHORT;
         const staffGroups = staffGroupsByParent.get(g.group_id) || [];
 
         return {
@@ -150,6 +153,7 @@ const renderChart = (data: OrgNodeData[]) => {
                 const data: OrgNodeData = node.data;
                 const width = state.nodeWidth(node);
                 const height = state.nodeHeight(node);
+                const isExpanded = node.children && node.children.length > 0;
 
                 // Avoid leaks on updates
                 mountedApps[nodeId]?.unmount?.();
@@ -165,6 +169,7 @@ const renderChart = (data: OrgNodeData[]) => {
                     parentGroupId: data.parentId,
                     raw: data.raw,
                     staffGroups: data.staffGroups || [],
+                    isExpanded,
                 });
                 app.mount(host);
                 mountedApps[nodeId] = app;
