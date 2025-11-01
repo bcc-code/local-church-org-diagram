@@ -31,6 +31,38 @@ TENANT_ID = os.environ.get("TENANT_ID")
 DEMO_MODE = os.environ.get("DEMO_MODE", "0") == "1"
 FLASK_DEBUG = os.environ.get("FLASK_DEBUG", "0") == "1"
 
+# In-memory storage for DEMO mode
+demo_storage = {"tree": [], "group_memberships": {}}
+
+
+def init_demo_storage():
+    """Initialize in-memory storage from demo JSON files"""
+    global demo_storage
+
+    # Load tree structure
+    with open("demo_requests/tree.json") as f:
+        demo_storage["tree"] = json.load(f)
+
+    # Load persons data and build group memberships
+    with open("demo_requests/members.json") as f:
+        members = json.load(f)
+
+    # Get all person UIDs
+    person_uids = [m["person_uid"] for m in members]
+
+    # Distribute members across different groups
+    demo_storage["group_memberships"] = {
+        "2": [person_uids[0]] if len(person_uids) > 0 else [],  # Forstander - John Doe
+        "3": person_uids[1:6] if len(person_uids) > 5 else person_uids[1:],  # Bestyrelse - Jane Smith, Bob Johnson, Alice Williams, Charlie Brown, Eva Martinez
+        "7": [person_uids[6]] if len(person_uids) > 6 else [],  # TASK - David Anderson
+        "9": [person_uids[7]] if len(person_uids) > 7 else [],  # VK - Sarah Thompson
+        "13": person_uids[1:3] if len(person_uids) > 2 else [],  # Ungdom - Jane Smith, Bob Johnson
+        "52": person_uids[4:6] if len(person_uids) > 5 else [],  # Musik - Charlie Brown, Eva Martinez
+    }
+
+    logger.info("Demo storage initialized with in-memory data")
+
+
 if not DEMO_MODE:
     logger.info("Configuring app in PRODUCTION mode")
     oauth.register(
@@ -63,6 +95,7 @@ if not DEMO_MODE:
     persons_api = bcc_api_client.PersonsApi(api_client)
 else:
     logger.info("Running in DEMO mode")
+    init_demo_storage()
 
 
 @app.route("/")
@@ -119,9 +152,17 @@ def get_current_user():
 @app.route("/api/tree", methods=["GET"])
 def get_tree():
     if DEMO_MODE:
-        with open("demo_requests/tree.json") as f:
-            demo_members = json.load(f)
-        return demo_members
+        # Return tree with updated member counts from in-memory storage
+        tree_copy = []
+        for group in demo_storage["tree"]:
+            group_copy = group.copy()
+            group_id = str(group["group_id"])
+            # Update member count from in-memory storage
+            group_copy["member_count"] = len(
+                demo_storage["group_memberships"].get(group_id, [])
+            )
+            tree_copy.append(group_copy)
+        return tree_copy
 
     q = supabase.table("groups").select(
         "id, name, parent_id, group_membership(bcc_person_uid)"
@@ -150,9 +191,30 @@ def get_persons():
         return {"error": "No group_id provided"}, 400
 
     if DEMO_MODE:
-        with open("demo_requests/persons.json") as f:
-            demo_members = json.load(f)
-        return demo_members
+        # Get UIDs for this group from in-memory storage
+        uids = demo_storage["group_memberships"].get(str(group_id), [])
+
+        if not uids:
+            return []
+
+        # Load all available persons from members.json
+        with open("demo_requests/members.json") as f:
+            all_members = json.load(f)
+
+        # Filter to only persons in this group
+        results = [
+            {"person_uid": member["person_uid"], "name": member["name"]}
+            for member in all_members
+            if member["person_uid"] in uids
+        ]
+
+        # Add any UIDs not found in members.json with placeholder names
+        found_uids = {r["person_uid"] for r in results}
+        for uid in uids:
+            if uid not in found_uids:
+                results.append({"person_uid": uid, "name": "?"})
+
+        return results
 
     uids = []
     q = (
@@ -281,9 +343,6 @@ def _score_and_rank_persons(persons_data, search_query, limit=5):
 @app.route("/api/group-membership", methods=["POST"])
 def add_group_member():
     """Add a member to a group"""
-    if DEMO_MODE:
-        return {"success": True}, 200
-
     data = request.get_json()
     if not data:
         return {"error": "No JSON data provided"}, 400
@@ -293,6 +352,28 @@ def add_group_member():
 
     if not group_id or not person_uid:
         return {"error": "Both group_id and person_uid are required"}, 400
+
+    if DEMO_MODE:
+        # Add to in-memory storage
+        group_id_str = str(group_id)
+
+        # Initialize group if it doesn't exist
+        if group_id_str not in demo_storage["group_memberships"]:
+            demo_storage["group_memberships"][group_id_str] = []
+
+        # Check if already a member
+        if person_uid in demo_storage["group_memberships"][group_id_str]:
+            return {"error": "Person is already a member of this group"}, 400
+
+        # Add the member
+        demo_storage["group_memberships"][group_id_str].append(person_uid)
+
+        logger.info(f"Added {person_uid} to group {group_id_str} (DEMO mode)")
+
+        return {
+            "success": True,
+            "data": {"group_id": group_id, "bcc_person_uid": person_uid},
+        }, 201
 
     membership_data = {
         "group_id": group_id,
@@ -313,9 +394,6 @@ def add_group_member():
 @app.route("/api/group-membership", methods=["DELETE"])
 def remove_group_member():
     """Remove a member from a group"""
-    if DEMO_MODE:
-        return {"success": True}, 200
-
     data = request.get_json()
     if not data:
         return {"error": "No JSON data provided"}, 400
@@ -325,6 +403,28 @@ def remove_group_member():
 
     if not group_id or not person_uid:
         return {"error": "Both group_id and person_uid are required"}, 400
+
+    if DEMO_MODE:
+        # Remove from in-memory storage
+        group_id_str = str(group_id)
+
+        # Check if group exists
+        if group_id_str not in demo_storage["group_memberships"]:
+            return {"error": "Member not found in group"}, 404
+
+        # Check if person is a member
+        if person_uid not in demo_storage["group_memberships"][group_id_str]:
+            return {"error": "Member not found in group"}, 404
+
+        # Remove the member
+        demo_storage["group_memberships"][group_id_str].remove(person_uid)
+
+        logger.info(f"Removed {person_uid} from group {group_id_str} (DEMO mode)")
+
+        return {
+            "success": True,
+            "data": {"group_id": group_id, "bcc_person_uid": person_uid},
+        }, 200
 
     q = (
         supabase.table("group_membership")
