@@ -3,7 +3,7 @@
         <div v-if="hasError()" class="p-4 bg-red-50 border border-red-200 rounded-md">
             <p class="text-red-800 text-sm">{{ state.error }}</p>
         </div>
-        <div v-else-if="!isLoading() && hasData()" class="space-y-3">
+        <div v-else-if="!isLoading() && hasData()" class="space-y-2">
             <MemberCard v-for="member in state.data" :key="member.person_uid" :member="member" />
         </div>
         <div v-else-if="!isLoading() && !hasData()" class="p-4 text-center text-neutral-600">

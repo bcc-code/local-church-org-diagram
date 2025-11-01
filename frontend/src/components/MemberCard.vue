@@ -1,6 +1,6 @@
 <template>
     <div
-        class="flex items-center p-3 border border-neutral-200 rounded-lg bg-neutral-50 hover:bg-neutral-100 transition-colors">
+        class="flex items-center p-3 border border-silver-tree-400 rounded-lg bg-neutral-50 hover:bg-neutral-100 transition-colors">
         <div
             class="w-8 h-8 rounded-full bg-silver-tree-600 text-neutral-0 flex items-center justify-center font-bold text-xs flex-shrink-0">
             {{ initials }}
@@ -9,9 +9,9 @@
             <div class="text-body-sm font-medium text-neutral-900">
                 {{ member.name }}
             </div>
-            <div class="text-caption text-neutral-600">
+            <!-- <div class="text-caption text-neutral-600">
                 ID: {{ member.person_uid }}
-            </div>
+            </div> -->
         </div>
     </div>
 </template>
