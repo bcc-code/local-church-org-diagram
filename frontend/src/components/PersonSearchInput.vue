@@ -3,14 +3,11 @@
         <div class="relative">
             <!-- Search icon -->
             <div class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <Icon name="Search" :size="16" />
             </div>
 
-            <input v-model="searchQuery" @input="handleInput" @focus="handleFocus" @blur="handleBlur"
-                type="text" placeholder="Søk etter person..."
+            <input v-model="searchQuery" @input="handleInput" @focus="handleFocus" @blur="handleBlur" type="text"
+                placeholder="Søk etter person..."
                 class="w-full pl-9 pr-10 py-2.5 text-sm border border-neutral-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow placeholder:text-neutral-400"
                 :disabled="loading" />
 
@@ -22,9 +19,7 @@
             <!-- Clear button -->
             <button v-else-if="searchQuery.length > 0" @click="clearSearch"
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <Icon name="X" :size="16" />
             </button>
         </div>
 
@@ -33,18 +28,15 @@
             class="absolute z-50 w-full mt-2 bg-white border border-neutral-200 rounded-lg shadow-lg overflow-hidden">
 
             <!-- Minimum characters hint -->
-            <div v-if="searchQuery.length > 0 && searchQuery.length < 3" class="px-3 py-2.5 text-xs text-neutral-500 bg-neutral-50">
+            <div v-if="searchQuery.length > 0 && searchQuery.length < 3"
+                class="px-3 py-2.5 text-xs text-neutral-500 bg-neutral-50">
                 Skriv minst 3 tegn for å søke
             </div>
 
             <!-- Error message -->
             <div v-else-if="error" class="px-3 py-2.5 text-sm text-red-600 bg-red-50">
                 <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                            clip-rule="evenodd" />
-                    </svg>
+                    <Icon name="AlertCircle" :size="16" class="flex-shrink-0" />
                     <span>{{ error }}</span>
                 </div>
             </div>
@@ -56,13 +48,11 @@
                     <div class="flex items-center justify-between gap-2">
                         <div class="min-w-0 flex-1">
                             <div class="text-sm font-medium text-neutral-900 truncate">{{ person.name }}</div>
-                            <div class="text-xs text-neutral-500 truncate font-mono mt-0.5">{{ person.person_uid }}</div>
+                            <div class="text-xs text-neutral-500 truncate font-mono mt-0.5">{{ person.person_uid }}
+                            </div>
                         </div>
-                        <svg class="w-4 h-4 text-neutral-400 group-hover:text-brand-600 transition-colors flex-shrink-0"
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
+                        <Icon name="Plus" :size="16"
+                            class="text-neutral-400 group-hover:text-brand-600 transition-colors flex-shrink-0" />
                     </div>
                 </button>
             </div>
@@ -73,6 +63,7 @@
 <script lang="ts" setup>
 import { ref, onUnmounted } from 'vue';
 import { useApiClient } from '@/composables/useApi';
+import Icon from '@/components/ui/icon/Icon.vue';
 import type { GroupMember } from '@/types';
 
 interface Emits {
