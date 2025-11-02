@@ -154,10 +154,9 @@ def get_persons():
             demo_members = json.load(f)
         return demo_members
 
-    uids = []
     q = (
         supabase.table("group_membership")
-        .select("bcc_person_uid")
+        .select("bcc_person_uid, title")
         .eq("group_id", group_id)
     )
     if TENANT_ID:
@@ -165,9 +164,8 @@ def get_persons():
     else:
         q = q.is_("tenant_id", None)
     memberships = q.execute()
-    for membership in memberships.data:
-        uids.append(membership["bcc_person_uid"])
 
+    uids = {m["bcc_person_uid"]: m for m in memberships.data}
     if not uids:
         return []
 
@@ -178,20 +176,23 @@ def get_persons():
 
     persons: list[Person] = persons_api.find_persons(
         fields="*",
-        filter=json.dumps({"uid": {"_in": uids}}),
+        filter=json.dumps({"uid": {"_in": list(uids.keys())}}),
     ).data  # type: ignore
 
     results = [
         {
             "person_uid": p.uid,
             "name": p.display_name,
+            "title": uids.get(p.uid, {}).get("title"),
         }
         for p in persons
     ]
 
     not_found_uids = [uid for uid in uids if uid not in {p.uid for p in persons}]
     for uid in not_found_uids:
-        results.append({"person_uid": uid, "name": "?"})
+        results.append(
+            {"person_uid": uid, "name": "?", "title": uids.get(uid, {}).get("title")}
+        )
 
     return results
 
@@ -290,6 +291,7 @@ def add_group_member():
 
     group_id = data.get("group_id")
     person_uid = data.get("person_uid")
+    title = data.get("title")
 
     if not group_id or not person_uid:
         return {"error": "Both group_id and person_uid are required"}, 400
@@ -298,6 +300,9 @@ def add_group_member():
         "group_id": group_id,
         "bcc_person_uid": person_uid,
     }
+
+    if title is not None:
+        membership_data["title"] = title
 
     if TENANT_ID:
         membership_data["tenant_id"] = TENANT_ID
@@ -340,6 +345,48 @@ def remove_group_member():
 
     result = q.execute()
 
+    if not result.data:
+        return {"error": "Member not found in group"}, 404
+
+    return {
+        "success": True,
+        "data": result.data[0] if result.data else None,
+    }, 200
+
+
+@app.route("/api/group-membership", methods=["PUT"])
+def update_group_member():
+    """Update a group member's properties (currently only title)"""
+    if DEMO_MODE:
+        return {"success": True}, 200
+
+    data = request.get_json()
+    if not data:
+        return {"error": "No JSON data provided"}, 400
+
+    group_id = data.get("group_id")
+    person_uid = data.get("person_uid")
+    title = data.get("title")
+
+    if not group_id or not person_uid:
+        return {"error": "Both group_id and person_uid are required"}, 400
+
+    if title is None:
+        return {"success": True}, 304  # Not modified
+
+    q = (
+        supabase.table("group_membership")
+        .update({"title": title})
+        .eq("group_id", group_id)
+        .eq("bcc_person_uid", person_uid)
+    )
+
+    if TENANT_ID:
+        q = q.eq("tenant_id", TENANT_ID)
+    else:
+        q = q.is_("tenant_id", None)
+
+    result = q.execute()
     if not result.data:
         return {"error": "Member not found in group"}, 404
 
