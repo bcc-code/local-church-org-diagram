@@ -1,7 +1,8 @@
 [
   {
     "name": "John Doe",
-    "person_uid": "57a10f21-9f6a-4b34-b634-089b4c77dbce"
+    "person_uid": "57a10f21-9f6a-4b34-b634-089b4c77dbce",
+    "title": "Manager"
   },
   {
     "name": "Jane Smith",
