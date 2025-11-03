@@ -53,11 +53,19 @@ def init_demo_storage():
     # Distribute members across different groups
     demo_storage["group_memberships"] = {
         "2": [person_uids[0]] if len(person_uids) > 0 else [],  # Forstander - John Doe
-        "3": person_uids[1:6] if len(person_uids) > 5 else person_uids[1:],  # Bestyrelse - Jane Smith, Bob Johnson, Alice Williams, Charlie Brown, Eva Martinez
+        "3": person_uids[1:6]
+        if len(person_uids) > 5
+        else person_uids[
+            1:
+        ],  # Bestyrelse - Jane Smith, Bob Johnson, Alice Williams, Charlie Brown, Eva Martinez
         "7": [person_uids[6]] if len(person_uids) > 6 else [],  # TASK - David Anderson
         "9": [person_uids[7]] if len(person_uids) > 7 else [],  # VK - Sarah Thompson
-        "13": person_uids[1:3] if len(person_uids) > 2 else [],  # Ungdom - Jane Smith, Bob Johnson
-        "52": person_uids[4:6] if len(person_uids) > 5 else [],  # Musik - Charlie Brown, Eva Martinez
+        "13": person_uids[1:3]
+        if len(person_uids) > 2
+        else [],  # Ungdom - Jane Smith, Bob Johnson
+        "52": person_uids[4:6]
+        if len(person_uids) > 5
+        else [],  # Musik - Charlie Brown, Eva Martinez
     }
 
     logger.info("Demo storage initialized with in-memory data")
