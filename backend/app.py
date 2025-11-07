@@ -85,7 +85,7 @@ def login():
         session["user"] = {"email": "demo@example.com", "name": "Demo User"}
         return redirect("/")
 
-    redirect_uri = url_for("authorize", _external=True)
+    redirect_uri = url_for("authorize", _scheme="https", _external=True)
     return oauth.bcc.authorize_redirect(redirect_uri)  # type: ignore
 
 
