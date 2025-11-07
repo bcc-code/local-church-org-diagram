@@ -1,11 +1,10 @@
 <template>
-    <div @click="handleNodeClick"
-        :class="[
-            'box-border w-full h-full p-3 rounded-lg shadow-sm flex items-center hover:bg-neutral-50 transition-colors cursor-pointer',
-            props.isExpanded
-                ? 'border-2 border-brand-500 bg-brand-50'
-                : 'border border-neutral-200 bg-neutral-0'
-        ]">
+    <div @click="handleNodeClick" :class="[
+        'box-border w-full h-full p-3 rounded-lg shadow-sm flex items-center hover:bg-neutral-50 transition-colors cursor-pointer',
+        props.isExpanded
+            ? 'border-2 border-brand-500 bg-brand-50'
+            : 'border border-neutral-200 bg-neutral-0'
+    ]">
         <div class="ml-3 min-w-0 flex-1">
             <div class="text-body-sm font-semibold text-neutral-900 whitespace-nowrap overflow-hidden text-ellipsis"
                 :title="name">
@@ -24,7 +23,8 @@
     </div>
 
     <GroupMembersDialog v-if="props.groupId !== undefined && props.groupId !== null" ref="membersDialog"
-        :group-id="props.groupId" :group-name="name" :admin-mode="props.adminMode" />
+        :group-id="props.groupId" :group-name="name" :admin-mode="props.adminMode"
+        @member-count-changed="handleMemberCountChanged" />
     <StaffGroupsDialog v-if="props.staffGroups && props.staffGroups.length > 0" ref="staffDialog" :group-name="name"
         :staff-groups="props.staffGroups" />
 </template>
@@ -48,6 +48,7 @@ interface Props {
     staffGroups?: Group[];
     adminMode?: boolean;
     isExpanded?: boolean;
+    onMemberCountChanged?: (groupId: number | string, count: number) => void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -64,6 +65,12 @@ const handleNodeClick = () => {
         staffDialog.value.open();
     } else if (membersDialog.value) {
         membersDialog.value.open();
+    }
+};
+
+const handleMemberCountChanged = (count: number) => {
+    if (props.groupId !== undefined && props.groupId !== null && props.onMemberCountChanged) {
+        props.onMemberCountChanged(props.groupId, count);
     }
 };
 </script>

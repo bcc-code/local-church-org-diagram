@@ -33,16 +33,18 @@ import { TEXTS, UI_CONFIG } from '@/constants';
 import type { Group, OrgNodeData } from '@/types';
 
 interface Props {
-  adminMode?: boolean;
+    adminMode?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  adminMode: false,
+    adminMode: false,
 });
 
 const chartEl = ref<HTMLDivElement | null>(null);
 const { state, execute } = useAsyncData<Group[]>();
 const { fetchGroups } = useApiClient();
+let chart: any = null;
+let skipNextRender = false;
 
 // Helper function to wait for D3 to be loaded
 const waitForD3 = (): Promise<void> => {
@@ -92,6 +94,41 @@ const toOrgNodes = (groups: Group[]): OrgNodeData[] => {
     });
 };
 
+// Handler for member count updates
+const handleMemberCountChanged = (groupId: number | string, newCount: number) => {
+    if (!state.value.data) return;
+
+    // Update the group in state.data
+    const groupIndex = state.value.data.findIndex(g => g.group_id === groupId);
+    if (groupIndex !== -1) {
+        // Set flag to skip the next watcher trigger
+        skipNextRender = true;
+
+        // Create a new array to trigger reactivity (but watcher will skip it)
+        const updatedData = [...state.value.data];
+        updatedData[groupIndex] = {
+            ...updatedData[groupIndex],
+            member_count: newCount
+        };
+        state.value.data = updatedData;
+
+        // Update only the title text in the DOM without re-rendering the chart
+        // This prevents the dialog from closing
+        if (chartEl.value) {
+            const nodeElement = chartEl.value.querySelector(`[data-node-id="${groupId}"]`);
+            if (nodeElement) {
+                const titleElement = nodeElement.querySelector('.text-caption');
+                if (titleElement) {
+                    const newTitle = newCount > 0
+                        ? `${newCount} ${TEXTS.MEMBERS}`
+                        : TEXTS.NO_MEMBERS_SHORT;
+                    titleElement.textContent = newTitle;
+                }
+            }
+        }
+    }
+};
+
 onMounted(async () => {
     // Wait for D3 library to be loaded
     await waitForD3();
@@ -101,6 +138,10 @@ onMounted(async () => {
 
 // Watch for when data is loaded and render chart
 watch(() => state.value.data, async (newData) => {
+    if (skipNextRender) {
+        skipNextRender = false;
+        return;
+    }
     if (newData && !state.value.loading && !state.value.error) {
         // Wait for the DOM to update (chartEl to be available)
         await nextTick();
@@ -123,7 +164,7 @@ const renderChart = (data: OrgNodeData[]) => {
     }
 
     try {
-        const chart: any = new d3.OrgChart()
+        chart = new d3.OrgChart()
             .container(chartEl.value as HTMLElement)
             .data(data)
             .nodeId((d: OrgNodeData) => d.id)
@@ -179,6 +220,7 @@ const renderChart = (data: OrgNodeData[]) => {
                     staffGroups: data.staffGroups || [],
                     adminMode: props.adminMode,
                     isExpanded,
+                    onMemberCountChanged: handleMemberCountChanged,
                 });
                 app.mount(host);
                 mountedApps[nodeId] = app;
@@ -194,9 +236,6 @@ const renderChart = (data: OrgNodeData[]) => {
             mountNodes();
             return res;
         };
-
-        // Expose for debugging
-        (window as any).orgChart = chart;
     } catch (error) {
         console.error('Failed to render org chart:', error);
         // The error will be caught by the async handler in onMounted
