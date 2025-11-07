@@ -30,7 +30,7 @@ This project contains a Vue.js frontend (TypeScript) and a Flask backend (Python
 2. Run the Flask server:
    ```sh
    cd backend
-   python app.py
+   flask run
    ```
 
 ## DEMO_MODE
@@ -43,7 +43,7 @@ When enabled, all API endpoints (except `/`) will return static JSON responses f
 
 ```sh
 export DEMO_MODE=1
-python app.py
+flask run
 ```
 
 This is useful for development and testing without requiring live backend or external API access.

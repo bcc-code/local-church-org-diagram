@@ -64,9 +64,9 @@ For the best development experience with hot module replacement (HMR):
 
 ```bash
 cd backend
-python app.py                    # Runs on http://localhost:5000
+flask run                        # Runs on http://localhost:5000
 # OR for demo mode:
-DEMO_MODE=1 python app.py
+DEMO_MODE=1 flask run
 ```
 
 **Terminal 2 - Run Vite dev server:**
@@ -101,10 +101,10 @@ npm run preview      # Preview production build
 ```bash
 cd backend
 pip install -r ../requirements.txt  # Install dependencies (from repo root)
-python app.py                       # Run Flask server (http://localhost:5000)
+flask run                           # Run Flask server (http://localhost:5000)
 
 # Demo mode (no API/DB required)
-DEMO_MODE=1 python app.py
+DEMO_MODE=1 flask run
 ```
 
 ### Production Build
@@ -116,7 +116,7 @@ npm run build
 
 # Run Flask (serves both frontend + API)
 cd ../backend
-python app.py
+flask run
 # Visit http://localhost:5000
 ```
 
