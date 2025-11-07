@@ -1,6 +1,14 @@
-from flask import Blueprint, current_app, request
+from flask import Blueprint, current_app, request, session
+
+
+def authorize():
+    user = session.get("user")
+    if not user:
+        return {"error": "Authentication required"}, 401
+
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/api")
+admin_bp.before_request(authorize)
 
 
 @admin_bp.route("/group-membership", methods=["POST"])

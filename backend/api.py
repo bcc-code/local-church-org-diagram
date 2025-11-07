@@ -1,7 +1,15 @@
-from flask import Blueprint, current_app, json, request
+from flask import Blueprint, current_app, json, request, session
 from swagger_client.models.person import Person
 
+
+def authorize():
+    user = session.get("user")
+    if not user:
+        return {"error": "Authentication required"}, 401
+
+
 api_bp = Blueprint("api", __name__, url_prefix="/api")
+api_bp.before_request(authorize)
 
 
 @api_bp.route("/tree", methods=["GET"])
