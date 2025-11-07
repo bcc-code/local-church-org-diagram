@@ -9,15 +9,13 @@
     "group_id": 2,
     "label": "Forstander",
     "member_count": 1,
-    "parent_group_id": 1,
-    "type": "staff-group"
+    "parent_group_id": 1
   },
   {
     "group_id": 3,
     "label": "Bestyrelse",
     "member_count": 5,
-    "parent_group_id": 1,
-    "type": "staff-group"
+    "parent_group_id": 1
   },
   {
     "group_id": 27,

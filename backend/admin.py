@@ -14,9 +14,6 @@ admin_bp.before_request(authorize)
 @admin_bp.route("/group-membership", methods=["POST"])
 def add_group_member():
     """Add a member to a group"""
-    if current_app.config["DEMO_MODE"]:
-        return {"success": True}, 200
-
     data = request.get_json()
     if not data:
         return {"error": "No JSON data provided"}, 400
@@ -27,6 +24,32 @@ def add_group_member():
 
     if not group_id or not person_uid:
         return {"error": "Both group_id and person_uid are required"}, 400
+
+    if current_app.config["DEMO_MODE"]:
+        # Convert IDs to appropriate types for demo mode
+        try:
+            group_id = int(group_id)
+            person_uid = int(person_uid)
+        except (ValueError, TypeError):
+            return {"error": "Invalid group_id or person_uid"}, 400
+
+        # Update in-memory demo data
+        memberships = current_app.config["DEMO_MEMBERSHIPS"]
+        if group_id not in memberships:
+            memberships[group_id] = []
+
+        # Check if already a member
+        if person_uid not in memberships[group_id]:
+            memberships[group_id].append(person_uid)
+
+            # Update member count in tree
+            tree = current_app.config["DEMO_TREE"]
+            for group in tree:
+                if group["group_id"] == group_id:
+                    group["member_count"] = len(memberships[group_id])
+                    break
+
+        return {"success": True}, 201
 
     membership_data = {
         "group_id": group_id,
@@ -52,9 +75,6 @@ def add_group_member():
 @admin_bp.route("/group-membership", methods=["DELETE"])
 def remove_group_member():
     """Remove a member from a group"""
-    if current_app.config["DEMO_MODE"]:
-        return {"success": True}, 200
-
     data = request.get_json()
     if not data:
         return {"error": "No JSON data provided"}, 400
@@ -64,6 +84,31 @@ def remove_group_member():
 
     if not group_id or not person_uid:
         return {"error": "Both group_id and person_uid are required"}, 400
+
+    if current_app.config["DEMO_MODE"]:
+        # Convert IDs to appropriate types for demo mode
+        try:
+            group_id = int(group_id)
+            person_uid = int(person_uid)
+        except (ValueError, TypeError):
+            return {"error": "Invalid group_id or person_uid"}, 400
+
+        # Update in-memory demo data
+        memberships = current_app.config["DEMO_MEMBERSHIPS"]
+
+        if group_id in memberships and person_uid in memberships[group_id]:
+            memberships[group_id].remove(person_uid)
+
+            # Update member count in tree
+            tree = current_app.config["DEMO_TREE"]
+            for group in tree:
+                if group["group_id"] == group_id:
+                    group["member_count"] = len(memberships[group_id])
+                    break
+
+            return {"success": True}, 200
+        else:
+            return {"error": "Member not found in group"}, 404
 
     supabase = current_app.config["SUPABASE"]
     tenant_id = current_app.config["TENANT_ID"]

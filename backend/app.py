@@ -63,6 +63,16 @@ if not app.config["DEMO_MODE"]:
     app.config["PERSONS_API"] = bcc_api_client.PersonsApi(api_client)
 else:
     logger.info("Running in DEMO mode")
+    # Load demo data into memory for interactive demo mode
+    import json
+    with open("demo_requests/tree.json") as f:
+        app.config["DEMO_TREE"] = json.load(f)
+    with open("demo_requests/members.json") as f:
+        app.config["DEMO_MEMBERS"] = json.load(f)
+    with open("demo_requests/persons.json") as f:
+        app.config["DEMO_PERSONS"] = json.load(f)
+    # Create a mapping of group_id -> list of person_uids for membership
+    app.config["DEMO_MEMBERSHIPS"] = {}  # {group_id: [person_uid, ...]}
 
 
 app.register_blueprint(auth_bp)

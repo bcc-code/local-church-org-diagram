@@ -10,6 +10,7 @@ export interface Group {
 export interface GroupMember {
   name: string;
   person_uid: string;
+  title?: string;
 }
 
 // UI Component Types

@@ -1,10 +1,6 @@
 <template>
-  <div class="p-6 h-screen max-h-screen bg-brand-600">
-    <OrgChart />
-  </div>
+  <router-view />
 </template>
 
 <script lang="ts" setup>
-import OrgChart from './components/OrgChart.vue';
-import { TEXTS } from './constants';
 </script>
