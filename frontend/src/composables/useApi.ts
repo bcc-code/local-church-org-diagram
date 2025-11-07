@@ -2,6 +2,22 @@ import { ref, type Ref } from "vue";
 import { API_CONFIG } from "@/constants";
 import type { AsyncState, ApiError } from "@/types";
 
+// Fetch wrapper that handles 401 responses by redirecting to login
+async function fetchWithAuth(
+  input: RequestInfo | URL,
+  init?: RequestInit
+): Promise<Response> {
+  const response = await fetch(input, init);
+
+  // Redirect to login if unauthorized
+  if (response.status === 401) {
+    window.location.href = "/login";
+    throw new Error("Unauthorized - redirecting to login");
+  }
+
+  return response;
+}
+
 export function useAsyncData<T>() {
   const state = ref<AsyncState<T>>({
     data: null,
@@ -57,7 +73,7 @@ export function useAsyncData<T>() {
 // Specific API fetchers
 export function useApiClient() {
   const fetchGroups = async () => {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.TREE}`
     );
     if (!response.ok) {
@@ -67,7 +83,7 @@ export function useApiClient() {
   };
 
   const fetchGroupMembers = async (groupId: number | string) => {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PERSONS}?group_id=${groupId}`
     );
     if (!response.ok) {
@@ -77,7 +93,7 @@ export function useApiClient() {
   };
 
   const searchPersons = async (query: string) => {
-    const response = await fetch(
+    const response = await fetchWithAuth(
       `${API_CONFIG.BASE_URL}/persons/search?q=${encodeURIComponent(query)}`
     );
     if (!response.ok) {
@@ -86,17 +102,23 @@ export function useApiClient() {
     return response.json();
   };
 
-  const addGroupMember = async (groupId: number | string, personUid: string) => {
-    const response = await fetch(`${API_CONFIG.BASE_URL}/group-membership`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        group_id: groupId,
-        person_uid: personUid,
-      }),
-    });
+  const addGroupMember = async (
+    groupId: number | string,
+    personUid: string
+  ) => {
+    const response = await fetchWithAuth(
+      `${API_CONFIG.BASE_URL}/group-membership`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          group_id: groupId,
+          person_uid: personUid,
+        }),
+      }
+    );
     if (!response.ok) {
       throw new Error(`Failed to add group member: ${response.statusText}`);
     }
@@ -107,16 +129,19 @@ export function useApiClient() {
     groupId: number | string,
     personUid: string
   ) => {
-    const response = await fetch(`${API_CONFIG.BASE_URL}/group-membership`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        group_id: groupId,
-        person_uid: personUid,
-      }),
-    });
+    const response = await fetchWithAuth(
+      `${API_CONFIG.BASE_URL}/group-membership`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          group_id: groupId,
+          person_uid: personUid,
+        }),
+      }
+    );
     if (!response.ok) {
       throw new Error(`Failed to remove group member: ${response.statusText}`);
     }
