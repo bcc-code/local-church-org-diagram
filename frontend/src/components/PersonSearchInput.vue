@@ -25,6 +25,7 @@
 
         <!-- Dropdown results -->
         <div v-if="showDropdown && (results.length > 0 || error || (searchQuery.length > 0 && searchQuery.length < 3))"
+            @mousedown.prevent
             class="absolute z-50 w-full mt-2 bg-white border border-neutral-200 rounded-lg shadow-lg overflow-hidden">
 
             <!-- Minimum characters hint -->
@@ -43,7 +44,7 @@
 
             <!-- Results list -->
             <div v-else-if="results.length > 0" class="max-h-60 overflow-y-auto">
-                <button v-for="person in results" :key="person.person_uid" @mousedown.prevent="selectPerson(person)"
+                <button v-for="person in results" :key="person.person_uid" @click="selectPerson(person)"
                     class="w-full px-3 py-2.5 text-left hover:bg-brand-50 focus:bg-brand-50 focus:outline-none transition-colors border-b border-neutral-100 last:border-b-0 group">
                     <div class="flex items-center justify-between gap-2">
                         <div class="min-w-0 flex-1">
@@ -120,10 +121,7 @@ const handleFocus = () => {
 };
 
 const handleBlur = () => {
-    // Delay hiding dropdown to allow click events to fire
-    setTimeout(() => {
-        showDropdown.value = false;
-    }, 200);
+    showDropdown.value = false;
 };
 
 const clearSearch = () => {

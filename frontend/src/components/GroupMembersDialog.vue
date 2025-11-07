@@ -1,6 +1,7 @@
 <template>
     <BaseDialog ref="baseDialog" :title="`${groupName} - Medlemmer`" :description="dialogDescription">
-        <div v-if="adminMode" class="mb-4 p-3.5 bg-gradient-to-br from-brand-50 to-neutral-50 border border-brand-200 rounded-lg">
+        <div v-if="adminMode"
+            class="mb-4 p-3.5 bg-gradient-to-br from-brand-50 to-neutral-50 border border-brand-200 rounded-lg">
             <div class="flex items-center gap-2 mb-2.5">
                 <Icon name="UserPlus" :size="16" class="text-brand-600" />
                 <div class="text-sm font-semibold text-neutral-900">Legg til medlem</div>
@@ -68,6 +69,10 @@ const loadGroupMembers = async () => {
     await execute(() => fetchGroupMembers(props.groupId!));
 };
 
+const emit = defineEmits<{
+    'member-count-changed': [count: number]
+}>();
+
 const handleAddMember = async (person: GroupMember) => {
     if (!props.groupId) return;
 
@@ -75,6 +80,10 @@ const handleAddMember = async (person: GroupMember) => {
         await addGroupMember(props.groupId, person.person_uid);
         // Reload the members list
         await loadGroupMembers();
+        // Emit the new count
+        if (state.value.data) {
+            emit('member-count-changed', state.value.data.length);
+        }
     } catch (error) {
         console.error('Failed to add member:', error);
         // You could show an error message here
@@ -88,6 +97,10 @@ const handleRemoveMember = async (personUid: string) => {
         await removeGroupMember(props.groupId, personUid);
         // Reload the members list
         await loadGroupMembers();
+        // Emit the new count
+        if (state.value.data) {
+            emit('member-count-changed', state.value.data.length);
+        }
     } catch (error) {
         console.error('Failed to remove member:', error);
         // You could show an error message here

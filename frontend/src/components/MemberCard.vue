@@ -6,15 +6,15 @@
             {{ initials }}
         </div>
         <div class="ml-3 min-w-0 flex-1">
-            <div class="text-body-sm font-medium text-neutral-900">
+            <div v-if="member.title" class="text-sm text-neutral-400">
+                {{ member.title }}
+            </div>
+            <div class="text-body-md font-medium text-neutral-900">
                 {{ member.name }}
             </div>
-            <!-- <div class="text-caption text-neutral-600">
-                ID: {{ member.person_uid }}
-            </div> -->
         </div>
         <button v-if="adminMode" @click="handleRemove"
-            class="ml-2 w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-100 text-red-600 transition-colors flex-shrink-0"
+            class="ml-2 w-6 h-6 flex items-center justify-center rounded-md hover:bg-red-200 text-red-600 transition-colors flex-shrink-0"
             title="Fjern medlem">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
