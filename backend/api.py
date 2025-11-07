@@ -7,9 +7,8 @@ api_bp = Blueprint("api", __name__, url_prefix="/api")
 @api_bp.route("/tree", methods=["GET"])
 def get_tree():
     if current_app.config["DEMO_MODE"]:
-        with open("demo_requests/tree.json") as f:
-            demo_members = json.load(f)
-        return demo_members
+        # Return in-memory tree data (which gets updated by admin operations)
+        return current_app.config["DEMO_TREE"]
 
     supabase = current_app.config["SUPABASE"]
     tenant_id = current_app.config["TENANT_ID"]
@@ -40,10 +39,29 @@ def get_persons():
     if not group_id:
         return {"error": "No group_id provided"}, 400
 
+    # Convert group_id to int for comparison
+    try:
+        group_id = int(group_id)
+    except (ValueError, TypeError):
+        return {"error": "Invalid group_id"}, 400
+
     if current_app.config["DEMO_MODE"]:
-        with open("demo_requests/persons.json") as f:
-            demo_members = json.load(f)
-        return demo_members
+        # Get members from in-memory memberships
+        memberships = current_app.config["DEMO_MEMBERSHIPS"]
+        person_uids = memberships.get(group_id, [])
+
+        # Look up person details from DEMO_MEMBERS
+        all_members = current_app.config["DEMO_MEMBERS"]
+        results = []
+        for member in all_members:
+            if member["person_uid"] in person_uids:
+                results.append({
+                    "person_uid": member["person_uid"],
+                    "name": member["name"],
+                    "title": member.get("title"),
+                })
+
+        return results
 
     supabase = current_app.config["SUPABASE"]
     tenant_id = current_app.config["TENANT_ID"]
