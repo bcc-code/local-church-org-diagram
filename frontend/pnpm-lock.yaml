@@ -7,6 +7,9 @@ settings:
 importers:
   .:
     dependencies:
+      "@bcc-code/icons-vue":
+        specifier: ^1.4.0
+        version: 1.4.0(vue@3.5.22(typescript@5.9.3))
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -28,6 +31,9 @@ importers:
       vue:
         specifier: ^3.4.0
         version: 3.5.22(typescript@5.9.3)
+      vue-router:
+        specifier: ^4.6.3
+        version: 4.6.3(vue@3.5.22(typescript@5.9.3))
     devDependencies:
       "@typescript-eslint/eslint-plugin":
         specifier: ^6.0.0
@@ -286,6 +292,14 @@ packages:
         integrity: sha512-bkFqkLhh3pMBUQQkpVgWDWq/lqzc2678eUyDlTBhRqhCHFguYYGM0Efga7tYk4TogG/3x0EEl66/OQ+WGbWB/Q==,
       }
     engines: { node: ">=6.9.0" }
+
+  "@bcc-code/icons-vue@1.4.0":
+    resolution:
+      {
+        integrity: sha512-11B9/9NbI3bvFM+5sbQEfyTSP1MiS3pJXBko1aOFXqqUSKE2Bo4uGQBNFO0+APsMPyFLSmuS7kLidNe7pxlBFQ==,
+      }
+    peerDependencies:
+      vue: ">= 3"
 
   "@esbuild/aix-ppc64@0.25.10":
     resolution:
@@ -1313,6 +1327,12 @@ packages:
     resolution:
       {
         integrity: sha512-GdgyLvg4R+7T8Nk2Mlighx7XGxq/fJf9jaVofc3IL0EPesTE86cP/8DD1lT3h1JeZr2ySBvyqKQJgbS54IX1Ww==,
+      }
+
+  "@vue/devtools-api@6.6.4":
+    resolution:
+      {
+        integrity: sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g==,
       }
 
   "@vue/language-core@1.8.27":
@@ -3757,6 +3777,14 @@ packages:
     peerDependencies:
       eslint: ">=6.0.0"
 
+  vue-router@4.6.3:
+    resolution:
+      {
+        integrity: sha512-ARBedLm9YlbvQomnmq91Os7ck6efydTSpRP3nuOKCvgJOHNrhRoJDSKtee8kcL1Vf7nz6U+PMBL+hTvR3bTVQg==,
+      }
+    peerDependencies:
+      vue: ^3.5.0
+
   vue-template-compiler@2.7.16:
     resolution:
       {
@@ -4046,6 +4074,10 @@ snapshots:
     dependencies:
       "@babel/helper-string-parser": 7.27.1
       "@babel/helper-validator-identifier": 7.27.1
+
+  "@bcc-code/icons-vue@1.4.0(vue@3.5.22(typescript@5.9.3))":
+    dependencies:
+      vue: 3.5.22(typescript@5.9.3)
 
   "@esbuild/aix-ppc64@0.25.10":
     optional: true
@@ -4585,6 +4617,8 @@ snapshots:
     dependencies:
       "@vue/compiler-dom": 3.5.22
       "@vue/shared": 3.5.22
+
+  "@vue/devtools-api@6.6.4": {}
 
   "@vue/language-core@1.8.27(typescript@5.9.3)":
     dependencies:
@@ -6039,6 +6073,11 @@ snapshots:
       semver: 7.7.3
     transitivePeerDependencies:
       - supports-color
+
+  vue-router@4.6.3(vue@3.5.22(typescript@5.9.3)):
+    dependencies:
+      "@vue/devtools-api": 6.6.4
+      vue: 3.5.22(typescript@5.9.3)
 
   vue-template-compiler@2.7.16:
     dependencies:
