@@ -21,8 +21,49 @@
             <p class="text-red-600 text-sm mt-1">{{ state.error }}</p>
         </div>
     </div>
-    <div v-else-if="state.data" ref="chartEl"
-        class="rounded-xl flex min-h-full grow bg-neutral-0 shadow-lg border border-neutral-200" />
+    <div v-else-if="state.data" class="relative rounded-xl flex min-h-full grow bg-neutral-0 shadow-lg border border-neutral-200">
+        <div ref="chartEl" class="w-full h-full" />
+
+        <!-- Search input -->
+        <div class="absolute top-3 left-3 w-64">
+            <div class="relative">
+                <input v-model="searchQuery" @input="handleSearch" type="text" placeholder="Søk etter node..."
+                    class="w-full px-2 py-1.5 text-sm border-2 border-brand-500 bg-brand-50 rounded-lg focus:outline-none focus:bg-white placeholder:text-neutral-400" />
+                <div v-if="searchResults.length > 0"
+                    class="absolute z-50 w-full mt-1 bg-white border-2 border-brand-500 rounded-lg shadow-sm overflow-hidden max-h-48 overflow-y-auto">
+                    <button v-for="result in searchResults" :key="result.id" @click="navigateToNode(result)"
+                        class="w-full px-2 py-1.5 text-left text-sm hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-100 last:border-b-0">
+                        {{ result.name }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control buttons -->
+        <div class="absolute top-3 right-3 flex gap-2">
+            <button @click="centerChart"
+                class="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 shadow-sm transition-colors"
+                title="Center chart">
+                <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+            </button>
+            <button @click="expandAll"
+                class="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 shadow-sm transition-colors"
+                title="Expand all">
+                <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+            </button>
+            <button @click="collapseAll"
+                class="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 shadow-sm transition-colors"
+                title="Collapse all">
+                <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                </svg>
+            </button>
+        </div>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -45,6 +86,70 @@ const { state, execute } = useAsyncData<Group[]>();
 const { fetchGroups } = useApiClient();
 let chart: any = null;
 let skipNextRender = false;
+
+// Search state
+const searchQuery = ref('');
+const searchResults = ref<OrgNodeData[]>([]);
+let allNodes: OrgNodeData[] = [];
+
+// Chart control functions
+const centerChart = () => {
+    if (chart) {
+        chart.fit();
+    }
+};
+
+const expandAll = () => {
+    if (chart) {
+        chart.expandAll();
+    }
+};
+
+const collapseAll = () => {
+    if (chart) {
+        chart.collapseAll();
+    }
+};
+
+// Search functionality
+const handleSearch = () => {
+    const query = searchQuery.value.trim().toLowerCase();
+    if (query.length < 2) {
+        searchResults.value = [];
+        return;
+    }
+
+    searchResults.value = allNodes.filter(node =>
+        node.name.toLowerCase().includes(query)
+    ).slice(0, 10); // Limit to 10 results
+};
+
+const navigateToNode = (node: OrgNodeData) => {
+    if (!chart) return;
+
+    // Clear search
+    searchQuery.value = '';
+    searchResults.value = [];
+
+    // Find the path from root to this node
+    const path: (number | string)[] = [];
+    let currentNode = node;
+
+    while (currentNode) {
+        path.unshift(currentNode.id);
+        const parentNode = allNodes.find(n => n.id === currentNode.parentId);
+        if (!parentNode) break;
+        currentNode = parentNode;
+    }
+
+    // Expand all nodes in the path
+    path.forEach(nodeId => {
+        chart.setExpanded(nodeId);
+    });
+
+    // Center on the target node
+    chart.setCentered(node.id).render();
+};
 
 // Helper function to wait for D3 to be loaded
 const waitForD3 = (): Promise<void> => {
@@ -162,6 +267,9 @@ const renderChart = (data: OrgNodeData[]) => {
         console.error(TEXTS.ERROR_D3_NOT_LOADED);
         return;
     }
+
+    // Store nodes for search
+    allNodes = data;
 
     try {
         chart = new d3.OrgChart()
