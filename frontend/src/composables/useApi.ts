@@ -148,11 +148,37 @@ export function useApiClient() {
     return response.json();
   };
 
+  const updateMemberTitle = async (
+    groupId: number | string,
+    personUid: string,
+    title: string
+  ) => {
+    const response = await fetchWithAuth(
+      `${API_CONFIG.BASE_URL}/group-membership`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          group_id: groupId,
+          person_uid: personUid,
+          title: title,
+        }),
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to update member title: ${response.statusText}`);
+    }
+    return response.json();
+  };
+
   return {
     fetchGroups,
     fetchGroupMembers,
     searchPersons,
     addGroupMember,
     removeGroupMember,
+    updateMemberTitle,
   };
 }

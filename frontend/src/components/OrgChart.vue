@@ -12,22 +12,56 @@
         class="rounded-xl grow min-h-full bg-neutral-0 shadow-lg border border-neutral-200 flex items-center justify-center">
         <div class="text-center p-6">
             <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
+                <Icon name="TriangleAlert" :size="24" color="rgb(220 38 38)" />
             </div>
             <p class="text-red-800 font-medium">Kunne ikke laste organisasjonskart</p>
             <p class="text-red-600 text-sm mt-1">{{ state.error }}</p>
         </div>
     </div>
-    <div v-else-if="state.data" ref="chartEl"
-        class="rounded-xl flex min-h-full grow bg-neutral-0 shadow-lg border border-neutral-200" />
+    <div v-else-if="state.data"
+        class="relative rounded-xl flex min-h-full grow bg-neutral-0 shadow-lg border border-neutral-200">
+        <div ref="chartEl" class="w-full h-full" />
+
+        <!-- Search input -->
+        <div class="absolute top-3 left-3 w-44">
+            <div class="relative">
+                <input v-model="searchQuery" @input="handleSearch" type="text" placeholder="Søk etter gruppe..."
+                    class="w-full px-2 py-1.5 text-sm border-2 border-brand-500 bg-brand-50 rounded-lg focus:outline-none focus:bg-white placeholder:text-neutral-400" />
+                <div v-if="searchResults.length > 0"
+                    class="absolute z-50 w-full mt-1 bg-white border-2 border-brand-500 rounded-lg shadow-sm overflow-hidden max-h-48 overflow-y-auto">
+                    <button v-for="result in searchResults" :key="result.id" @click="navigateToNode(result)"
+                        class="w-full px-2 py-1.5 text-left text-sm hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-100 last:border-b-0">
+                        {{ result.name }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control buttons -->
+        <div class="absolute top-3 right-3 flex gap-2">
+            <button @click="centerChart"
+                class="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 shadow-sm transition-colors"
+                title="Center chart">
+                <Icon name="Maximize" :size="16" class="text-brand-600" />
+            </button>
+            <button @click="expandAll"
+                class="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 shadow-sm transition-colors"
+                title="Expand all">
+                <Icon name="Plus" :size="16" class="text-brand-600" />
+            </button>
+            <button @click="collapseAll"
+                class="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 shadow-sm transition-colors"
+                title="Collapse all">
+                <Icon name="Minus" :size="16" class="text-brand-600" />
+            </button>
+        </div>
+    </div>
 </template>
 
 <script lang="ts" setup>
 import { onMounted, ref, createApp, nextTick, watch } from 'vue';
 import OrgNode from './OrgNode.vue';
+import Icon from './ui/icon/Icon.vue';
 import { useAsyncData, useApiClient } from '@/composables/useApi';
 import { TEXTS, UI_CONFIG } from '@/constants';
 import type { Group, OrgNodeData } from '@/types';
@@ -45,6 +79,70 @@ const { state, execute } = useAsyncData<Group[]>();
 const { fetchGroups } = useApiClient();
 let chart: any = null;
 let skipNextRender = false;
+
+// Search state
+const searchQuery = ref('');
+const searchResults = ref<OrgNodeData[]>([]);
+let allNodes: OrgNodeData[] = [];
+
+// Chart control functions
+const centerChart = () => {
+    if (chart) {
+        chart.fit();
+    }
+};
+
+const expandAll = () => {
+    if (chart) {
+        chart.expandAll();
+    }
+};
+
+const collapseAll = () => {
+    if (chart) {
+        chart.collapseAll();
+    }
+};
+
+// Search functionality
+const handleSearch = () => {
+    const query = searchQuery.value.trim().toLowerCase();
+    if (query.length < 2) {
+        searchResults.value = [];
+        return;
+    }
+
+    searchResults.value = allNodes.filter(node =>
+        node.name.toLowerCase().includes(query)
+    ).slice(0, 10); // Limit to 10 results
+};
+
+const navigateToNode = (node: OrgNodeData) => {
+    if (!chart) return;
+
+    // Clear search
+    searchQuery.value = '';
+    searchResults.value = [];
+
+    // Find the path from root to this node
+    const path: (number | string)[] = [];
+    let currentNode = node;
+
+    while (currentNode) {
+        path.unshift(currentNode.id);
+        const parentNode = allNodes.find(n => n.id === currentNode.parentId);
+        if (!parentNode) break;
+        currentNode = parentNode;
+    }
+
+    // Expand all nodes in the path
+    path.forEach(nodeId => {
+        chart.setExpanded(nodeId);
+    });
+
+    // Center on the target node
+    chart.setCentered(node.id).render();
+};
 
 // Helper function to wait for D3 to be loaded
 const waitForD3 = (): Promise<void> => {
@@ -162,6 +260,9 @@ const renderChart = (data: OrgNodeData[]) => {
         console.error(TEXTS.ERROR_D3_NOT_LOADED);
         return;
     }
+
+    // Store nodes for search
+    allNodes = data;
 
     try {
         chart = new d3.OrgChart()

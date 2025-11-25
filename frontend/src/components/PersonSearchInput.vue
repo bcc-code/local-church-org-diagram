@@ -1,60 +1,37 @@
 <template>
     <div class="relative">
         <div class="relative">
-            <!-- Search icon -->
-            <div class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none">
-                <Icon name="Search" :size="16" />
-            </div>
-
-            <input v-model="searchQuery" @input="handleInput" @focus="handleFocus" @blur="handleBlur" type="text"
+            <input v-model="searchQuery" @input="handleInput" @focus="handleFocus" type="text"
                 placeholder="Søk etter person..."
-                class="w-full pl-9 pr-10 py-2.5 text-sm border border-neutral-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow placeholder:text-neutral-400"
+                class="w-full px-1.5 py-1 sm:px-2 sm:py-1.5 text-xs sm:text-sm border border-neutral-300 rounded bg-white focus:outline-none focus:border-brand-500 placeholder:text-neutral-400"
                 :disabled="loading" />
 
-            <!-- Loading spinner -->
-            <div v-if="loading"
-                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-brand-200 border-t-brand-600 rounded-full animate-spin">
+            <!-- Loading indicator -->
+            <div v-if="loading" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-neutral-400">
+                ...
             </div>
-
-            <!-- Clear button -->
-            <button v-else-if="searchQuery.length > 0" @click="clearSearch"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors">
-                <Icon name="X" :size="16" />
-            </button>
         </div>
 
         <!-- Dropdown results -->
         <div v-if="showDropdown && (results.length > 0 || error || (searchQuery.length > 0 && searchQuery.length < 3))"
             @mousedown.prevent
-            class="absolute z-50 w-full mt-2 bg-white border border-neutral-200 rounded-lg shadow-lg overflow-hidden">
+            class="absolute z-50 w-full mt-1 bg-white border border-neutral-200 rounded shadow-sm overflow-hidden">
 
             <!-- Minimum characters hint -->
-            <div v-if="searchQuery.length > 0 && searchQuery.length < 3"
-                class="px-3 py-2.5 text-xs text-neutral-500 bg-neutral-50">
-                Skriv minst 3 tegn for å søke
+            <div v-if="searchQuery.length > 0 && searchQuery.length < 3" class="px-2 py-1.5 text-xs text-neutral-500">
+                Skriv minst 3 tegn
             </div>
 
             <!-- Error message -->
-            <div v-else-if="error" class="px-3 py-2.5 text-sm text-red-600 bg-red-50">
-                <div class="flex items-center gap-2">
-                    <Icon name="AlertCircle" :size="16" class="flex-shrink-0" />
-                    <span>{{ error }}</span>
-                </div>
+            <div v-else-if="error" class="px-2 py-1.5 text-xs text-red-600">
+                {{ error }}
             </div>
 
             <!-- Results list -->
-            <div v-else-if="results.length > 0" class="max-h-60 overflow-y-auto">
+            <div v-else-if="results.length > 0" class="max-h-40 overflow-y-auto">
                 <button v-for="person in results" :key="person.person_uid" @click="selectPerson(person)"
-                    class="w-full px-3 py-2.5 text-left hover:bg-brand-50 focus:bg-brand-50 focus:outline-none transition-colors border-b border-neutral-100 last:border-b-0 group">
-                    <div class="flex items-center justify-between gap-2">
-                        <div class="min-w-0 flex-1">
-                            <div class="text-sm font-medium text-neutral-900 truncate">{{ person.name }}</div>
-                            <div class="text-xs text-neutral-500 truncate font-mono mt-0.5">{{ person.person_uid }}
-                            </div>
-                        </div>
-                        <Icon name="Plus" :size="16"
-                            class="text-neutral-400 group-hover:text-brand-600 transition-colors flex-shrink-0" />
-                    </div>
+                    class="w-full px-1.5 py-1 sm:px-2 sm:py-1.5 text-left text-xs sm:text-sm hover:bg-neutral-50 focus:bg-neutral-50 focus:outline-none border-b border-neutral-100 last:border-b-0">
+                    {{ person.name }}
                 </button>
             </div>
         </div>
@@ -64,7 +41,6 @@
 <script lang="ts" setup>
 import { ref, onUnmounted } from 'vue';
 import { useApiClient } from '@/composables/useApi';
-import Icon from '@/components/ui/icon/Icon.vue';
 import type { GroupMember } from '@/types';
 
 interface Emits {
@@ -115,20 +91,7 @@ const handleInput = () => {
 };
 
 const handleFocus = () => {
-    if (searchQuery.value.length >= 3 || results.value.length > 0) {
-        showDropdown.value = true;
-    }
-};
-
-const handleBlur = () => {
-    showDropdown.value = false;
-};
-
-const clearSearch = () => {
-    searchQuery.value = '';
-    results.value = [];
-    error.value = null;
-    showDropdown.value = false;
+    showDropdown.value = true;
 };
 
 const selectPerson = (person: GroupMember) => {
