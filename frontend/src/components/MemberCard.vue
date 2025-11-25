@@ -7,17 +7,12 @@
         </div>
         <div class="ml-3 min-w-0 flex-1">
             <div v-if="!isEditingTitle" class="text-sm text-neutral-400">
-                {{ member.title || 'Ingen tittel' }}
+                {{ member.title }}
             </div>
             <div v-else class="flex items-center gap-2">
-                <input
-                    v-model="editedTitle"
-                    type="text"
+                <input v-model="editedTitle" type="text"
                     class="text-sm text-neutral-400 bg-neutral-0 border border-brand-300 rounded px-2 py-1 flex-1 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    placeholder="Legg til tittel"
-                    @keyup.enter="handleSaveTitle"
-                    @keyup.escape="handleCancelEdit"
-                />
+                    placeholder="Legg til tittel" @keyup.enter="handleSaveTitle" @keyup.escape="handleCancelEdit" />
                 <button @click="handleSaveTitle"
                     class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-green-200 text-green-600 transition-colors flex-shrink-0"
                     title="Lagre">
@@ -29,7 +24,8 @@
                     class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-neutral-200 text-neutral-600 transition-colors flex-shrink-0"
                     title="Avbryt">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
@@ -42,7 +38,8 @@
                 class="ml-2 w-6 h-6 flex items-center justify-center rounded-md hover:bg-brand-200 text-brand-600 transition-colors"
                 title="Rediger tittel">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
             </button>
             <button @click="handleRemove"

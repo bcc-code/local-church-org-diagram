@@ -3,7 +3,7 @@
         <div class="relative">
             <input v-model="searchQuery" @input="handleInput" @focus="handleFocus" type="text"
                 placeholder="Søk etter person..."
-                class="w-full px-2 py-1.5 text-sm border border-neutral-300 rounded bg-white focus:outline-none focus:border-brand-500 placeholder:text-neutral-400"
+                class="w-full px-1.5 py-1 sm:px-2 sm:py-1.5 text-xs sm:text-sm border border-neutral-300 rounded bg-white focus:outline-none focus:border-brand-500 placeholder:text-neutral-400"
                 :disabled="loading" />
 
             <!-- Loading indicator -->
@@ -30,7 +30,7 @@
             <!-- Results list -->
             <div v-else-if="results.length > 0" class="max-h-40 overflow-y-auto">
                 <button v-for="person in results" :key="person.person_uid" @click="selectPerson(person)"
-                    class="w-full px-2 py-1.5 text-left text-sm hover:bg-neutral-50 focus:bg-neutral-50 focus:outline-none border-b border-neutral-100 last:border-b-0">
+                    class="w-full px-1.5 py-1 sm:px-2 sm:py-1.5 text-left text-xs sm:text-sm hover:bg-neutral-50 focus:bg-neutral-50 focus:outline-none border-b border-neutral-100 last:border-b-0">
                     {{ person.name }}
                 </button>
             </div>

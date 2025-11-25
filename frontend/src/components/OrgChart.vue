@@ -12,22 +12,20 @@
         class="rounded-xl grow min-h-full bg-neutral-0 shadow-lg border border-neutral-200 flex items-center justify-center">
         <div class="text-center p-6">
             <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
+                <Icon name="TriangleAlert" :size="24" color="rgb(220 38 38)" />
             </div>
             <p class="text-red-800 font-medium">Kunne ikke laste organisasjonskart</p>
             <p class="text-red-600 text-sm mt-1">{{ state.error }}</p>
         </div>
     </div>
-    <div v-else-if="state.data" class="relative rounded-xl flex min-h-full grow bg-neutral-0 shadow-lg border border-neutral-200">
+    <div v-else-if="state.data"
+        class="relative rounded-xl flex min-h-full grow bg-neutral-0 shadow-lg border border-neutral-200">
         <div ref="chartEl" class="w-full h-full" />
 
         <!-- Search input -->
-        <div class="absolute top-3 left-3 w-64">
+        <div class="absolute top-3 left-3 w-44">
             <div class="relative">
-                <input v-model="searchQuery" @input="handleSearch" type="text" placeholder="Søk etter node..."
+                <input v-model="searchQuery" @input="handleSearch" type="text" placeholder="Søk etter gruppe..."
                     class="w-full px-2 py-1.5 text-sm border-2 border-brand-500 bg-brand-50 rounded-lg focus:outline-none focus:bg-white placeholder:text-neutral-400" />
                 <div v-if="searchResults.length > 0"
                     class="absolute z-50 w-full mt-1 bg-white border-2 border-brand-500 rounded-lg shadow-sm overflow-hidden max-h-48 overflow-y-auto">
@@ -44,23 +42,17 @@
             <button @click="centerChart"
                 class="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 shadow-sm transition-colors"
                 title="Center chart">
-                <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                </svg>
+                <Icon name="Maximize" :size="16" class="text-brand-600" />
             </button>
             <button @click="expandAll"
                 class="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 shadow-sm transition-colors"
                 title="Expand all">
-                <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
+                <Icon name="Plus" :size="16" class="text-brand-600" />
             </button>
             <button @click="collapseAll"
                 class="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 shadow-sm transition-colors"
                 title="Collapse all">
-                <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-                </svg>
+                <Icon name="Minus" :size="16" class="text-brand-600" />
             </button>
         </div>
     </div>
@@ -69,6 +61,7 @@
 <script lang="ts" setup>
 import { onMounted, ref, createApp, nextTick, watch } from 'vue';
 import OrgNode from './OrgNode.vue';
+import Icon from './ui/icon/Icon.vue';
 import { useAsyncData, useApiClient } from '@/composables/useApi';
 import { TEXTS, UI_CONFIG } from '@/constants';
 import type { Group, OrgNodeData } from '@/types';
