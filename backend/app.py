@@ -65,6 +65,7 @@ else:
     logger.info("Running in DEMO mode")
     # Load demo data into memory for interactive demo mode
     import json
+
     with open("demo_requests/tree.json") as f:
         app.config["DEMO_TREE"] = json.load(f)
     with open("demo_requests/members.json") as f:
@@ -81,7 +82,8 @@ app.register_blueprint(admin_bp)
 
 
 @app.route("/")
-def index():
+@app.route("/<tenant_id>/admin")
+def index(tenant_id=None):
     """Serves the Vue frontend"""
     if not session.get("user"):
         return redirect(url_for("auth.login"))

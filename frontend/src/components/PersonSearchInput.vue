@@ -2,7 +2,7 @@
     <div class="relative">
         <div class="relative">
             <input v-model="searchQuery" @input="handleInput" @focus="handleFocus" type="text"
-                placeholder="Søk etter person..."
+                placeholder="Legg til person..."
                 class="w-full px-1.5 py-1 sm:px-2 sm:py-1.5 text-xs sm:text-sm border border-neutral-300 rounded bg-white focus:outline-none focus:border-brand-500 placeholder:text-neutral-400"
                 :disabled="loading" />
 
