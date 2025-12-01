@@ -16,6 +16,7 @@ import swagger_client as bcc_api_client
 from admin import admin_bp
 from api import api_bp
 from auth import auth_bp
+from swagger_client.rest import ApiException
 
 load_dotenv()
 
@@ -105,6 +106,25 @@ def serve_spa(path):
         return "Not found", 404
 
     return send_from_directory(app.static_folder, path)
+
+
+@app.route("/health")
+def health():
+    """Health check endpoint"""
+    bcc_auth = app.config["BCC_AUTH"]
+    persons_api: bcc_api_client.PersonsApi = app.config["PERSONS_API"]
+    if bcc_auth.token is None or bcc_auth.token.is_expired():
+        bcc_auth.renew_token()
+    persons_api.api_client.configuration.access_token = str(bcc_auth.token)
+    try:
+        persons_api.get_person(1234)  # Dummy call to check connectivity
+    except ApiException as api_error:
+        if api_error.status != 404:
+            logger.error("Health check failed: %s", api_error)
+            return "BCC API connectivity issue", 500
+        # We expect a 404
+
+    return "OK", 200
 
 
 if __name__ == "__main__":
