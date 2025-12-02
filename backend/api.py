@@ -166,6 +166,72 @@ def search_persons():
     return _score_and_rank_persons(persons_data, search_query)
 
 
+@api_bp.route("/persons/<person_uid>/groups", methods=["GET"])
+def get_person_groups(person_uid):
+    """Get all groups where a person is a member with group details"""
+    if current_app.config["DEMO_MODE"]:
+        # Find all groups where this person is a member
+        memberships = current_app.config["DEMO_MEMBERSHIPS"]
+        group_ids = [
+            group_id
+            for group_id, members in memberships.items()
+            if int(person_uid) in members
+        ]
+
+        # Get group details from tree
+        tree = current_app.config["DEMO_TREE"]
+        groups = [
+            {
+                "group_id": g["group_id"],
+                "name": g["label"],
+                "member_count": g["member_count"],
+            }
+            for g in tree
+            if g["group_id"] in group_ids
+        ]
+        return {"groups": groups}
+
+    supabase = current_app.config["SUPABASE"]
+    tenant_id = current_app.config["TENANT_ID"]
+
+    # Get group memberships
+    q = (
+        supabase.table("group_membership")
+        .select("group_id")
+        .eq("bcc_person_uid", person_uid)
+    )
+    if tenant_id:
+        q = q.eq("tenant_id", tenant_id)
+    else:
+        q = q.is_("tenant_id", None)
+
+    memberships = q.execute()
+    group_ids = [m["group_id"] for m in memberships.data]
+
+    if not group_ids:
+        return {"groups": []}
+
+    # Get group details
+    q = supabase.table("groups").select("id, name, group_membership(bcc_person_uid)").in_("id", group_ids)
+    if tenant_id:
+        q = q.eq("tenant_id", tenant_id)
+    else:
+        q = q.is_("tenant_id", None)
+
+    groups_data = q.execute()
+
+    groups = [
+        {
+            "group_id": g["id"],
+            "name": g["name"],
+            "member_count": len(g["group_membership"]),
+        }
+        for g in groups_data.data
+    ]
+
+    return {"groups": groups}
+
+
 def _sort_members_by_title(members):
     """
     Sort members by title priority and then alphabetically by name.
