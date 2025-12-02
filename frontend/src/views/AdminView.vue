@@ -1,6 +1,6 @@
 <template>
   <div class="p-6 h-screen max-h-screen bg-brand-600">
-    <h2 class="text-neutral-100 absolute top-1 text-body-sm">
+    <h2 class="text-neutral-100 absolute top-1 text-body-md italic left-8 opacity-50">
       Admin
     </h2>
     <OrgChart :admin-mode="true" />
