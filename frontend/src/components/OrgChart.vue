@@ -22,8 +22,13 @@
         class="relative rounded-xl flex min-h-full grow bg-neutral-0 shadow-lg border border-neutral-200">
         <div ref="chartEl" class="w-full h-full" />
 
-        <!-- Search input -->
-        <div class="absolute top-3 left-3 w-44">
+        <!-- Person Groups Dialog -->
+        <PersonGroupsDialog ref="personGroupsDialog" :person-name="selectedPerson?.name || ''"
+            @group-selected="handleGroupSelected" />
+
+        <!-- Search inputs -->
+        <div class="absolute top-3 left-3 w-48 space-y-2">
+            <!-- Group search -->
             <div class="relative">
                 <input v-model="searchQuery" @input="handleSearch" type="text" placeholder="Søk etter gruppe..."
                     class="w-full px-2 py-1.5 text-sm border-2 border-brand-500 bg-brand-50 rounded-lg focus:outline-none focus:bg-white placeholder:text-neutral-400" />
@@ -32,6 +37,21 @@
                     <button v-for="result in searchResults" :key="result.id" @click="navigateToNode(result)"
                         class="w-full px-2 py-1.5 text-left text-sm hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-100 last:border-b-0">
                         {{ result.name }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Person search -->
+            <div class="relative">
+                <input v-model="personSearchQuery" @input="handlePersonSearch" type="text"
+                    placeholder="Søk etter person..."
+                    class="w-full px-2 py-1.5 text-sm border-2 border-brand-500 bg-brand-50 rounded-lg focus:outline-none focus:bg-white placeholder:text-neutral-400" />
+                <div v-if="personSearchResults.length > 0"
+                    class="absolute z-50 w-full mt-1 bg-white border-2 border-brand-500 rounded-lg shadow-sm overflow-hidden max-h-48 overflow-y-auto">
+                    <button v-for="person in personSearchResults" :key="person.person_uid"
+                        @click="findPersonGroups(person)"
+                        class="w-full px-2 py-1.5 text-left text-sm hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-100 last:border-b-0">
+                        {{ person.name }}
                     </button>
                 </div>
             </div>
@@ -62,6 +82,7 @@
 import { onMounted, ref, createApp, nextTick, watch } from 'vue';
 import OrgNode from './OrgNode.vue';
 import Icon from './ui/icon/Icon.vue';
+import PersonGroupsDialog from './PersonGroupsDialog.vue';
 import { useAsyncData, useApiClient } from '@/composables/useApi';
 import { TEXTS, UI_CONFIG } from '@/constants';
 import type { Group, OrgNodeData } from '@/types';
@@ -75,15 +96,22 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const chartEl = ref<HTMLDivElement | null>(null);
+const personGroupsDialog = ref<InstanceType<typeof PersonGroupsDialog> | null>(null);
 const { state, execute } = useAsyncData<Group[]>();
-const { fetchGroups } = useApiClient();
+const { fetchGroups, searchPersons } = useApiClient();
 let chart: any = null;
 let skipNextRender = false;
 
-// Search state
+// Group search state
 const searchQuery = ref('');
 const searchResults = ref<OrgNodeData[]>([]);
 let allNodes: OrgNodeData[] = [];
+
+// Person search state
+const personSearchQuery = ref('');
+const personSearchResults = ref<any[]>([]);
+let personSearchTimeout: ReturnType<typeof setTimeout> | null = null;
+let selectedPerson: any = null;
 
 // Chart control functions
 const centerChart = () => {
@@ -104,7 +132,7 @@ const collapseAll = () => {
     }
 };
 
-// Search functionality
+// Group search functionality
 const handleSearch = () => {
     const query = searchQuery.value.trim().toLowerCase();
     if (query.length < 2) {
@@ -142,6 +170,58 @@ const navigateToNode = (node: OrgNodeData) => {
 
     // Center on the target node
     chart.setCentered(node.id).render();
+};
+
+// Person search functionality
+const handlePersonSearch = async () => {
+    const query = personSearchQuery.value.trim();
+
+    // Clear previous timeout
+    if (personSearchTimeout) {
+        clearTimeout(personSearchTimeout);
+    }
+
+    if (query.length < 3) {
+        personSearchResults.value = [];
+        return;
+    }
+
+    // Debounce API call
+    personSearchTimeout = setTimeout(async () => {
+        try {
+            const results = await searchPersons(query);
+            personSearchResults.value = results;
+        } catch (error) {
+            console.error('Person search failed:', error);
+            personSearchResults.value = [];
+        }
+    }, 300);
+};
+
+const findPersonGroups = (person: any) => {
+    // Clear person search
+    personSearchQuery.value = '';
+    personSearchResults.value = [];
+
+    // Store selected person and open dialog
+    selectedPerson = person;
+    if (personGroupsDialog.value) {
+        personGroupsDialog.value.open(person.person_uid);
+    }
+};
+
+const handleGroupSelected = (groupId: number) => {
+    if (!chart) return;
+
+    // Find the node
+    const node = allNodes.find(n => n.id === groupId);
+    if (!node) {
+        console.error('Group not found:', groupId);
+        return;
+    }
+
+    // Navigate to the node
+    navigateToNode(node);
 };
 
 // Helper function to wait for D3 to be loaded

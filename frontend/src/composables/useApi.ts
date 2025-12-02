@@ -198,6 +198,16 @@ export function useApiClient() {
     return response.json();
   };
 
+  const getPersonGroups = async (personUid: string) => {
+    const response = await fetchWithAuth(
+      `${API_CONFIG.BASE_URL}/persons/${personUid}/groups`
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to fetch person groups: ${response.statusText}`);
+    }
+    return response.json();
+  };
+
   return {
     fetchGroups,
     fetchGroupMembers,
@@ -206,5 +216,6 @@ export function useApiClient() {
     removeGroupMember,
     updateMemberTitle,
     updateMemberLink,
+    getPersonGroups,
   };
 }
