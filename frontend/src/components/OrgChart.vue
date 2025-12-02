@@ -35,7 +35,7 @@
 
                 <!-- Combined results -->
                 <div v-if="searchResults.length > 0 || personSearchResults.length > 0"
-                    class="absolute z-50 w-[90%] mt-1 bg-neutral-100 border border-neutral-300 rounded-md shadow-sm overflow-hidden max-h-40 overflow-y-auto">
+                    class="absolute z-50 w-full mt-1 bg-neutral-100 border border-neutral-300 rounded-md shadow-sm overflow-hidden max-h-40 overflow-y-auto">
 
                     <!-- Group results -->
                     <button v-for="result in searchResults" :key="'group-' + result.id" @click="navigateToNode(result)"
