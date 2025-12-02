@@ -6,7 +6,7 @@
   {
     "person_uid": 12002,
     "name": "Oliver Berg",
-    "title": "Group Leader"
+    "title": "Leder"
   },
   {
     "person_uid": 12003,
@@ -18,15 +18,18 @@
   },
   {
     "person_uid": 12005,
-    "name": "Ava Eriksson"
+    "name": "Ava Eriksson",
+    "title": "Ansvarlig"
   },
   {
     "person_uid": 12006,
-    "name": "Noah Fischer"
+    "name": "Noah Fischer",
+    "title": "Sekretær"
   },
   {
     "person_uid": 12007,
-    "name": "Isabella Garcia"
+    "name": "Isabella Garcia",
+    "title": "Kasserer"
   },
   {
     "person_uid": 12008,
@@ -38,7 +41,8 @@
   },
   {
     "person_uid": 12010,
-    "name": "James Johnson"
+    "name": "James Johnson",
+    "title": "Koordinator"
   },
   {
     "person_uid": 12011,
@@ -58,7 +62,8 @@
   },
   {
     "person_uid": 12015,
-    "name": "Harper Olsen"
+    "name": "Harper Olsen",
+    "title": "Assistent"
   },
   {
     "person_uid": 12016,
