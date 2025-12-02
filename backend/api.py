@@ -68,6 +68,7 @@ def get_persons():
                         "person_uid": member["person_uid"],
                         "name": member["name"],
                         "title": member.get("title"),
+                        "link": member.get("link"),
                     }
                 )
 
@@ -80,7 +81,7 @@ def get_persons():
 
     q = (
         supabase.table("group_membership")
-        .select("bcc_person_uid, title")
+        .select("bcc_person_uid, title, link")
         .eq("group_id", group_id)
     )
     if tenant_id:
@@ -108,6 +109,7 @@ def get_persons():
             "person_uid": p.uid,
             "name": p.display_name,
             "title": uids.get(p.uid, {}).get("title"),
+            "link": uids.get(p.uid, {}).get("link"),
         }
         for p in persons
     ]
@@ -115,7 +117,12 @@ def get_persons():
     not_found_uids = [uid for uid in uids if uid not in {p.uid for p in persons}]
     for uid in not_found_uids:
         results.append(
-            {"person_uid": uid, "name": "?", "title": uids.get(uid, {}).get("title")}
+            {
+                "person_uid": uid,
+                "name": "?",
+                "title": uids.get(uid, {}).get("title"),
+                "link": uids.get(uid, {}).get("link"),
+            }
         )
 
     return _sort_members_by_title(results)

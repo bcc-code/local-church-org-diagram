@@ -6,11 +6,13 @@
   {
     "person_uid": 12002,
     "name": "Oliver Berg",
-    "title": "Leder"
+    "title": "Leder",
+    "link": "https://linkedin.com/"
   },
   {
     "person_uid": 12003,
-    "name": "Sophia Chen"
+    "name": "Sophia Chen",
+    "link": "https://github.com/"
   },
   {
     "person_uid": 12004,
@@ -19,7 +21,8 @@
   {
     "person_uid": 12005,
     "name": "Ava Eriksson",
-    "title": "Ansvarlig"
+    "title": "Ansvarlig",
+    "link": "mailto:ava@example.com"
   },
   {
     "person_uid": 12006,
