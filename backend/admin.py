@@ -138,7 +138,7 @@ def remove_group_member():
 
 @admin_bp.route("/group-membership", methods=["PUT"])
 def update_group_member():
-    """Update a group member's properties (currently only title)"""
+    """Update a group member's properties (title and/or link)"""
     data = request.get_json()
     if not data:
         return {"error": "No JSON data provided"}, 400
@@ -146,21 +146,32 @@ def update_group_member():
     group_id = data.get("group_id")
     person_uid = data.get("person_uid")
     title = data.get("title")
+    link = data.get("link")
 
     if not group_id or not person_uid:
         return {"error": "Both group_id and person_uid are required"}, 400
 
     if current_app.config["DEMO_MODE"]:
-        # Update title in DEMO_MEMBERS
+        # Update title and/or link in DEMO_MEMBERS
         members = current_app.config["DEMO_MEMBERS"]
         for member in members:
             if str(member["person_uid"]) == str(person_uid):
-                member["title"] = title
+                if title is not None:
+                    member["title"] = title
+                if link is not None:
+                    member["link"] = link
                 return {"success": True}, 200
 
         return {"error": "Member not found"}, 404
 
-    if title is None:
+    # Build update data with only provided fields
+    update_data = {}
+    if title is not None:
+        update_data["title"] = title
+    if link is not None:
+        update_data["link"] = link
+
+    if not update_data:
         return {"success": True}, 304  # Not modified
 
     supabase = current_app.config["SUPABASE"]
@@ -168,7 +179,7 @@ def update_group_member():
 
     q = (
         supabase.table("group_membership")
-        .update({"title": title})
+        .update(update_data)
         .eq("group_id", group_id)
         .eq("bcc_person_uid", person_uid)
     )

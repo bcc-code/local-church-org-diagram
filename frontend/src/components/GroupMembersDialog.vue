@@ -9,7 +9,7 @@
         </div>
         <div v-else-if="!isLoading() && hasData()" class="space-y-2 overflow-y-auto max-h-[60vh]">
             <MemberCard v-for="member in state.data" :key="member.person_uid" :member="member" :admin-mode="adminMode"
-                @remove="handleRemoveMember" @update-title="handleUpdateTitle" />
+                @remove="handleRemoveMember" @update-title="handleUpdateTitle" @update-link="handleUpdateLink" />
         </div>
         <div v-else-if="!isLoading() && !hasData()" class="p-4 text-center text-neutral-600">
             <p>{{ TEXTS.NO_MEMBERS }}</p>
@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const { state, execute, isLoading, hasError, hasData } = useAsyncData<GroupMember[]>();
-const { fetchGroupMembers, addGroupMember, removeGroupMember, updateMemberTitle } = useApiClient();
+const { fetchGroupMembers, addGroupMember, removeGroupMember, updateMemberTitle, updateMemberLink } = useApiClient();
 const baseDialog = ref<InstanceType<typeof BaseDialog> | null>(null);
 
 const dialogDescription = computed(() => {
@@ -110,6 +110,19 @@ const handleUpdateTitle = async (personUid: string, title: string) => {
         await loadGroupMembers();
     } catch (error) {
         console.error('Failed to update member title:', error);
+        // You could show an error message here
+    }
+};
+
+const handleUpdateLink = async (personUid: string, link: string) => {
+    if (!props.groupId) return;
+
+    try {
+        await updateMemberLink(props.groupId, personUid, link);
+        // Reload the members list to get the updated data
+        await loadGroupMembers();
+    } catch (error) {
+        console.error('Failed to update member link:', error);
         // You could show an error message here
     }
 };
