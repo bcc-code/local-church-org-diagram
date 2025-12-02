@@ -1,7 +1,7 @@
 <template>
     <div class="relative">
         <div class="relative">
-            <input v-model="searchQuery" @input="handleInput" @focus="handleFocus" @keydown="handleKeydown" type="text"
+            <input ref="searchInput" v-model="searchQuery" @input="handleInput" @focus="handleFocus" @keydown="handleKeydown" type="text"
                 placeholder="Legg til person..."
                 class="w-full px-2 py-1.5 text-sm border-2 border-brand-500 bg-brand-50 rounded-lg focus:outline-none focus:bg-white placeholder:text-neutral-400"
                 :disabled="loading" />
@@ -14,7 +14,7 @@
 
         <!-- Dropdown results -->
         <div v-if="showDropdown && (results.length > 0 || error || (searchQuery.length > 0 && searchQuery.length < 3))"
-            @mousedown.prevent ref="dropdown"
+            ref="dropdown"
             class="absolute z-50 w-full mt-1 bg-neutral-100 border border-neutral-300 rounded-md shadow-sm overflow-hidden">
 
             <!-- Minimum characters hint -->
@@ -29,7 +29,8 @@
 
             <!-- Results list -->
             <div v-else-if="results.length > 0" class="max-h-40 overflow-y-auto">
-                <button v-for="(person, index) in results" :key="person.person_uid" @click="selectPerson(person)"
+                <button v-for="(person, index) in results" :key="person.person_uid"
+                    @mousedown.prevent="selectPerson(person)"
                     ref="resultButtons"
                     :class="['w-full px-2 py-1 text-left text-xs hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === index ? 'bg-brand-100' : '']">
                     <svg class="w-3 h-3 text-brand-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,6 +56,7 @@ const emit = defineEmits<Emits>();
 
 const { searchPersons } = useApiClient();
 
+const searchInput = ref<HTMLInputElement | null>(null);
 const searchQuery = ref('');
 const results = ref<GroupMember[]>([]);
 const showDropdown = ref(false);
@@ -142,8 +144,11 @@ const selectPerson = (person: GroupMember) => {
     emit('select', person);
     searchQuery.value = '';
     results.value = [];
-    showDropdown.value = false;
     selectedIndex.value = -1;
+    // Keep focus on the input field
+    if (searchInput.value) {
+        searchInput.value.focus();
+    }
 };
 
 // Clean up timeout on unmount
