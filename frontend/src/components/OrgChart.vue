@@ -35,20 +35,20 @@
 
                 <!-- Combined results -->
                 <div v-if="searchResults.length > 0 || personSearchResults.length > 0"
-                    class="absolute z-50 w-full mt-1 bg-white border-2 border-brand-500 rounded-lg shadow-sm overflow-hidden max-h-48 overflow-y-auto">
+                    class="absolute z-50 w-[90%] mt-1 bg-neutral-100 border border-neutral-300 rounded-md shadow-sm overflow-hidden max-h-40 overflow-y-auto">
 
                     <!-- Group results -->
                     <button v-for="result in searchResults" :key="'group-' + result.id" @click="navigateToNode(result)"
-                        class="w-full px-2 py-1.5 text-left text-sm hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-100 last:border-b-0 flex items-center gap-2">
-                        <Icon name="FolderTree" :size="14" class="text-brand-600 flex-shrink-0" />
+                        class="w-full px-2 py-1 text-left text-xs hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5">
+                        <Icon name="FolderTree" :size="12" class="text-brand-600 flex-shrink-0" />
                         <span>{{ result.name }}</span>
                     </button>
 
                     <!-- Person results -->
                     <button v-for="person in personSearchResults" :key="'person-' + person.person_uid"
                         @click="findPersonGroups(person)"
-                        class="w-full px-2 py-1.5 text-left text-sm hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-100 last:border-b-0 flex items-center gap-2">
-                        <Icon name="User" :size="14" class="text-brand-600 flex-shrink-0" />
+                        class="w-full px-2 py-1 text-left text-xs hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5">
+                        <Icon name="User" :size="12" class="text-brand-600 flex-shrink-0" />
                         <span>{{ person.name }}</span>
                     </button>
                 </div>
