@@ -40,7 +40,7 @@
                     <!-- Group results -->
                     <button v-for="result in searchResults" :key="'group-' + result.id" @click="navigateToNode(result)"
                         class="w-full px-2 py-1.5 text-left text-sm hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-100 last:border-b-0 flex items-center gap-2">
-                        <Icon name="Users" :size="14" class="text-brand-600 flex-shrink-0" />
+                        <Icon name="FolderTree" :size="14" class="text-brand-600 flex-shrink-0" />
                         <span>{{ result.name }}</span>
                     </button>
 
