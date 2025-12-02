@@ -12,7 +12,7 @@
             <button v-for="(person, index) in results" :key="person.person_uid"
                 @mousedown.prevent="selectPerson(person)"
                 ref="resultButtons"
-                :class="['w-full px-2 py-1 text-left text-xs focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === index ? 'bg-brand-100' : 'hover:bg-brand-50']">
+                :class="['w-full px-2 py-1 text-left text-xs focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === index ? 'bg-brand-200' : 'hover:bg-brand-50']">
                 <svg class="w-3 h-3 text-brand-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>

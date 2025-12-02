@@ -40,7 +40,7 @@
                     <!-- Group results -->
                     <button v-for="(result, index) in searchResults" :key="'group-' + result.id"
                         @click="navigateToNode(result)" ref="searchResultButtons"
-                        :class="['w-full px-2 py-1 text-left text-xs focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === index ? 'bg-brand-100' : 'hover:bg-brand-50']">
+                        :class="['w-full px-2 py-1 text-left text-xs focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === index ? 'bg-brand-200' : 'hover:bg-brand-50']">
                         <Icon name="FolderTree" :size="12" class="text-brand-600 flex-shrink-0" />
                         <span>{{ result.name }}</span>
                     </button>
@@ -50,7 +50,7 @@
                         v-for="(person, index) in personSearchResults"
                         :key="'person-' + person.person_uid"
                         @click="findPersonGroups(person)" ref="searchResultButtons"
-                        :class="['w-full px-2 py-1 text-left text-xs focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === (searchResults.length + index) ? 'bg-brand-100' : 'hover:bg-brand-50']">
+                        :class="['w-full px-2 py-1 text-left text-xs focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === (searchResults.length + index) ? 'bg-brand-200' : 'hover:bg-brand-50']">
                         <Icon name="User" :size="12" class="text-brand-600 flex-shrink-0" />
                         <span>{{ person.name }}</span>
                     </button>
