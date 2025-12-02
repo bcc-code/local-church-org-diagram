@@ -26,12 +26,14 @@
         <PersonGroupsDialog ref="personGroupsDialog" :person-name="selectedPerson?.name || ''"
             @group-selected="handleGroupSelected" />
 
-        <!-- Search inputs -->
-        <div class="absolute top-3 left-3 w-48 space-y-2">
-            <!-- Group search -->
+        <!-- Unified search input -->
+        <div class="absolute top-3 left-3 w-48">
             <div class="relative">
-                <input v-model="searchQuery" @input="handleSearch" type="text" placeholder="Søk etter gruppe..."
+                <input v-model="unifiedSearchQuery" @input="handleUnifiedSearch" type="text"
+                    placeholder="person: eller gruppe:"
                     class="w-full px-2 py-1.5 text-sm border-2 border-brand-500 bg-brand-50 rounded-lg focus:outline-none focus:bg-white placeholder:text-neutral-400" />
+
+                <!-- Group results -->
                 <div v-if="searchResults.length > 0"
                     class="absolute z-50 w-full mt-1 bg-white border-2 border-brand-500 rounded-lg shadow-sm overflow-hidden max-h-48 overflow-y-auto">
                     <button v-for="result in searchResults" :key="result.id" @click="navigateToNode(result)"
@@ -39,13 +41,8 @@
                         {{ result.name }}
                     </button>
                 </div>
-            </div>
 
-            <!-- Person search -->
-            <div class="relative">
-                <input v-model="personSearchQuery" @input="handlePersonSearch" type="text"
-                    placeholder="Søk etter person..."
-                    class="w-full px-2 py-1.5 text-sm border-2 border-brand-500 bg-brand-50 rounded-lg focus:outline-none focus:bg-white placeholder:text-neutral-400" />
+                <!-- Person results -->
                 <div v-if="personSearchResults.length > 0"
                     class="absolute z-50 w-full mt-1 bg-white border-2 border-brand-500 rounded-lg shadow-sm overflow-hidden max-h-48 overflow-y-auto">
                     <button v-for="person in personSearchResults" :key="person.person_uid"
@@ -102,14 +99,11 @@ const { fetchGroups, searchPersons } = useApiClient();
 let chart: any = null;
 let skipNextRender = false;
 
-// Group search state
-const searchQuery = ref('');
+// Unified search state
+const unifiedSearchQuery = ref('');
 const searchResults = ref<OrgNodeData[]>([]);
-let allNodes: OrgNodeData[] = [];
-
-// Person search state
-const personSearchQuery = ref('');
 const personSearchResults = ref<any[]>([]);
+let allNodes: OrgNodeData[] = [];
 let personSearchTimeout: ReturnType<typeof setTimeout> | null = null;
 let selectedPerson: any = null;
 
@@ -132,24 +126,57 @@ const collapseAll = () => {
     }
 };
 
-// Group search functionality
-const handleSearch = () => {
-    const query = searchQuery.value.trim().toLowerCase();
-    if (query.length < 2) {
-        searchResults.value = [];
-        return;
+// Unified search functionality
+const handleUnifiedSearch = () => {
+    const fullQuery = unifiedSearchQuery.value.trim();
+
+    // Clear previous timeout
+    if (personSearchTimeout) {
+        clearTimeout(personSearchTimeout);
     }
 
-    searchResults.value = allNodes.filter(node =>
-        node.name.toLowerCase().includes(query)
-    ).slice(0, 10); // Limit to 10 results
+    // Reset results
+    searchResults.value = [];
+    personSearchResults.value = [];
+
+    // Check for person: prefix
+    if (fullQuery.toLowerCase().startsWith('person:')) {
+        const query = fullQuery.substring(7).trim(); // Remove 'person:' prefix
+
+        if (query.length < 3) {
+            return;
+        }
+
+        // Debounce API call for person search
+        personSearchTimeout = setTimeout(async () => {
+            try {
+                const results = await searchPersons(query);
+                personSearchResults.value = results;
+            } catch (error) {
+                console.error('Person search failed:', error);
+                personSearchResults.value = [];
+            }
+        }, 300);
+    }
+    // Check for gruppe: prefix
+    else if (fullQuery.toLowerCase().startsWith('gruppe:')) {
+        const query = fullQuery.substring(7).trim().toLowerCase(); // Remove 'gruppe:' prefix
+
+        if (query.length < 2) {
+            return;
+        }
+
+        searchResults.value = allNodes.filter(node =>
+            node.name.toLowerCase().includes(query)
+        ).slice(0, 10); // Limit to 10 results
+    }
 };
 
 const navigateToNode = (node: OrgNodeData) => {
     if (!chart) return;
 
     // Clear search
-    searchQuery.value = '';
+    unifiedSearchQuery.value = '';
     searchResults.value = [];
 
     // Find the path from root to this node
@@ -172,35 +199,9 @@ const navigateToNode = (node: OrgNodeData) => {
     chart.setCentered(node.id).render();
 };
 
-// Person search functionality
-const handlePersonSearch = async () => {
-    const query = personSearchQuery.value.trim();
-
-    // Clear previous timeout
-    if (personSearchTimeout) {
-        clearTimeout(personSearchTimeout);
-    }
-
-    if (query.length < 3) {
-        personSearchResults.value = [];
-        return;
-    }
-
-    // Debounce API call
-    personSearchTimeout = setTimeout(async () => {
-        try {
-            const results = await searchPersons(query);
-            personSearchResults.value = results;
-        } catch (error) {
-            console.error('Person search failed:', error);
-            personSearchResults.value = [];
-        }
-    }, 300);
-};
-
 const findPersonGroups = (person: any) => {
-    // Clear person search
-    personSearchQuery.value = '';
+    // Clear search
+    unifiedSearchQuery.value = '';
     personSearchResults.value = [];
 
     // Store selected person and open dialog
