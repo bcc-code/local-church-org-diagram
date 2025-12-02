@@ -30,25 +30,26 @@
         <div class="absolute top-3 left-3 w-48">
             <div class="relative">
                 <input v-model="unifiedSearchQuery" @input="handleUnifiedSearch" type="text"
-                    placeholder="person: eller gruppe:"
+                    placeholder="Søk..."
                     class="w-full px-2 py-1.5 text-sm border-2 border-brand-500 bg-brand-50 rounded-lg focus:outline-none focus:bg-white placeholder:text-neutral-400" />
 
-                <!-- Group results -->
-                <div v-if="searchResults.length > 0"
+                <!-- Combined results -->
+                <div v-if="searchResults.length > 0 || personSearchResults.length > 0"
                     class="absolute z-50 w-full mt-1 bg-white border-2 border-brand-500 rounded-lg shadow-sm overflow-hidden max-h-48 overflow-y-auto">
-                    <button v-for="result in searchResults" :key="result.id" @click="navigateToNode(result)"
-                        class="w-full px-2 py-1.5 text-left text-sm hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-100 last:border-b-0">
-                        {{ result.name }}
-                    </button>
-                </div>
 
-                <!-- Person results -->
-                <div v-if="personSearchResults.length > 0"
-                    class="absolute z-50 w-full mt-1 bg-white border-2 border-brand-500 rounded-lg shadow-sm overflow-hidden max-h-48 overflow-y-auto">
-                    <button v-for="person in personSearchResults" :key="person.person_uid"
+                    <!-- Group results -->
+                    <button v-for="result in searchResults" :key="'group-' + result.id" @click="navigateToNode(result)"
+                        class="w-full px-2 py-1.5 text-left text-sm hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-100 last:border-b-0 flex items-center gap-2">
+                        <Icon name="Users" :size="14" class="text-brand-600 flex-shrink-0" />
+                        <span>{{ result.name }}</span>
+                    </button>
+
+                    <!-- Person results -->
+                    <button v-for="person in personSearchResults" :key="'person-' + person.person_uid"
                         @click="findPersonGroups(person)"
-                        class="w-full px-2 py-1.5 text-left text-sm hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-100 last:border-b-0">
-                        {{ person.name }}
+                        class="w-full px-2 py-1.5 text-left text-sm hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-100 last:border-b-0 flex items-center gap-2">
+                        <Icon name="User" :size="14" class="text-brand-600 flex-shrink-0" />
+                        <span>{{ person.name }}</span>
                     </button>
                 </div>
             </div>
@@ -128,47 +129,39 @@ const collapseAll = () => {
 
 // Unified search functionality
 const handleUnifiedSearch = () => {
-    const fullQuery = unifiedSearchQuery.value.trim();
+    const query = unifiedSearchQuery.value.trim();
 
     // Clear previous timeout
     if (personSearchTimeout) {
         clearTimeout(personSearchTimeout);
     }
 
-    // Reset results
-    searchResults.value = [];
-    personSearchResults.value = [];
+    // Reset results if query is too short
+    if (query.length < 2) {
+        searchResults.value = [];
+        personSearchResults.value = [];
+        return;
+    }
 
-    // Check for person: prefix
-    if (fullQuery.toLowerCase().startsWith('person:')) {
-        const query = fullQuery.substring(7).trim(); // Remove 'person:' prefix
+    // Search groups (local, instant)
+    const queryLower = query.toLowerCase();
+    searchResults.value = allNodes.filter(node =>
+        node.name.toLowerCase().includes(queryLower)
+    ).slice(0, 5); // Limit to 5 group results
 
-        if (query.length < 3) {
-            return;
-        }
-
-        // Debounce API call for person search
+    // Search persons (API, debounced) - only if query is 3+ chars
+    if (query.length >= 3) {
         personSearchTimeout = setTimeout(async () => {
             try {
                 const results = await searchPersons(query);
-                personSearchResults.value = results;
+                personSearchResults.value = results.slice(0, 5); // Limit to 5 person results
             } catch (error) {
                 console.error('Person search failed:', error);
                 personSearchResults.value = [];
             }
         }, 300);
-    }
-    // Check for gruppe: prefix
-    else if (fullQuery.toLowerCase().startsWith('gruppe:')) {
-        const query = fullQuery.substring(7).trim().toLowerCase(); // Remove 'gruppe:' prefix
-
-        if (query.length < 2) {
-            return;
-        }
-
-        searchResults.value = allNodes.filter(node =>
-            node.name.toLowerCase().includes(query)
-        ).slice(0, 10); // Limit to 10 results
+    } else {
+        personSearchResults.value = [];
     }
 };
 
