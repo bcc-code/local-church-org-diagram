@@ -29,25 +29,28 @@
         <!-- Unified search input -->
         <div class="absolute top-3 left-3 w-48">
             <div class="relative">
-                <input v-model="unifiedSearchQuery" @input="handleUnifiedSearch" type="text"
-                    placeholder="Søk..."
+                <input v-model="unifiedSearchQuery" @input="handleUnifiedSearch" @keydown="handleSearchKeydown"
+                    type="text" placeholder="Søk..."
                     class="w-full px-2 py-1.5 text-sm border-2 border-brand-500 bg-brand-50 rounded-lg focus:outline-none focus:bg-white placeholder:text-neutral-400" />
 
                 <!-- Combined results -->
-                <div v-if="searchResults.length > 0 || personSearchResults.length > 0"
+                <div v-if="searchResults.length > 0 || personSearchResults.length > 0" ref="searchDropdown"
                     class="absolute z-50 w-full mt-1 bg-neutral-100 border border-neutral-300 rounded-md shadow-sm overflow-hidden max-h-40 overflow-y-auto">
 
                     <!-- Group results -->
-                    <button v-for="result in searchResults" :key="'group-' + result.id" @click="navigateToNode(result)"
-                        class="w-full px-2 py-1 text-left text-xs hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5">
+                    <button v-for="(result, index) in searchResults" :key="'group-' + result.id"
+                        @click="navigateToNode(result)" ref="searchResultButtons"
+                        :class="['w-full px-2 py-1 text-left text-xs focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === index ? 'bg-brand-100' : 'hover:bg-brand-50']">
                         <Icon name="FolderTree" :size="12" class="text-brand-600 flex-shrink-0" />
                         <span>{{ result.name }}</span>
                     </button>
 
                     <!-- Person results -->
-                    <button v-for="person in personSearchResults" :key="'person-' + person.person_uid"
-                        @click="findPersonGroups(person)"
-                        class="w-full px-2 py-1 text-left text-xs hover:bg-brand-50 focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5">
+                    <button
+                        v-for="(person, index) in personSearchResults"
+                        :key="'person-' + person.person_uid"
+                        @click="findPersonGroups(person)" ref="searchResultButtons"
+                        :class="['w-full px-2 py-1 text-left text-xs focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === (searchResults.length + index) ? 'bg-brand-100' : 'hover:bg-brand-50']">
                         <Icon name="User" :size="12" class="text-brand-600 flex-shrink-0" />
                         <span>{{ person.name }}</span>
                     </button>
@@ -104,6 +107,9 @@ let skipNextRender = false;
 const unifiedSearchQuery = ref('');
 const searchResults = ref<OrgNodeData[]>([]);
 const personSearchResults = ref<any[]>([]);
+const selectedIndex = ref<number>(-1);
+const searchDropdown = ref<HTMLDivElement | null>(null);
+const searchResultButtons = ref<HTMLButtonElement[]>([]);
 let allNodes: OrgNodeData[] = [];
 let personSearchTimeout: ReturnType<typeof setTimeout> | null = null;
 let selectedPerson: any = null;
@@ -136,12 +142,16 @@ const handleUnifiedSearch = () => {
         clearTimeout(personSearchTimeout);
     }
 
-    // Reset results if query is too short
+    // Reset results and selection if query is too short
     if (query.length < 2) {
         searchResults.value = [];
         personSearchResults.value = [];
+        selectedIndex.value = -1;
         return;
     }
+
+    // Reset selection when search changes
+    selectedIndex.value = -1;
 
     // Search groups (local, instant)
     const queryLower = query.toLowerCase();
@@ -165,12 +175,54 @@ const handleUnifiedSearch = () => {
     }
 };
 
+const handleSearchKeydown = (event: KeyboardEvent) => {
+    const totalResults = searchResults.value.length + personSearchResults.value.length;
+
+    if (totalResults === 0) return;
+
+    if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        selectedIndex.value = Math.min(selectedIndex.value + 1, totalResults - 1);
+        scrollToSelected();
+    } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        selectedIndex.value = Math.max(selectedIndex.value - 1, -1);
+        scrollToSelected();
+    } else if (event.key === 'Enter') {
+        event.preventDefault();
+        if (selectedIndex.value >= 0 && selectedIndex.value < totalResults) {
+            // Click the selected item
+            const buttons = searchResultButtons.value;
+            if (buttons && buttons[selectedIndex.value]) {
+                buttons[selectedIndex.value].click();
+            }
+        }
+    } else if (event.key === 'Escape') {
+        event.preventDefault();
+        unifiedSearchQuery.value = '';
+        searchResults.value = [];
+        personSearchResults.value = [];
+        selectedIndex.value = -1;
+    }
+};
+
+const scrollToSelected = () => {
+    if (selectedIndex.value >= 0 && searchResultButtons.value[selectedIndex.value]) {
+        searchResultButtons.value[selectedIndex.value].scrollIntoView({
+            block: 'nearest',
+            behavior: 'smooth'
+        });
+    }
+};
+
 const navigateToNode = (node: OrgNodeData) => {
     if (!chart) return;
 
     // Clear search
     unifiedSearchQuery.value = '';
     searchResults.value = [];
+    personSearchResults.value = [];
+    selectedIndex.value = -1;
 
     // Find the path from root to this node
     const path: (number | string)[] = [];
@@ -195,7 +247,9 @@ const navigateToNode = (node: OrgNodeData) => {
 const findPersonGroups = (person: any) => {
     // Clear search
     unifiedSearchQuery.value = '';
+    searchResults.value = [];
     personSearchResults.value = [];
+    selectedIndex.value = -1;
 
     // Store selected person and open dialog
     selectedPerson = person;
