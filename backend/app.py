@@ -72,8 +72,11 @@ else:
         app.config["DEMO_MEMBERS"] = json.load(f)
     with open("demo_requests/persons.json") as f:
         app.config["DEMO_PERSONS"] = json.load(f)
-    # Create a mapping of group_id -> list of person_uids for membership
-    app.config["DEMO_MEMBERSHIPS"] = {}  # {group_id: [person_uid, ...]}
+    # Load group memberships mapping
+    with open("demo_requests/memberships.json") as f:
+        memberships_data = json.load(f)
+        # Convert string keys to integers
+        app.config["DEMO_MEMBERSHIPS"] = {int(k): v for k, v in memberships_data.items()}
 
 
 app.register_blueprint(auth_bp)

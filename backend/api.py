@@ -63,13 +63,15 @@ def get_persons():
         results = []
         for member in all_members:
             if member["person_uid"] in person_uids:
-                results.append({
-                    "person_uid": member["person_uid"],
-                    "name": member["name"],
-                    "title": member.get("title"),
-                })
+                results.append(
+                    {
+                        "person_uid": member["person_uid"],
+                        "name": member["name"],
+                        "title": member.get("title"),
+                    }
+                )
 
-        return results
+        return _sort_members_by_title(results)
 
     supabase = current_app.config["SUPABASE"]
     tenant_id = current_app.config["TENANT_ID"]
@@ -116,7 +118,7 @@ def get_persons():
             {"person_uid": uid, "name": "?", "title": uids.get(uid, {}).get("title")}
         )
 
-    return results
+    return _sort_members_by_title(results)
 
 
 @api_bp.route("/persons/search", methods=["GET"])
@@ -155,6 +157,45 @@ def search_persons():
     ]
 
     return _score_and_rank_persons(persons_data, search_query)
+
+
+def _sort_members_by_title(members):
+    """
+    Sort members by title priority and then alphabetically by name.
+
+    Priority:
+    1. "Leder" or "Ansvarlig" (leadership titles)
+    2. Other titles (alphabetically)
+    3. No title (alphabetically)
+
+    Within each group, sort alphabetically by name.
+
+    Args:
+        members: List of dicts with 'person_uid', 'name', and 'title' keys
+
+    Returns:
+        Sorted list of members
+    """
+
+    def get_sort_key(member):
+        title = (member.get("title") or "").strip()
+        name = (member.get("name") or "").strip()
+
+        # Priority 1: Leadership titles (Leder, Ansvarlig)
+        if title.lower() in ["leder", "ansvarlig"]:
+            # Sort Leder before Ansvarlig, then by name
+            title_priority = 0 if title.lower() == "leder" else 1
+            return (0, title_priority, name.lower())
+
+        # Priority 2: Other titles
+        elif title:
+            return (1, title.lower(), name.lower())
+
+        # Priority 3: No title
+        else:
+            return (2, "", name.lower())
+
+    return sorted(members, key=get_sort_key)
 
 
 def _score_and_rank_persons(persons_data, search_query, limit=5):
