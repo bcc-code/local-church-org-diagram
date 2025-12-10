@@ -12,6 +12,7 @@ export interface GroupMember {
   person_uid: string;
   title?: string;
   link?: string;
+  profile_picture?: string | null;
 }
 
 // UI Component Types

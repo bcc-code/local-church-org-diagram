@@ -1,7 +1,9 @@
 <template>
     <div
         class="flex items-center p-3 border border-silver-tree-400 rounded-lg bg-neutral-50 hover:bg-neutral-100 transition-colors">
-        <div
+        <img v-if="member.profile_picture" :src="member.profile_picture" :alt="member.name"
+            class="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+        <div v-else
             class="w-8 h-8 rounded-full bg-silver-tree-600 text-neutral-0 flex items-center justify-center font-bold text-xs flex-shrink-0">
             {{ initials }}
         </div>
