@@ -54,7 +54,7 @@ if not app.config["DEMO_MODE"]:
 
     app.config["BCC_AUTH"] = OAuth2ClientCredentialsAuth(
         bcc_oauth_client,
-        scope="persons.name#read",
+        scope="persons.name#read persons.profile_picture#read",
         audience="api.bcc.no",
     )
 
