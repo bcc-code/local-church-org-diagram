@@ -42,7 +42,7 @@ def get_tree():
 
 
 @api_bp.route("/persons", methods=["GET"])
-def get_persons():
+def get_persons_in_group():
     group_id = request.args.get("group_id")
     if not group_id:
         return {"error": "No group_id provided"}, 400
@@ -110,6 +110,7 @@ def get_persons():
         return {
             "person_uid": uid,
             "name": person.display_name if person else "?",
+            "profile_picture": person.profile_picture if person else None,
             "title": membership.get("title"),
             "link": membership.get("link"),
         }
@@ -154,7 +155,12 @@ def search_persons():
 
     # Convert API response to common format
     persons_data = [
-        {"person_uid": p.uid, "name": p.display_name or ""} for p in persons
+        {
+            "person_uid": p.uid,
+            "name": p.display_name or "",
+            "profile_picture": p.profile_picture,
+        }
+        for p in persons
     ]
 
     return _score_and_rank_persons(persons_data, search_query)
@@ -305,6 +311,7 @@ def _score_and_rank_persons(persons_data, search_query, limit=5):
                 "score": score,
                 "person_uid": person["person_uid"],
                 "name": person["name"],
+                "profile_picture": person.get("profile_picture"),
             }
         )
 
@@ -313,4 +320,11 @@ def _score_and_rank_persons(persons_data, search_query, limit=5):
     top_results = scored_results[:limit]
 
     # Remove score from response
-    return [{"person_uid": r["person_uid"], "name": r["name"]} for r in top_results]
+    return [
+        {
+            "person_uid": r["person_uid"],
+            "name": r["name"],
+            "profile_picture": r["profile_picture"],
+        }
+        for r in top_results
+    ]
