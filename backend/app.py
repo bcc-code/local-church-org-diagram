@@ -1,5 +1,10 @@
 import logging
 import os
+
+import swagger_client as bcc_api_client
+from admin import admin_bp
+from api import api_bp
+from auth import auth_bp
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 from flask import (
@@ -11,11 +16,6 @@ from flask import (
 )
 from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
 from supabase import create_client
-import swagger_client as bcc_api_client
-
-from admin import admin_bp
-from api import api_bp
-from auth import auth_bp
 from swagger_client.rest import ApiException
 
 load_dotenv()
@@ -77,7 +77,9 @@ else:
     with open("demo_requests/memberships.json") as f:
         memberships_data = json.load(f)
         # Convert string keys to integers
-        app.config["DEMO_MEMBERSHIPS"] = {int(k): v for k, v in memberships_data.items()}
+        app.config["DEMO_MEMBERSHIPS"] = {
+            int(k): v for k, v in memberships_data.items()
+        }
 
 
 app.register_blueprint(auth_bp)

@@ -90,8 +90,8 @@ def get_persons():
         q = q.is_("tenant_id", None)
     memberships = q.execute()
 
-    uids = {m["bcc_person_uid"]: m for m in memberships.data}
-    if not uids:
+    membership_by_uid = {m["bcc_person_uid"]: m for m in memberships.data}
+    if not membership_by_uid:
         return []
 
     # Lookup person names from BCC API
@@ -101,29 +101,23 @@ def get_persons():
 
     persons: list[Person] = persons_api.find_persons(
         fields="*",
-        filter=json.dumps({"uid": {"_in": list(uids.keys())}}),
+        filter=json.dumps({"uid": {"_in": list(membership_by_uid.keys())}}),
     ).data  # type: ignore
 
-    results = [
-        {
-            "person_uid": p.uid,
-            "name": p.display_name,
-            "title": uids.get(p.uid, {}).get("title"),
-            "link": uids.get(p.uid, {}).get("link"),
-        }
-        for p in persons
-    ]
+    persons_by_uid = {p.uid: p for p in persons}
 
-    not_found_uids = [uid for uid in uids if uid not in {p.uid for p in persons}]
-    for uid in not_found_uids:
-        results.append(
-            {
-                "person_uid": uid,
-                "name": "?",
-                "title": uids.get(uid, {}).get("title"),
-                "link": uids.get(uid, {}).get("link"),
-            }
-        )
+    def map_person(uid, membership, person: Person | None):
+        return {
+            "person_uid": uid,
+            "name": person.display_name if person else "?",
+            "title": membership.get("title"),
+            "link": membership.get("link"),
+        }
+
+    results = [
+        map_person(uid, membership, persons_by_uid.get(uid))
+        for uid, membership in membership_by_uid.items()
+    ]
 
     return _sort_members_by_title(results)
 
@@ -212,7 +206,11 @@ def get_person_groups(person_uid):
         return {"groups": []}
 
     # Get group details
-    q = supabase.table("groups").select("id, name, group_membership(bcc_person_uid)").in_("id", group_ids)
+    q = (
+        supabase.table("groups")
+        .select("id, name, group_membership(bcc_person_uid)")
+        .in_("id", group_ids)
+    )
     if tenant_id:
         q = q.eq("tenant_id", tenant_id)
     else:
