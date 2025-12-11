@@ -19,7 +19,7 @@ def get_tree():
         return current_app.config["DEMO_TREE"]
 
     supabase = current_app.config["SUPABASE"]
-    tenant_id = current_app.config["TENANT_ID"]
+    tenant_id = 51
 
     q = supabase.table("groups").select(
         "id, name, parent_id, group_membership(bcc_person_uid)"
@@ -75,9 +75,9 @@ def get_persons_in_group():
         return _sort_members_by_title(results)
 
     supabase = current_app.config["SUPABASE"]
-    tenant_id = current_app.config["TENANT_ID"]
     bcc_auth = current_app.config["BCC_AUTH"]
     persons_api = current_app.config["PERSONS_API"]
+    tenant_id = 51
 
     q = (
         supabase.table("group_membership")
@@ -192,7 +192,7 @@ def get_person_groups(person_uid):
         return {"groups": groups}
 
     supabase = current_app.config["SUPABASE"]
-    tenant_id = current_app.config["TENANT_ID"]
+    tenant_id = 51
 
     # Get group memberships
     q = (
