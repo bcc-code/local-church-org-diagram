@@ -1,4 +1,7 @@
+import logging
 from flask import Blueprint, current_app, request, session
+
+logger = logging.getLogger("admin")
 
 
 def authorize():
@@ -21,7 +24,6 @@ def add_group_member():
     group_id = data.get("group_id")
     person_uid = data.get("person_uid")
     title = data.get("title")
-
     if not group_id or not person_uid:
         return {"error": "Both group_id and person_uid are required"}, 400
 
@@ -51,17 +53,15 @@ def add_group_member():
 
         return {"success": True}, 201
 
+    tenant_id = session["user"].get("churchId")
     membership_data = {
         "group_id": group_id,
         "bcc_person_uid": person_uid,
+        "tenant_id": tenant_id,
     }
 
     if title is not None:
         membership_data["title"] = title
-
-    tenant_id = 51
-    if tenant_id:
-        membership_data["tenant_id"] = tenant_id
 
     supabase = current_app.config["SUPABASE"]
     result = supabase.table("group_membership").insert(membership_data).execute()
@@ -111,22 +111,16 @@ def remove_group_member():
             return {"error": "Member not found in group"}, 404
 
     supabase = current_app.config["SUPABASE"]
-    tenant_id = 51
+    tenant_id = session["user"].get("churchId")
 
-    q = (
+    result = (
         supabase.table("group_membership")
         .delete()
         .eq("group_id", group_id)
         .eq("bcc_person_uid", person_uid)
+        .eq("tenant_id", tenant_id)
+        .execute()
     )
-
-    if tenant_id:
-        q = q.eq("tenant_id", tenant_id)
-    else:
-        q = q.is_("tenant_id", None)
-
-    result = q.execute()
-
     if not result.data:
         return {"error": "Member not found in group"}, 404
 
@@ -175,21 +169,15 @@ def update_group_member():
         return {"success": True}, 304  # Not modified
 
     supabase = current_app.config["SUPABASE"]
-    tenant_id = 51
+    tenant_id = session["user"].get("churchId")
 
-    q = (
+    result = (
         supabase.table("group_membership")
         .update(update_data)
         .eq("group_id", group_id)
         .eq("bcc_person_uid", person_uid)
-    )
-
-    if tenant_id:
-        q = q.eq("tenant_id", tenant_id)
-    else:
-        q = q.is_("tenant_id", None)
-
-    result = q.execute()
+        .eq("tenant_id", tenant_id)
+    ).execute()
     if not result.data:
         return {"error": "Member not found in group"}, 404
 
