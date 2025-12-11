@@ -59,7 +59,7 @@ def add_group_member():
     if title is not None:
         membership_data["title"] = title
 
-    tenant_id = current_app.config["TENANT_ID"]
+    tenant_id = 51
     if tenant_id:
         membership_data["tenant_id"] = tenant_id
 
@@ -111,7 +111,7 @@ def remove_group_member():
             return {"error": "Member not found in group"}, 404
 
     supabase = current_app.config["SUPABASE"]
-    tenant_id = current_app.config["TENANT_ID"]
+    tenant_id = 51
 
     q = (
         supabase.table("group_membership")
@@ -175,7 +175,7 @@ def update_group_member():
         return {"success": True}, 304  # Not modified
 
     supabase = current_app.config["SUPABASE"]
-    tenant_id = current_app.config["TENANT_ID"]
+    tenant_id = 51
 
     q = (
         supabase.table("group_membership")
