@@ -27,11 +27,8 @@ def authorize():
     userinfo = token.get("userinfo")
 
     if userinfo:
-        session["user"] = {
-            "email": userinfo.get("email"),
-            "name": userinfo.get("name"),
-            "sub": userinfo.get("sub"),
-        }
+        userinfo["churchId"] = userinfo.get("https://login.bcc.no/claims/churchId")
+        session["user"] = userinfo
         logger.info(f"User logged in: {userinfo.get('email')}")
 
     return redirect("/")

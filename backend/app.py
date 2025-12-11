@@ -39,7 +39,7 @@ if not app.config["DEMO_MODE"]:
         client_id=os.environ.get("BCC_OIDC_CLIENT_ID"),
         client_secret=os.environ.get("BCC_OIDC_CLIENT_SECRET"),
         server_metadata_url="https://login.bcc.no/.well-known/openid-configuration",
-        client_kwargs={"scope": "openid profile email"},
+        client_kwargs={"scope": "openid profile email church"},
     )
 
     app.config["SUPABASE"] = create_client(
@@ -88,11 +88,14 @@ app.register_blueprint(admin_bp)
 
 
 @app.route("/")
-@app.route("/<tenant_id>/admin")
+@app.route("/<int:tenant_id>/admin")
 def index(tenant_id=None):
-    """Serves the Vue frontend"""
-    if not session.get("user"):
+    """Serves the Vue rontend i"""
+    user = session.get("user")
+    if not user:
         return redirect(url_for("auth.login"))
+    if tenant_id is not None and int(tenant_id) != user.get("churchId"):
+        return "Unauthorized", 403
 
     return send_from_directory(app.static_folder, "index.html")  # type: ignore
 

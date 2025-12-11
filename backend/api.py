@@ -1,5 +1,8 @@
+import logging
 from flask import Blueprint, current_app, json, request, session
 from swagger_client.models.person import Person
+
+logger = logging.getLogger("api")
 
 
 def authorize():
@@ -19,7 +22,7 @@ def get_tree():
         return current_app.config["DEMO_TREE"]
 
     supabase = current_app.config["SUPABASE"]
-    tenant_id = 51
+    tenant_id = session["user"].get("churchId")
 
     q = supabase.table("groups").select(
         "id, name, parent_id, group_membership(bcc_person_uid)"
@@ -77,7 +80,7 @@ def get_persons_in_group():
     supabase = current_app.config["SUPABASE"]
     bcc_auth = current_app.config["BCC_AUTH"]
     persons_api = current_app.config["PERSONS_API"]
-    tenant_id = 51
+    tenant_id = session["user"].get("churchId")
 
     q = (
         supabase.table("group_membership")
@@ -192,7 +195,7 @@ def get_person_groups(person_uid):
         return {"groups": groups}
 
     supabase = current_app.config["SUPABASE"]
-    tenant_id = 51
+    tenant_id = session["user"].get("churchId")
 
     # Get group memberships
     q = (
