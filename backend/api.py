@@ -291,22 +291,25 @@ def _score_and_rank_persons(persons_data, search_query, limit=5):
         List of top matches with 'person_uid' and 'name' keys
     """
     scored_results = []
-    query_lower = search_query.lower()
+    terms = search_query.lower().split(" ")
 
     for person in persons_data:
         name_lower = person["name"].lower()
 
-        # Skip if name doesn't contain the query
-        if query_lower not in name_lower:
-            continue
-
         # Calculate match score (higher is better)
-        if name_lower == query_lower:
+        if name_lower == search_query.lower():
             score = 1000  # Exact match
-        elif name_lower.startswith(query_lower):
-            score = 500  # Starts with
         else:
-            score = 100 + (len(name_lower) - name_lower.find(query_lower))  # Contains
+            score = 500
+            for ti, term in enumerate(terms):
+                try:
+                    idx = name_lower.index(term)
+                except ValueError:
+                    continue  # Term not found, skip
+
+                # Earlier terms and earlier positions get higher score
+                score += 100 // (ti + 1)
+                score += 50 // (idx + 1)
 
         scored_results.append(
             {
