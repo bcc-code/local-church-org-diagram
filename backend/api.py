@@ -152,7 +152,7 @@ def search_persons():
 
     persons: list[Person] = persons_api.find_persons(
         fields="*",
-        filter=json.dumps({"displayName": {"_contains": search_query}}),
+        filter=json.dumps({"displayName": {"_ncontains": search_query}}),
         limit=50,  # Get more results for better sorting
     ).data  # type: ignore
 
