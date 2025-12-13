@@ -1,6 +1,7 @@
 import logging
 from flask import Blueprint, current_app, json, request, session
 from swagger_client.models.person import Person
+from swagger_client.api.persons_api import PersonsApi
 
 logger = logging.getLogger("api")
 
@@ -142,9 +143,8 @@ def search_persons():
             demo_members = json.load(f)
         return _score_and_rank_persons(demo_members, search_query)
 
-    # Production mode - use BCC API
     bcc_auth = current_app.config["BCC_AUTH"]
-    persons_api = current_app.config["PERSONS_API"]
+    persons_api: PersonsApi = current_app.config["PERSONS_API"]
 
     if bcc_auth.token is None or bcc_auth.token.is_expired():
         bcc_auth.renew_token()
@@ -152,8 +152,8 @@ def search_persons():
 
     persons: list[Person] = persons_api.find_persons(
         fields="*",
-        filter=json.dumps({"displayName": {"_ncontains": search_query}}),
-        limit=50,  # Get more results for better sorting
+        search=search_query,
+        limit=50,
     ).data  # type: ignore
 
     # Convert API response to common format
@@ -294,8 +294,7 @@ def _score_and_rank_persons(persons_data, search_query, limit=5):
     query_lower = search_query.lower()
 
     for person in persons_data:
-        name = person["name"]
-        name_lower = name.lower()
+        name_lower = person["name"].lower()
 
         # Skip if name doesn't contain the query
         if query_lower not in name_lower:

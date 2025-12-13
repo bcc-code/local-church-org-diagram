@@ -5,6 +5,11 @@
   },
   "python.analysis.extraPaths": ["./bcc_api"],
   "appService.zipIgnorePattern": [
+    "node_modules{,/**}",
+    ".venv{,/**}",
+    ".git{,/**}",
+    "frontend{,/**}",
+    "tools{,/**}",
     "__pycache__{,/**}",
     "*.py[cod]",
     "*$py.class",
@@ -27,14 +32,14 @@
     "*.egg",
     "MANIFEST",
     ".env{,/**}",
-    ".venv{,/**}",
     "env{,/**}",
     "venv{,/**}",
     "ENV{,/**}",
     "env.bak{,/**}",
     "venv.bak{,/**}",
     ".vscode{,/**}",
-    "frontend{,/**}"
+    ".deployment",
+    "*.md"
   ],
   "appService.defaultWebAppToDeploy": "/subscriptions/17d25552-b59d-4e27-9d48-a382e48a3532/resourceGroups/org-diagram_group/providers/Microsoft.Web/sites/org-diagram",
   "appService.showDeployConfirmation": false

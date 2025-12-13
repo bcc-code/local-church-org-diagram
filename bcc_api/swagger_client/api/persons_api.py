@@ -388,7 +388,7 @@ class PersonsApi(object):
                  returns the request thread.
         """
 
-        all_params = ['limit', 'offset', 'page', 'filter', 'fields', 'sort', 'options']  # noqa: E501
+        all_params = ['limit', 'offset', 'page', 'filter', 'fields', 'sort', 'options', 'search']  # noqa: E501
         all_params.append('async_req')
         all_params.append('_return_http_data_only')
         all_params.append('_preload_content')
@@ -423,6 +423,8 @@ class PersonsApi(object):
             query_params.append(('sort', params['sort']))  # noqa: E501
         if 'options' in params:
             query_params.append(('options', params['options']))  # noqa: E501
+        if 'search' in params:
+            query_params.append(('search', params['search']))  # noqa: E501
 
         header_params = {}
 

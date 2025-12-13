@@ -60,6 +60,7 @@ if not app.config["DEMO_MODE"]:
 
     bcc_client_config = bcc_api_client.Configuration()
     bcc_client_config.host = "https://core.api.bcc.no"
+    bcc_client_config.debug = app.debug
     api_client = bcc_api_client.ApiClient(configuration=bcc_client_config)
     app.config["PERSONS_API"] = bcc_api_client.PersonsApi(api_client)
 else:
