@@ -1,4 +1,4 @@
-# Org Diagram Monorepo
+# Local Church Org Diagram
 
 This project contains a Vue.js frontend (TypeScript) and a Flask backend (Python).
 
