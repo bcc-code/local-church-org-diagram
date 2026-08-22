@@ -40,11 +40,11 @@ See [`docs/domain-model.md`](./docs/domain-model.md) for the domain model (ubiqu
 1. Install dependencies:
    ```sh
    cd frontend
-   npm install
+   pnpm install
    ```
 2. Run the development server:
    ```sh
-   npm run dev
+   pnpm run dev
    ```
 
 ### Backend

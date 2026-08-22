@@ -1,0 +1,21 @@
+allowBuilds:
+  vue-demi: true
+minimumReleaseAgeExclude:
+  - '@vue/language-core@3.3.11'
+  - eslint@10.9.0
+  - vue-tsc@3.3.11
+onlyBuiltDependencies:
+  - vue-demi
+overrides:
+  postcss: ^8.5.26
+  nanoid: ^3.3.18
+  flatted: ^3.4.4
+  picomatch: ^2.3.2
+  'minimatch@3>brace-expansion': ^1.1.18
+  'minimatch@10>brace-expansion': ^5.0.9
+  defu: ^6.1.7
+  hono: ^4.13.3
+  fast-uri: ^4.1.2
+  ip-address: ^10.5.0
+  '@hono/node-server': ^2.1.1
+  body-parser: ^2.3.0

@@ -75,7 +75,7 @@ DEMO_MODE=1 uv run flask run
 
 ```bash
 cd frontend
-npm run dev                      # Runs on http://localhost:5173
+pnpm run dev                     # Runs on http://localhost:5173
 ```
 
 **Develop on:** `http://localhost:5173`
@@ -92,10 +92,10 @@ The Vite dev server proxies `/api/*` requests to Flask backend, giving you:
 
 ```bash
 cd frontend
-npm install          # Install dependencies
-npm run dev          # Start dev server with HMR (http://localhost:5173)
-npm run build        # Build for production
-npm run preview      # Preview production build
+pnpm install         # Install dependencies
+pnpm run dev         # Start dev server with HMR (http://localhost:5173)
+pnpm run build       # Build for production
+pnpm run preview     # Preview production build
 ```
 
 ### Backend
@@ -114,7 +114,7 @@ DEMO_MODE=1 uv run flask run
 ```bash
 # Build frontend
 cd frontend
-npm run build
+pnpm run build
 
 # Run Flask (serves both frontend + API)
 cd ../backend
@@ -210,8 +210,8 @@ SUPABASE_KEY=...
 
 - The `bcc_api/` directory contains generated code - do not manually edit
 - Demo mode is useful for development without credentials or external API access
-- **For local development**, use Vite dev server (`npm run dev`) with Flask backend running in parallel
-- **For production**, build frontend first (`npm run build`) - Vite builds to `backend/public/`, which Flask serves
+- **For local development**, use Vite dev server (`pnpm run dev`) with Flask backend running in parallel
+- **For production**, build frontend first (`pnpm run build`) - Vite builds to `backend/public/`, which Flask serves
 - Vite dev server proxies `/api/*` requests to Flask backend at `http://localhost:5000`
 - The frontend currently uses a static JSON file (`org-data.json`) by default - see `App.vue` for how to switch to `/api/tree`
 - d3-org-chart is loaded from CDN, not npm - see `frontend/index.html`
