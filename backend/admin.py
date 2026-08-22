@@ -1,4 +1,5 @@
 import logging
+
 from flask import Blueprint, current_app, request, session
 
 logger = logging.getLogger("admin")

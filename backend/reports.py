@@ -2,7 +2,6 @@
 Reports module for generating various types of reports.
 """
 
-import logging
 import re
 from typing import Any, cast
 

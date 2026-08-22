@@ -14,6 +14,11 @@ dependencies = [
 ]
 
 [dependency-groups]
+dev = [
+    "pyright>=1.1.411",
+    "pytest>=9.1.1",
+    "ruff>=0.16.4",
+]
 tools = [
     "pandas>=2.3.0",
     "openpyxl>=3.1.0",
@@ -26,3 +31,12 @@ package = false
 
 [tool.uv.sources]
 swagger-client = { path = "bcc_api", editable = true }
+
+[tool.ruff]
+extend-exclude = ["bcc_api", "tools"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]

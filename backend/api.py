@@ -1,7 +1,8 @@
 import logging
+
 from flask import Blueprint, current_app, json, request, session
-from swagger_client.models.person import Person
 from swagger_client.api.persons_api import PersonsApi
+from swagger_client.models.person import Person
 
 logger = logging.getLogger("api")
 

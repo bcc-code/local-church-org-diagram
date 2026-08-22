@@ -1,5 +1,6 @@
 import logging
-from flask import Blueprint, current_app, session, redirect, url_for
+
+from flask import Blueprint, current_app, redirect, session, url_for
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/")
 

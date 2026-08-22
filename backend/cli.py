@@ -5,10 +5,9 @@ import sys
 import click
 
 logging.getLogger().setLevel(logging.WARNING)
-from flask import current_app
-from flask.cli import with_appcontext
-
-from reports import MembershipReport
+from flask import current_app  # noqa: E402
+from flask.cli import with_appcontext  # noqa: E402
+from reports import MembershipReport  # noqa: E402
 
 
 @click.group()
@@ -40,4 +39,6 @@ def membership_report(root):
     writer = csv.writer(sys.stdout)
     writer.writerow(["person_uid", "name", "team_no", "groups"])
     for row in data:
-        writer.writerow([row["person_uid"], row["name"], row["team_no"], ";".join(row["groups"])])
+        writer.writerow(
+            [row["person_uid"], row["name"], row["team_no"], ";".join(row["groups"])]
+        )

@@ -5,8 +5,8 @@ import swagger_client as bcc_api_client
 from admin import admin_bp
 from api import api_bp
 from auth import auth_bp
-from cli import generate_report
 from authlib.integrations.flask_client import OAuth
+from cli import generate_report
 from dotenv import load_dotenv
 from flask import (
     Flask,
