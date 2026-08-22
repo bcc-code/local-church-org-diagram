@@ -2,7 +2,6 @@
 Reports module for generating various types of reports.
 """
 
-import re
 from typing import Any, cast
 
 from supabase import Client
@@ -53,7 +52,6 @@ class MembershipReport:
             {
                 "person_uid": 12345,
                 "name": "John Doe",
-                "team_no": "1;3",
                 "groups": ["Root, Child 1, Subchild 2"]
             },
             ...
@@ -86,13 +84,8 @@ class MembershipReport:
                     pass
             return ", ".join(group_names[i] for i in ids)
 
-        def extract_team_no(group_name):
-            m = re.search(r"Hold (\d+)", group_name)
-            return m.group(1) if m else None
-
         # Collect memberships grouped by person_uid
         memberships_by_uid = {}
-        teams_by_uid = {}
         query = self.supabase.table("group_membership").select(
             "bcc_person_uid, title, group_id, groups!inner(name)"
         )
@@ -110,10 +103,6 @@ class MembershipReport:
                 memberships_by_uid[person_uid] = []
             if group_path not in memberships_by_uid[person_uid]:
                 memberships_by_uid[person_uid].append(group_path)
-
-            team_no = extract_team_no(group_path)
-            if team_no is not None:
-                teams_by_uid.setdefault(person_uid, set()).add(team_no)
 
         if not memberships_by_uid:
             return []
@@ -138,12 +127,10 @@ class MembershipReport:
         report = []
         for uid, groups in memberships_by_uid.items():
             person = persons_by_uid.get(uid)
-            team_nos = teams_by_uid.get(uid, set())
             report.append(
                 {
                     "person_uid": uid,
                     "name": person.display_name if person else "?",
-                    "team_no": ";".join(sorted(team_nos)) if team_nos else "",
                     "groups": groups,
                 }
             )

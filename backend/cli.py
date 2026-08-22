@@ -37,8 +37,8 @@ def membership_report(root):
         sys.exit(1)
 
     writer = csv.writer(sys.stdout)
-    writer.writerow(["person_uid", "name", "team_no", "groups"])
+    writer.writerow(["person_uid", "name", "groups"])
     for row in data:
         writer.writerow(
-            [row["person_uid"], row["name"], row["team_no"], ";".join(row["groups"])]
+            [row["person_uid"], row["name"], ";".join(row["groups"])]
         )
