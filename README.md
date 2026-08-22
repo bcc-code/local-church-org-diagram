@@ -31,6 +31,8 @@ Data on group hierarchy and group memberships is stored in Supabase.
 
 Member data is pulled from [BCC Core API](https://developer.bcc.no/bcc-core-api/) and cached in-memory.
 
+See [`docs/domain-model.md`](./docs/domain-model.md) for the domain model (ubiquitous language, bounded contexts, entities, aggregates).
+
 ## Getting Started
 
 ### Frontend

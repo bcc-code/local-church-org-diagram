@@ -11,6 +11,8 @@ This is a monorepo for an organizational chart/diagram visualization tool. It di
 
 The Flask backend serves both the API endpoints and the built Vue frontend as a single application.
 
+See [`docs/domain-model.md`](./docs/domain-model.md) for the domain model (ubiquitous language, bounded contexts, entities, aggregates) behind the org hierarchy and membership data described below.
+
 ## Architecture
 
 ### Frontend (`frontend/`)
