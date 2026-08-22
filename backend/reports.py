@@ -44,48 +44,20 @@ class MembershipReport:
         """Generate a report of group memberships with person names.
 
         Optionally filter to only include groups under a root group by name.
-        Each group membership shows the full ancestor path, e.g.
-        "Root, Child 1, Subchild 2".
 
         Returns a list of dicts with person details and their group memberships:
         [
             {
                 "person_uid": 12345,
                 "name": "John Doe",
-                "groups": ["Root, Child 1, Subchild 2"]
+                "groups": ["Subchild 2"],
+                "group_count": 1
             },
             ...
         ]
         """
-        all_groups = cast(
-            "list[dict[str, Any]]",
-            self.supabase.table("groups").select("id, name, parent_id").execute().data,
-        )
-        group_names = {g["id"]: g["name"] for g in all_groups}
-        group_parents = {g["id"]: g["parent_id"] for g in all_groups}
-
-        root_id = None
-        name_to_id = {g["name"]: g["id"] for g in all_groups}
-        if root_group_name:
-            root_id = name_to_id.get(root_group_name)
-
-        def get_path(group_id):
-            ids = []
-            current = group_id
-            while current is not None:
-                ids.append(current)
-                current = group_parents.get(current)
-            ids.reverse()
-            if root_id is not None:
-                try:
-                    idx = ids.index(root_id)
-                    ids = ids[idx:]
-                except ValueError:
-                    pass
-            return ", ".join(group_names[i] for i in ids)
-
-        # Collect memberships grouped by person_uid
-        memberships_by_uid = {}
+        # Collect group names grouped by person_uid
+        groups_by_uid = {}
         query = self.supabase.table("group_membership").select(
             "bcc_person_uid, title, group_id, groups!inner(name)"
         )
@@ -94,17 +66,17 @@ class MembershipReport:
             query = query.in_("group_id", group_ids)
         for member in cast("list[dict[str, Any]]", query.execute().data):
             person_uid = member["bcc_person_uid"]
-            group_path = get_path(member["group_id"])
+            group_name = member["groups"]["name"]
             title = member.get("title") or ""
             if len(title) > 0:
-                group_path = f"{group_path} ({title})"
+                group_name = f"{group_name} ({title})"
 
-            if person_uid not in memberships_by_uid:
-                memberships_by_uid[person_uid] = []
-            if group_path not in memberships_by_uid[person_uid]:
-                memberships_by_uid[person_uid].append(group_path)
+            if person_uid not in groups_by_uid:
+                groups_by_uid[person_uid] = []
+            if group_name not in groups_by_uid[person_uid]:
+                groups_by_uid[person_uid].append(group_name)
 
-        if not memberships_by_uid:
+        if not groups_by_uid:
             return []
 
         # Lookup person names from BCC API
@@ -115,7 +87,7 @@ class MembershipReport:
         )
 
         persons_by_uid = {}
-        for uid in memberships_by_uid.keys():
+        for uid in groups_by_uid.keys():
             try:
                 result = cast(Any, self.persons_api.get_person(str(uid), fields="*"))
                 persons_by_uid[uid] = result.data
@@ -125,13 +97,14 @@ class MembershipReport:
 
         # Build report with person names
         report = []
-        for uid, groups in memberships_by_uid.items():
+        for uid, groups in groups_by_uid.items():
             person = persons_by_uid.get(uid)
             report.append(
                 {
                     "person_uid": uid,
                     "name": person.display_name if person else "?",
                     "groups": groups,
+                    "group_count": len(groups),
                 }
             )
 
