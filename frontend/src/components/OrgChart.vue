@@ -1,82 +1,140 @@
 <template>
-
-    <div v-if="state.loading"
-        class="rounded-xl bg-neutral-0 min-h-full shadow-lg border border-neutral-200 flex grow items-center justify-center">
-        <div class="text-center">
-            <div class="w-8 h-8 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin mx-auto mb-4">
-            </div>
-            <p class="text-neutral-600">Laster organisasjonskart...</p>
-        </div>
+  <div
+    v-if="state.loading"
+    class="rounded-xl bg-neutral-0 min-h-full shadow-lg border border-neutral-200 flex grow items-center justify-center"
+  >
+    <div class="text-center">
+      <div class="w-8 h-8 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin mx-auto mb-4" />
+      <p class="text-neutral-600">
+        Laster organisasjonskart...
+      </p>
     </div>
-    <div v-else-if="state.error"
-        class="rounded-xl grow min-h-full bg-neutral-0 shadow-lg border border-neutral-200 flex items-center justify-center">
-        <div class="text-center p-6">
-            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Icon name="TriangleAlert" :size="24" color="rgb(220 38 38)" />
-            </div>
-            <p class="text-red-800 font-medium">Kunne ikke laste organisasjonskart</p>
-            <p class="text-red-600 text-sm mt-1">{{ state.error }}</p>
-        </div>
+  </div>
+  <div
+    v-else-if="state.error"
+    class="rounded-xl grow min-h-full bg-neutral-0 shadow-lg border border-neutral-200 flex items-center justify-center"
+  >
+    <div class="text-center p-6">
+      <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <Icon
+          name="TriangleAlert"
+          :size="24"
+          color="rgb(220 38 38)"
+        />
+      </div>
+      <p class="text-red-800 font-medium">
+        Kunne ikke laste organisasjonskart
+      </p>
+      <p class="text-red-600 text-sm mt-1">
+        {{ state.error }}
+      </p>
     </div>
-    <div v-else-if="state.data"
-        class="relative rounded-xl flex min-h-full grow bg-neutral-0 shadow-lg border border-neutral-200">
-        <div ref="chartEl" class="w-full h-full" />
+  </div>
+  <div
+    v-else-if="state.data"
+    class="relative rounded-xl flex min-h-full grow bg-neutral-0 shadow-lg border border-neutral-200"
+  >
+    <div
+      ref="chartEl"
+      class="w-full h-full"
+    />
 
-        <!-- Person Groups Dialog -->
-        <PersonGroupsDialog ref="personGroupsDialog" :person-name="selectedPerson?.name || ''"
-            @group-selected="handleGroupSelected" />
+    <!-- Person Groups Dialog -->
+    <PersonGroupsDialog
+      ref="personGroupsDialog"
+      :person-name="selectedPerson?.name || ''"
+      @group-selected="handleGroupSelected"
+    />
 
-        <!-- Unified search input -->
-        <div class="absolute top-3 left-3 w-48">
-            <div class="relative">
-                <input v-model="unifiedSearchQuery" @input="handleUnifiedSearch" @keydown="handleSearchKeydown"
-                    type="text" placeholder="Søk..."
-                    class="w-full px-2 py-1.5 text-sm border-2 border-brand-500 bg-brand-50 rounded-lg focus:outline-none focus:bg-white placeholder:text-neutral-400" />
+    <!-- Unified search input -->
+    <div class="absolute top-3 left-3 w-48">
+      <div class="relative">
+        <input
+          v-model="unifiedSearchQuery"
+          type="text"
+          placeholder="Søk..."
+          class="w-full px-2 py-1.5 text-sm border-2 border-brand-500 bg-brand-50 rounded-lg focus:outline-none focus:bg-white placeholder:text-neutral-400"
+          @input="handleUnifiedSearch"
+          @keydown="handleSearchKeydown"
+        >
 
-                <!-- Combined results -->
-                <div v-if="searchResults.length > 0 || personSearchResults.length > 0" ref="searchDropdown"
-                    class="absolute z-50 w-full mt-1 bg-neutral-100 border border-neutral-300 rounded-md shadow-sm overflow-hidden max-h-40 overflow-y-auto">
+        <!-- Combined results -->
+        <div
+          v-if="searchResults.length > 0 || personSearchResults.length > 0"
+          class="absolute z-50 w-full mt-1 bg-neutral-100 border border-neutral-300 rounded-md shadow-sm overflow-hidden max-h-40 overflow-y-auto"
+        >
+          <!-- Group results -->
+          <button
+            v-for="(result, index) in searchResults"
+            :key="'group-' + result.id"
+            ref="searchResultButtons"
+            :class="['w-full px-2 py-1 text-left text-xs focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === index ? 'bg-brand-200' : 'hover:bg-brand-50']"
+            @click="navigateToNode(result)"
+          >
+            <Icon
+              name="FolderTree"
+              :size="12"
+              class="text-brand-600 flex-shrink-0"
+            />
+            <span>{{ result.name }}</span>
+          </button>
 
-                    <!-- Group results -->
-                    <button v-for="(result, index) in searchResults" :key="'group-' + result.id"
-                        @click="navigateToNode(result)" ref="searchResultButtons"
-                        :class="['w-full px-2 py-1 text-left text-xs focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === index ? 'bg-brand-200' : 'hover:bg-brand-50']">
-                        <Icon name="FolderTree" :size="12" class="text-brand-600 flex-shrink-0" />
-                        <span>{{ result.name }}</span>
-                    </button>
-
-                    <!-- Person results -->
-                    <button
-                        v-for="(person, index) in personSearchResults"
-                        :key="'person-' + person.person_uid"
-                        @click="findPersonGroups(person)" ref="searchResultButtons"
-                        :class="['w-full px-2 py-1 text-left text-xs focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === (searchResults.length + index) ? 'bg-brand-200' : 'hover:bg-brand-50']">
-                        <Icon name="User" :size="12" class="text-brand-600 flex-shrink-0" />
-                        <span>{{ person.name }}</span>
-                    </button>
-                </div>
-            </div>
+          <!-- Person results -->
+          <button
+            v-for="(person, index) in personSearchResults"
+            :key="'person-' + person.person_uid"
+            ref="searchResultButtons"
+            :class="['w-full px-2 py-1 text-left text-xs focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === (searchResults.length + index) ? 'bg-brand-200' : 'hover:bg-brand-50']"
+            @click="findPersonGroups(person)"
+          >
+            <Icon
+              name="User"
+              :size="12"
+              class="text-brand-600 flex-shrink-0"
+            />
+            <span>{{ person.name }}</span>
+          </button>
         </div>
-
-        <!-- Control buttons -->
-        <div class="absolute top-3 right-3 flex gap-2">
-            <button @click="centerChart"
-                class="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 shadow-sm transition-colors"
-                title="Center chart">
-                <Icon name="Maximize" :size="16" class="text-brand-600" />
-            </button>
-            <button @click="expandAll"
-                class="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 shadow-sm transition-colors"
-                title="Expand all">
-                <Icon name="Plus" :size="16" class="text-brand-600" />
-            </button>
-            <button @click="collapseAll"
-                class="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 shadow-sm transition-colors"
-                title="Collapse all">
-                <Icon name="Minus" :size="16" class="text-brand-600" />
-            </button>
-        </div>
+      </div>
     </div>
+
+    <!-- Control buttons -->
+    <div class="absolute top-3 right-3 flex gap-2">
+      <button
+        class="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 shadow-sm transition-colors"
+        title="Center chart"
+        @click="centerChart"
+      >
+        <Icon
+          name="Maximize"
+          :size="16"
+          class="text-brand-600"
+        />
+      </button>
+      <button
+        class="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 shadow-sm transition-colors"
+        title="Expand all"
+        @click="expandAll"
+      >
+        <Icon
+          name="Plus"
+          :size="16"
+          class="text-brand-600"
+        />
+      </button>
+      <button
+        class="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-brand-500 bg-brand-50 hover:bg-brand-100 shadow-sm transition-colors"
+        title="Collapse all"
+        @click="collapseAll"
+      >
+        <Icon
+          name="Minus"
+          :size="16"
+          class="text-brand-600"
+        />
+      </button>
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -108,7 +166,6 @@ const unifiedSearchQuery = ref('');
 const searchResults = ref<OrgNodeData[]>([]);
 const personSearchResults = ref<any[]>([]);
 const selectedIndex = ref<number>(-1);
-const searchDropdown = ref<HTMLDivElement | null>(null);
 const searchResultButtons = ref<HTMLButtonElement[]>([]);
 let allNodes: OrgNodeData[] = [];
 let personSearchTimeout: ReturnType<typeof setTimeout> | null = null;

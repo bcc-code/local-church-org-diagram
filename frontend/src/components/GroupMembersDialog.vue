@@ -1,20 +1,45 @@
 <template>
-    <BaseDialog ref="baseDialog" :title="`${groupName}`" :description="dialogDescription">
-        <div v-if="adminMode" class="mb-3">
-            <PersonSearchInput @select="handleAddMember" />
-        </div>
+  <BaseDialog
+    ref="baseDialog"
+    :title="`${groupName}`"
+    :description="dialogDescription"
+  >
+    <div
+      v-if="adminMode"
+      class="mb-3"
+    >
+      <PersonSearchInput @select="handleAddMember" />
+    </div>
 
-        <div v-if="hasError()" class="p-4 bg-red-50 border border-red-200 rounded-md">
-            <p class="text-red-800 text-sm">{{ state.error }}</p>
-        </div>
-        <div v-else-if="!isLoading() && hasData()" class="space-y-2 overflow-y-auto max-h-[60vh]">
-            <MemberCard v-for="member in state.data" :key="member.person_uid" :member="member" :admin-mode="adminMode"
-                @remove="handleRemoveMember" @update-title="handleUpdateTitle" @update-link="handleUpdateLink" />
-        </div>
-        <div v-else-if="!isLoading() && !hasData()" class="p-4 text-center text-neutral-600">
-            <p>{{ TEXTS.NO_MEMBERS }}</p>
-        </div>
-    </BaseDialog>
+    <div
+      v-if="hasError()"
+      class="p-4 bg-red-50 border border-red-200 rounded-md"
+    >
+      <p class="text-red-800 text-sm">
+        {{ state.error }}
+      </p>
+    </div>
+    <div
+      v-else-if="!isLoading() && hasData()"
+      class="space-y-2 overflow-y-auto max-h-[60vh]"
+    >
+      <MemberCard
+        v-for="member in state.data"
+        :key="member.person_uid"
+        :member="member"
+        :admin-mode="adminMode"
+        @remove="handleRemoveMember"
+        @update-title="handleUpdateTitle"
+        @update-link="handleUpdateLink"
+      />
+    </div>
+    <div
+      v-else-if="!isLoading() && !hasData()"
+      class="p-4 text-center text-neutral-600"
+    >
+      <p>{{ TEXTS.NO_MEMBERS }}</p>
+    </div>
+  </BaseDialog>
 </template>
 
 <script lang="ts" setup>

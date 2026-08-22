@@ -163,7 +163,7 @@ export function useApiClient() {
         body: JSON.stringify({
           group_id: groupId,
           person_uid: personUid,
-          title: title,
+          title,
         }),
       }
     );
@@ -188,7 +188,7 @@ export function useApiClient() {
         body: JSON.stringify({
           group_id: groupId,
           person_uid: personUid,
-          link: link,
+          link,
         }),
       }
     );

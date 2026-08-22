@@ -42,7 +42,7 @@ The Flask backend serves both the API endpoints and the built Vue frontend as a 
 
 - Auto-generated Python client from Swagger/OpenAPI spec for BCC Core API
 - Used to fetch person details (names, etc.) via OAuth2 client credentials flow
-- Install with `pip install -e ./bcc_api` (already in requirements.txt)
+- Installed as an editable path dependency via `uv` (see `pyproject.toml`)
 
 ### Database
 
@@ -64,9 +64,9 @@ For the best development experience with hot module replacement (HMR):
 
 ```bash
 cd backend
-flask run                        # Runs on http://localhost:5000
+uv run flask run                        # Runs on http://localhost:5000
 # OR for demo mode:
-DEMO_MODE=1 flask run
+DEMO_MODE=1 uv run flask run
 ```
 
 **Terminal 2 - Run Vite dev server:**
@@ -100,11 +100,11 @@ npm run preview      # Preview production build
 
 ```bash
 cd backend
-pip install -r ../requirements.txt  # Install dependencies (from repo root)
-flask run                           # Run Flask server (http://localhost:5000)
+uv sync                                 # Install dependencies (from repo root)
+uv run flask run                        # Run Flask server (http://localhost:5000)
 
 # Demo mode (no API/DB required)
-DEMO_MODE=1 flask run
+DEMO_MODE=1 uv run flask run
 ```
 
 ### Production Build
@@ -116,16 +116,17 @@ npm run build
 
 # Run Flask (serves both frontend + API)
 cd ../backend
-flask run
+uv run flask run
 # Visit http://localhost:5000
 ```
 
 ### Root-level dependencies
 
-Install Python dependencies from repo root:
+Python dependencies are managed with `uv` from the repo root (`pyproject.toml` / `uv.lock`):
 
 ```bash
-pip install -r requirements.txt  # Installs Flask, Supabase, BCC API client, etc.
+uv sync              # Installs Flask, Supabase, BCC API client, etc.
+uv sync --group tools  # Also installs pandas/rapidfuzz/openpyxl for the import notebook
 ```
 
 ## Environment Setup

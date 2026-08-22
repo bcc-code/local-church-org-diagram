@@ -5,6 +5,7 @@ import swagger_client as bcc_api_client
 from admin import admin_bp
 from api import api_bp
 from auth import auth_bp
+from cli import generate_report
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 from flask import (
@@ -86,6 +87,7 @@ else:
 app.register_blueprint(auth_bp)
 app.register_blueprint(api_bp)
 app.register_blueprint(admin_bp)
+app.cli.add_command(generate_report)
 
 
 @app.route("/")

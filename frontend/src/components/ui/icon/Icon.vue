@@ -23,6 +23,11 @@ const iconComponent = computed(() => {
 </script>
 
 <template>
-    <component :is="iconComponent" :size="props.size" :stroke-width="props.strokeWidth" :color="props.color"
-        :class="cn('inline-block', props.class)" />
+  <component
+    :is="iconComponent"
+    :size="props.size"
+    :stroke-width="props.strokeWidth"
+    :color="props.color"
+    :class="cn('inline-block', props.class)"
+  />
 </template>

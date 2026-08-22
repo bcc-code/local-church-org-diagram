@@ -42,9 +42,10 @@ const props = withDefaults(
 </script>
 
 <template>
-    <Primitive :as="props.as ?? 'button'"
-        :class="cn(buttonVariants({ variant: props.variant, size: props.size }), props.class)">
-        <slot />
-    </Primitive>
-
+  <Primitive
+    :as="props.as ?? 'button'"
+    :class="cn(buttonVariants({ variant: props.variant, size: props.size }), props.class)"
+  >
+    <slot />
+  </Primitive>
 </template>
