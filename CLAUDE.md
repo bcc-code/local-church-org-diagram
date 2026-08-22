@@ -17,7 +17,7 @@ See [`docs/domain-model.md`](./docs/domain-model.md) for the domain model (ubiqu
 
 ### Frontend (`frontend/`)
 
-- **Stack**: Vue 3 + TypeScript + Vite + Tailwind CSS 4
+- **Stack**: Vue 3 + TypeScript + Vite + Tailwind CSS 3
 - **Visualization**: d3-org-chart (loaded via CDN in `index.html`)
 - **Data source**: Fetches `/org-data.json` (static file) which contains the org structure
 - **Main component**: `src/App.vue` - renders the org chart visualization
