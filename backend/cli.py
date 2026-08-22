@@ -40,5 +40,10 @@ def membership_report(root):
     writer.writerow(["person_uid", "name", "groups", "group_count"])
     for row in data:
         writer.writerow(
-            [row["person_uid"], row["name"], ";".join(row["groups"]), row["group_count"]]
+            [
+                row["person_uid"],
+                row["name"],
+                ";".join(row["groups"]),
+                row["group_count"],
+            ]
         )

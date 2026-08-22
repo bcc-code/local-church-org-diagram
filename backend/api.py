@@ -55,7 +55,7 @@ def get_persons_in_group():
     # Convert group_id to int for comparison
     try:
         group_id = int(group_id)
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         return {"error": "Invalid group_id"}, 400
 
     if current_app.config["DEMO_MODE"]:
