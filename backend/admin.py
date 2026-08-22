@@ -33,7 +33,7 @@ def add_group_member():
         try:
             group_id = int(group_id)
             person_uid = int(person_uid)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return {"error": "Invalid group_id or person_uid"}, 400
 
         # Update in-memory demo data
@@ -91,7 +91,7 @@ def remove_group_member():
         try:
             group_id = int(group_id)
             person_uid = int(person_uid)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return {"error": "Invalid group_id or person_uid"}, 400
 
         # Update in-memory demo data
