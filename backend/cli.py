@@ -17,7 +17,6 @@ def generate_report():
 
 
 @generate_report.command("membership")
-@click.option("--root", help="Only include groups under this root group (by name)")
 @with_appcontext
 def membership_report(root):
     """Generate a membership report showing persons and their groups."""
@@ -31,7 +30,7 @@ def membership_report(root):
 
     report = MembershipReport(supabase, persons_api, bcc_auth)
     try:
-        data = report.generate_report(root_group_name=root)
+        data = report.generate_report()
     except ValueError as e:
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)

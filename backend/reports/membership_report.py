@@ -14,33 +14,7 @@ class MembershipReport:
         self.persons_api = persons_api
         self.bcc_auth = bcc_auth
 
-    def _get_descendant_group_ids(self, root_name):
-        groups_data = cast(
-            "list[dict[str, Any]]",
-            self.supabase.table("groups").select("id, name, parent_id").execute().data,
-        )
-        children_by_parent = {}
-        name_to_id = {}
-        for g in groups_data:
-            name_to_id[g["name"]] = g["id"]
-            children_by_parent.setdefault(g["parent_id"], []).append(g["id"])
-
-        root_id = name_to_id.get(root_name)
-        if root_id is None:
-            raise ValueError(f'Group "{root_name}" not found')
-
-        descendant_ids = {root_id}
-        stack = [root_id]
-        while stack:
-            pid = stack.pop()
-            for cid in children_by_parent.get(pid, []):
-                if cid not in descendant_ids:
-                    descendant_ids.add(cid)
-                    stack.append(cid)
-
-        return list(descendant_ids)
-
-    def generate_report(self, root_group_name=None):
+    def generate_report(self):
         """Generate a report of group memberships with person names.
 
         Optionally filter to only include groups under a root group by name.
@@ -61,9 +35,6 @@ class MembershipReport:
         query = self.supabase.table("group_membership").select(
             "bcc_person_uid, title, group_id, groups!inner(name)"
         )
-        if root_group_name:
-            group_ids = self._get_descendant_group_ids(root_group_name)
-            query = query.in_("group_id", group_ids)
         for member in cast("list[dict[str, Any]]", query.execute().data):
             person_uid = member["bcc_person_uid"]
             group_name = member["groups"]["name"]
