@@ -2,7 +2,7 @@
 name = "org-diagram"
 version = "0.1.0"
 description = "Org chart visualization backend"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
     "flask>=2.0.0",
     "supabase>=2.20.0",
