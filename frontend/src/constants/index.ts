@@ -38,3 +38,12 @@ export const API_CONFIG = {
     TITLES: "/titles",
   },
 } as const;
+
+// Auth endpoints (served outside the /api prefix, see backend/auth.py)
+export const AUTH_CONFIG = {
+  ENDPOINTS: {
+    USER: "/user",
+    LOGIN: "/login",
+    LOGOUT: "/logout",
+  },
+} as const;

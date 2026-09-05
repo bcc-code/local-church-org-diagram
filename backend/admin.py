@@ -1,6 +1,7 @@
 import logging
 
 from flask import Blueprint, current_app, request, session
+from roles import is_global_admin
 
 logger = logging.getLogger("admin")
 
@@ -21,6 +22,9 @@ def add_group_member():
     data = request.get_json()
     if not data:
         return {"error": "No JSON data provided"}, 400
+
+    if not is_global_admin(session["user"]["email"]):
+        return {"error": "global_admin role required"}, 403
 
     group_id = data.get("group_id")
     person_uid = data.get("person_uid")
@@ -80,6 +84,9 @@ def remove_group_member():
     if not data:
         return {"error": "No JSON data provided"}, 400
 
+    if not is_global_admin(session["user"]["email"]):
+        return {"error": "global_admin role required"}, 403
+
     group_id = data.get("group_id")
     person_uid = data.get("person_uid")
 
@@ -137,6 +144,9 @@ def update_group_member():
     data = request.get_json()
     if not data:
         return {"error": "No JSON data provided"}, 400
+
+    if not is_global_admin(session["user"]["email"]):
+        return {"error": "global_admin role required"}, 403
 
     group_id = data.get("group_id")
     person_uid = data.get("person_uid")

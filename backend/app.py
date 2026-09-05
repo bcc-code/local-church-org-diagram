@@ -8,6 +8,7 @@ from auth import auth_bp
 from authlib.integrations.flask_client import OAuth
 from cli import generate_report
 from dotenv import load_dotenv
+from roles import is_global_admin
 from flask import (
     Flask,
     redirect,
@@ -82,6 +83,10 @@ else:
         app.config["DEMO_MEMBERSHIPS"] = {
             int(k): v for k, v in memberships_data.items()
         }
+    with open("demo_requests/roles.json") as f:
+        app.config["DEMO_ROLES"] = json.load(f)
+    with open("demo_requests/role_assignment.json") as f:
+        app.config["DEMO_ROLE_ASSIGNMENTS"] = json.load(f)
 
 
 app.register_blueprint(auth_bp)
@@ -97,8 +102,11 @@ def index(tenant_id=None):
     user = session.get("user")
     if not user:
         return redirect(url_for("auth.login"))
-    if tenant_id is not None and int(tenant_id) != user.get("churchId"):
-        return "Unauthorized", 403
+    if tenant_id is not None:
+        if int(tenant_id) != user.get("churchId") and not is_global_admin(
+            user["email"]
+        ):
+            return "Unauthorized", 403
 
     return send_from_directory(app.static_folder, "index.html")  # type: ignore
 

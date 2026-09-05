@@ -1,0 +1,5 @@
+[
+    {"id": 1, "name": "global_admin", "description": "Has full access to all tenants and groups."},
+    {"id": 2, "name": "local_admin", "description": "Has access to their specific tenant and its groups."},
+    {"id": 3, "name": "group_admin", "description": "Has access to their specific group and its members."}
+]

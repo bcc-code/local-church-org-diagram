@@ -49,6 +49,23 @@ export interface AsyncState<T = any> {
   error: string | null;
 }
 
+// Roles / permissions
+export type Role = "global_admin" | "local_admin" | "group_admin";
+
+export interface RoleAssignment {
+  role: Role;
+  tenant_id: string | number | null;
+  group_id: number | null;
+}
+
+export interface CurrentUser {
+  email: string;
+  name?: string;
+  churchId?: number | string;
+  roles: RoleAssignment[];
+  [claim: string]: unknown;
+}
+
 // API Response types
 export type ApiResponse<T> = T;
 export type ApiError = {
