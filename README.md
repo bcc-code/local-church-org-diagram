@@ -49,14 +49,12 @@ See [`docs/domain-model.md`](./docs/domain-model.md) for the domain model (ubiqu
 
 ### Backend
 
-1. Install dependencies:
-   ```sh
-   pip install -r requirements.txt
-   ```
-2. Run the Flask server:
+Download astro uv
+
+1. Run the Flask server:
    ```sh
    cd backend
-   flask run
+   uv run flask run
    ```
 
 ## Demo Mode
