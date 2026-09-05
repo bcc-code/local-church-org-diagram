@@ -42,5 +42,6 @@
     "*.md"
   ],
   "appService.defaultWebAppToDeploy": "/subscriptions/17d25552-b59d-4e27-9d48-a382e48a3532/resourceGroups/org-diagram_group/providers/Microsoft.Web/sites/org-diagram",
-  "appService.showDeployConfirmation": false
+  "appService.showDeployConfirmation": false,
+  "python-envs.defaultEnvManager": "ms-python.python:venv"
 }

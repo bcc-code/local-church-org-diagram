@@ -128,6 +128,86 @@ def get_persons_in_group():
     return _sort_members_by_title(results)
 
 
+@api_bp.route("/titles", methods=["GET"])
+def get_titles():
+    """Return the distinct set of titles in use across all memberships."""
+    if current_app.config["DEMO_MODE"]:
+        all_members = current_app.config["DEMO_MEMBERS"]
+        titles = {member.get("title") for member in all_members}
+    else:
+        supabase = current_app.config["SUPABASE"]
+        tenant_id = session["user"].get("churchId")
+
+        q = supabase.table("group_membership").select("title")
+        if tenant_id:
+            q = q.eq("tenant_id", tenant_id)
+        else:
+            q = q.is_("tenant_id", None)
+
+        memberships = q.execute()
+        titles = {membership.get("title") for membership in memberships.data}
+
+    return sorted(title.strip() for title in titles if title and title.strip())
+
+
+@api_bp.route("/titles/<title>/persons", methods=["GET"])
+def get_persons_by_title(title):
+    """Return the distinct persons who hold the given title in any group."""
+    if current_app.config["DEMO_MODE"]:
+        results = [
+            {
+                "person_uid": member["person_uid"],
+                "name": member["name"],
+                "profile_picture": None,
+            }
+            for member in current_app.config["DEMO_MEMBERS"]
+            if member.get("title") == title
+        ]
+        return _sort_persons_by_name(results)
+
+    supabase = current_app.config["SUPABASE"]
+    bcc_auth = current_app.config["BCC_AUTH"]
+    persons_api = current_app.config["PERSONS_API"]
+    tenant_id = session["user"].get("churchId")
+
+    q = supabase.table("group_membership").select("bcc_person_uid").eq(
+        "title", title
+    )
+    if tenant_id:
+        q = q.eq("tenant_id", tenant_id)
+    else:
+        q = q.is_("tenant_id", None)
+
+    memberships = q.execute()
+    person_uids = {m["bcc_person_uid"] for m in memberships.data}
+    if not person_uids:
+        return []
+
+    if bcc_auth.token is None or bcc_auth.token.is_expired():
+        bcc_auth.renew_token()
+    persons_api.api_client.configuration.access_token = str(bcc_auth.token)
+
+    persons: list[Person] = persons_api.find_persons(
+        fields="*",
+        filter=json.dumps({"uid": {"_in": list(person_uids)}}),
+    ).data  # type: ignore
+
+    results = [
+        {
+            "person_uid": p.uid,
+            "name": p.display_name,
+            "profile_picture": p.profile_picture,
+        }
+        for p in persons
+    ]
+
+    return _sort_persons_by_name(results)
+
+
+def _sort_persons_by_name(results):
+    return sorted(results, key=lambda r: (r.get("name") or "").lower())
+
+
 @api_bp.route("/persons/search", methods=["GET"])
 def search_persons():
     """Search for persons by name (for autocomplete)"""

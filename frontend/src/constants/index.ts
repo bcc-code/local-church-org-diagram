@@ -35,5 +35,6 @@ export const API_CONFIG = {
   ENDPOINTS: {
     TREE: "/tree",
     PERSONS: "/persons",
+    TITLES: "/titles",
   },
 } as const;

@@ -46,6 +46,12 @@
       @group-selected="handleGroupSelected"
     />
 
+    <!-- Persons With Title Dialog -->
+    <PersonsWithTitleDialog
+      ref="personsWithTitleDialog"
+      @person-selected="findPersonGroups"
+    />
+
     <!-- Unified search input -->
     <div class="absolute top-3 left-3 w-48">
       <div class="relative">
@@ -60,7 +66,7 @@
 
         <!-- Combined results -->
         <div
-          v-if="searchResults.length > 0 || personSearchResults.length > 0"
+          v-if="searchResults.length > 0 || titleSearchResults.length > 0 || personSearchResults.length > 0"
           class="absolute z-50 w-full mt-1 bg-neutral-100 border border-neutral-300 rounded-md shadow-sm overflow-hidden max-h-40 overflow-y-auto"
         >
           <!-- Group results -->
@@ -79,12 +85,28 @@
             <span>{{ result.name }}</span>
           </button>
 
+          <!-- Title results -->
+          <button
+            v-for="(title, index) in titleSearchResults"
+            :key="'title-' + title"
+            ref="searchResultButtons"
+            :class="['w-full px-2 py-1 text-left text-xs focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === (searchResults.length + index) ? 'bg-brand-200' : 'hover:bg-brand-50']"
+            @click="findPersonsWithTitle(title)"
+          >
+            <Icon
+              name="Tag"
+              :size="12"
+              class="text-brand-600 flex-shrink-0"
+            />
+            <span>{{ title }}</span>
+          </button>
+
           <!-- Person results -->
           <button
             v-for="(person, index) in personSearchResults"
             :key="'person-' + person.person_uid"
             ref="searchResultButtons"
-            :class="['w-full px-2 py-1 text-left text-xs focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === (searchResults.length + index) ? 'bg-brand-200' : 'hover:bg-brand-50']"
+            :class="['w-full px-2 py-1 text-left text-xs focus:bg-brand-50 focus:outline-none border-b border-neutral-200 last:border-b-0 flex items-center gap-1.5', selectedIndex === (searchResults.length + titleSearchResults.length + index) ? 'bg-brand-200' : 'hover:bg-brand-50']"
             @click="findPersonGroups(person)"
           >
             <Icon
@@ -142,6 +164,7 @@ import { onMounted, ref, createApp, nextTick, watch } from 'vue';
 import OrgNode from './OrgNode.vue';
 import Icon from './ui/icon/Icon.vue';
 import PersonGroupsDialog from './PersonGroupsDialog.vue';
+import PersonsWithTitleDialog from './PersonsWithTitleDialog.vue';
 import { useAsyncData, useApiClient } from '@/composables/useApi';
 import { TEXTS, UI_CONFIG } from '@/constants';
 import type { Group, OrgNodeData } from '@/types';
@@ -156,18 +179,21 @@ const props = withDefaults(defineProps<Props>(), {
 
 const chartEl = ref<HTMLDivElement | null>(null);
 const personGroupsDialog = ref<InstanceType<typeof PersonGroupsDialog> | null>(null);
+const personsWithTitleDialog = ref<InstanceType<typeof PersonsWithTitleDialog> | null>(null);
 const { state, execute } = useAsyncData<Group[]>();
-const { fetchGroups, searchPersons } = useApiClient();
+const { fetchGroups, fetchTitles, searchPersons } = useApiClient();
 let chart: any = null;
 let skipNextRender = false;
 
 // Unified search state
 const unifiedSearchQuery = ref('');
 const searchResults = ref<OrgNodeData[]>([]);
+const titleSearchResults = ref<string[]>([]);
 const personSearchResults = ref<any[]>([]);
 const selectedIndex = ref<number>(-1);
 const searchResultButtons = ref<HTMLButtonElement[]>([]);
 let allNodes: OrgNodeData[] = [];
+let allTitles: string[] = [];
 let personSearchTimeout: ReturnType<typeof setTimeout> | null = null;
 let selectedPerson: any = null;
 
@@ -202,6 +228,7 @@ const handleUnifiedSearch = () => {
     // Reset results and selection if query is too short
     if (query.length < 2) {
         searchResults.value = [];
+        titleSearchResults.value = [];
         personSearchResults.value = [];
         selectedIndex.value = -1;
         return;
@@ -215,6 +242,11 @@ const handleUnifiedSearch = () => {
     searchResults.value = allNodes.filter(node =>
         node.name.toLowerCase().includes(queryLower)
     ).slice(0, 5); // Limit to 5 group results
+
+    // Search titles (local, instant)
+    titleSearchResults.value = allTitles.filter(title =>
+        title.toLowerCase().includes(queryLower)
+    ).slice(0, 5); // Limit to 5 title results
 
     // Search persons (API, debounced) - only if query is 3+ chars
     if (query.length >= 3) {
@@ -233,7 +265,7 @@ const handleUnifiedSearch = () => {
 };
 
 const handleSearchKeydown = (event: KeyboardEvent) => {
-    const totalResults = searchResults.value.length + personSearchResults.value.length;
+    const totalResults = searchResults.value.length + titleSearchResults.value.length + personSearchResults.value.length;
 
     if (totalResults === 0) return;
 
@@ -258,6 +290,7 @@ const handleSearchKeydown = (event: KeyboardEvent) => {
         event.preventDefault();
         unifiedSearchQuery.value = '';
         searchResults.value = [];
+        titleSearchResults.value = [];
         personSearchResults.value = [];
         selectedIndex.value = -1;
     }
@@ -278,6 +311,7 @@ const navigateToNode = (node: OrgNodeData) => {
     // Clear search
     unifiedSearchQuery.value = '';
     searchResults.value = [];
+    titleSearchResults.value = [];
     personSearchResults.value = [];
     selectedIndex.value = -1;
 
@@ -305,6 +339,7 @@ const findPersonGroups = (person: any) => {
     // Clear search
     unifiedSearchQuery.value = '';
     searchResults.value = [];
+    titleSearchResults.value = [];
     personSearchResults.value = [];
     selectedIndex.value = -1;
 
@@ -312,6 +347,20 @@ const findPersonGroups = (person: any) => {
     selectedPerson = person;
     if (personGroupsDialog.value) {
         personGroupsDialog.value.open(person.person_uid);
+    }
+};
+
+const findPersonsWithTitle = (title: string) => {
+    // Clear search
+    unifiedSearchQuery.value = '';
+    searchResults.value = [];
+    titleSearchResults.value = [];
+    personSearchResults.value = [];
+    selectedIndex.value = -1;
+
+    // Open dialog with persons having the specified title
+    if (personsWithTitleDialog.value) {
+        personsWithTitleDialog.value.open(title);
     }
 };
 
@@ -417,6 +466,12 @@ onMounted(async () => {
     await waitForD3();
 
     await execute(fetchGroups);
+
+    try {
+        allTitles = await fetchTitles();
+    } catch (error) {
+        console.error('Failed to fetch titles:', error);
+    }
 });
 
 // Watch for when data is loaded and render chart

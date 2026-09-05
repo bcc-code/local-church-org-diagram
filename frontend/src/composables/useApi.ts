@@ -92,6 +92,26 @@ export function useApiClient() {
     return response.json();
   };
 
+  const fetchTitles = async (): Promise<string[]> => {
+    const response = await fetchWithAuth(
+      `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.TITLES}`
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to fetch titles: ${response.statusText}`);
+    }
+    return response.json();
+  };
+
+  const fetchPersonsWithTitle = async (title: string) => {
+    const response = await fetchWithAuth(
+      `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.TITLES}/${encodeURIComponent(title)}/persons`
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to fetch persons with title: ${response.statusText}`);
+    }
+    return response.json();
+  };
+
   const searchPersons = async (query: string) => {
     const response = await fetchWithAuth(
       `${API_CONFIG.BASE_URL}/persons/search?q=${encodeURIComponent(query)}`
@@ -211,6 +231,8 @@ export function useApiClient() {
   return {
     fetchGroups,
     fetchGroupMembers,
+    fetchTitles,
+    fetchPersonsWithTitle,
     searchPersons,
     addGroupMember,
     removeGroupMember,

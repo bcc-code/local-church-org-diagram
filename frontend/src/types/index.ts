@@ -15,6 +15,12 @@ export interface GroupMember {
   profile_picture?: string | null;
 }
 
+export interface PersonWithTitle {
+  person_uid: string;
+  name: string;
+  profile_picture?: string | null;
+}
+
 // UI Component Types
 export interface OrgNodeData {
   id: number | string;
