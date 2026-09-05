@@ -1,5 +1,5 @@
 import { ref, computed, type Ref } from "vue";
-import { AUTH_CONFIG } from "@/constants";
+import { AUTH_CONFIG, ROLES } from "@/constants";
 import { fetchWithAuth } from "./useApi";
 import type { CurrentUser, Role } from "@/types";
 
@@ -50,18 +50,18 @@ export function useAuth() {
     }
   };
 
-  const isGlobalAdmin = computed(() => hasRole("global_admin"));
+  const isGlobalAdmin = computed(() => hasRole(ROLES.GLOBAL_ADMIN));
 
   // A user is an admin for a tenant if they're a global admin, or a local
   // admin scoped to that specific tenant.
   const isAdminForTenant = (tenantId: string | number) =>
-    isGlobalAdmin.value || hasRole("local_admin", { tenantId });
+    isGlobalAdmin.value || hasRole(ROLES.LOCAL_ADMIN, { tenantId });
 
   // A user is an admin for a group if they're an admin for its tenant, or a
   // group admin scoped to that specific group.
   const isAdminForGroup = (groupId: number, tenantId?: string | number) =>
     (tenantId !== undefined && isAdminForTenant(tenantId)) ||
-    hasRole("group_admin", { groupId });
+    hasRole(ROLES.GROUP_ADMIN, { groupId });
 
   return {
     user,

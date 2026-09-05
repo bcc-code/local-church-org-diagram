@@ -1,3 +1,5 @@
+import type { ROLES } from "@/constants";
+
 // Core BCC API Types
 export interface Group {
   group_id: number;
@@ -50,7 +52,7 @@ export interface AsyncState<T = any> {
 }
 
 // Roles / permissions
-export type Role = "global_admin" | "local_admin" | "group_admin";
+export type Role = (typeof ROLES)[keyof typeof ROLES];
 
 export interface RoleAssignment {
   role: Role;

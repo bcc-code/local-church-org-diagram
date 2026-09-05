@@ -1,9 +1,15 @@
 from flask import current_app
 from postgrest.exceptions import APIError
 
+# IDs from the `role` table (see demo_requests/roles.json for the demo-mode catalog)
+GLOBAL_ADMIN_ROLE_ID = 1
+
 
 def get_user_roles(email: str) -> list[dict]:
-    """Return this user's role assignments."""
+    """Return this user's role assignments.
+
+    `role` is the role's id (FK to `role.id`).
+    """
     if current_app.config["DEMO_MODE"]:
         assignments = current_app.config["DEMO_ROLE_ASSIGNMENTS"]
         return [a for a in assignments if a["email"].lower() == email.lower()]
@@ -12,7 +18,7 @@ def get_user_roles(email: str) -> list[dict]:
     try:
         result = (
             supabase.table("role_assignments")
-            .select("role_id, tenant_id, group_id, role(name, description)")
+            .select("role_id, tenant_id, group_id")
             .ilike("email", email)
             .execute()
         )
@@ -22,9 +28,7 @@ def get_user_roles(email: str) -> list[dict]:
 
     return [
         {
-            "role_id": item["role_id"],
-            "role": item["role"]["name"],
-            "description": item["role"]["description"],
+            "role": item["role_id"],
             "tenant_id": item["tenant_id"],
             "group_id": item["group_id"],
         }
@@ -33,4 +37,4 @@ def get_user_roles(email: str) -> list[dict]:
 
 
 def is_global_admin(email: str) -> bool:
-    return any(a["role"] == "global_admin" for a in get_user_roles(email))
+    return any(a["role"] == GLOBAL_ADMIN_ROLE_ID for a in get_user_roles(email))

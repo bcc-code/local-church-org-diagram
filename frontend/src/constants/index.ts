@@ -47,3 +47,10 @@ export const AUTH_CONFIG = {
     LOGOUT: "/logout",
   },
 } as const;
+
+// Role ids, matching the `role` table ids (see backend/demo_requests/roles.json)
+export const ROLES = {
+  GLOBAL_ADMIN: 1,
+  LOCAL_ADMIN: 2,
+  GROUP_ADMIN: 3,
+} as const;
