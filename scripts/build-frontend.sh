@@ -5,8 +5,5 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../frontend"
 
-corepack enable
-corepack prepare pnpm@11.22.0 --activate
-
-pnpm install --frozen-lockfile
-pnpm run build
+corepack pnpm@11.22.0 install --frozen-lockfile
+corepack pnpm@11.22.0 run build
