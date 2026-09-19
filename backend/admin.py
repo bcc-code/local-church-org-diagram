@@ -196,3 +196,38 @@ def update_group_member():
         "success": True,
         "data": result.data[0] if result.data else None,
     }, 200
+
+
+@admin_bp.route("/groups/sort-order", methods=["PUT"])
+def update_group_sort_order():
+    """Update sort_order for a set of sibling groups (drag-to-reorder)."""
+    data = request.get_json()
+    if not data or not isinstance(data.get("updates"), list) or not data["updates"]:
+        return {"error": "No updates provided"}, 400
+
+    updates = data["updates"]
+    for update in updates:
+        if "group_id" not in update or "sort_order" not in update:
+            return {"error": "Each update requires group_id and sort_order"}, 400
+
+    if current_app.config["DEMO_MODE"]:
+        tree = current_app.config["DEMO_TREE"]
+        by_id = {group["group_id"]: group for group in tree}
+        for update in updates:
+            group = by_id.get(update["group_id"])
+            if group:
+                group["sort_order"] = update["sort_order"]
+        return {"success": True}, 200
+
+    supabase = current_app.config["SUPABASE"]
+    tenant_id = session["user"].get("churchId")
+
+    for update in updates:
+        q = supabase.table("groups").update(
+            {"sort_order": update["sort_order"]}
+        ).eq("id", update["group_id"])
+        if tenant_id:
+            q = q.eq("tenant_id", tenant_id)
+        q.execute()
+
+    return {"success": True}, 200

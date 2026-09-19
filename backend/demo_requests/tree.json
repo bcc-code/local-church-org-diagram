@@ -1,842 +1,982 @@
 [
   {
     "group_id": 1,
-    "label": "BCC K\u00f8benhavn",
+    "label": "BCC København",
     "member_count": 0,
-    "parent_group_id": null
+    "parent_group_id": null,
+    "sort_order": 0
   },
   {
     "group_id": 2,
     "label": "Forstander",
     "member_count": 1,
-    "parent_group_id": 1
+    "parent_group_id": 1,
+    "sort_order": 0
   },
   {
     "group_id": 3,
     "label": "Bestyrelse",
     "member_count": 5,
-    "parent_group_id": 1
+    "parent_group_id": 1,
+    "sort_order": 1
   },
   {
     "group_id": 27,
     "label": "Artist",
     "member_count": 4,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 0
   },
   {
     "group_id": 28,
     "label": "BUK Sport KBH",
     "member_count": 1,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 1
   },
   {
     "group_id": 29,
     "label": "Danish Dynamite",
     "member_count": 3,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 2
   },
   {
     "group_id": 30,
     "label": "Fodbold",
     "member_count": 2,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 3
   },
   {
     "group_id": 31,
     "label": "Framers",
     "member_count": 3,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 4
   },
   {
     "group_id": 32,
     "label": "Ishockey (drenge)",
     "member_count": 1,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 5
   },
   {
     "group_id": 33,
     "label": "KSK",
     "member_count": 2,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 6
   },
   {
     "group_id": 34,
     "label": "Pigeholdet",
     "member_count": 3,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 7
   },
   {
     "group_id": 35,
-    "label": "T\u00e5rnfalkene",
+    "label": "Tårnfalkene",
     "member_count": 1,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 8
   },
   {
     "group_id": 36,
     "label": "Volley (drenge)",
     "member_count": 1,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 9
   },
   {
     "group_id": 37,
     "label": "Volleyball Aces",
     "member_count": 5,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 10
   },
   {
     "group_id": 38,
-    "label": "B\u00f8rnekor",
+    "label": "Børnekor",
     "member_count": 0,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 11
   },
   {
     "group_id": 39,
     "label": "Fodbold U13 (drenge)",
     "member_count": 1,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 12
   },
   {
     "group_id": 40,
     "label": "Fodbold U13 (piger)",
     "member_count": 1,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 13
   },
   {
     "group_id": 41,
-    "label": "Ishockey/sk\u00f8jtning",
+    "label": "Ishockey/skøjtning",
     "member_count": 0,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 14
   },
   {
     "group_id": 42,
     "label": "AK",
     "member_count": 2,
-    "parent_group_id": 7
+    "parent_group_id": 7,
+    "sort_order": 15
   },
   {
     "group_id": 43,
-    "label": "S\u00f8ndagskole",
+    "label": "Søndagskole",
     "member_count": 5,
-    "parent_group_id": 8
+    "parent_group_id": 8,
+    "sort_order": 0
   },
   {
     "group_id": 44,
     "label": "Oprykkerne",
     "member_count": 6,
-    "parent_group_id": 8
+    "parent_group_id": 8,
+    "sort_order": 1
   },
   {
     "group_id": 45,
     "label": "Tweens",
     "member_count": 22,
-    "parent_group_id": 8
+    "parent_group_id": 8,
+    "sort_order": 2
   },
   {
     "group_id": 46,
     "label": "Hold 1",
     "member_count": 0,
-    "parent_group_id": 12
+    "parent_group_id": 12,
+    "sort_order": 0
   },
   {
     "group_id": 47,
     "label": "Hold 2",
     "member_count": 0,
-    "parent_group_id": 12
+    "parent_group_id": 12,
+    "sort_order": 1
   },
   {
     "group_id": 48,
     "label": "Hold 3",
     "member_count": 0,
-    "parent_group_id": 12
+    "parent_group_id": 12,
+    "sort_order": 2
   },
   {
     "group_id": 49,
     "label": "BUK",
     "member_count": 6,
-    "parent_group_id": 13
+    "parent_group_id": 13,
+    "sort_order": 0
   },
   {
     "group_id": 50,
     "label": "Bibelundervisning",
     "member_count": 3,
-    "parent_group_id": 13
+    "parent_group_id": 13,
+    "sort_order": 1
   },
   {
     "group_id": 51,
     "label": "Samvirk",
     "member_count": 3,
-    "parent_group_id": 13
+    "parent_group_id": 13,
+    "sort_order": 2
   },
   {
     "group_id": 52,
     "label": "Musik",
     "member_count": 26,
-    "parent_group_id": 13
+    "parent_group_id": 13,
+    "sort_order": 3
   },
   {
     "group_id": 53,
-    "label": "Driftskomit\u00e9",
+    "label": "Driftskomité",
     "member_count": 3,
-    "parent_group_id": 14
+    "parent_group_id": 14,
+    "sort_order": 0
   },
   {
     "group_id": 54,
     "label": "Byg",
     "member_count": 1,
-    "parent_group_id": 14
+    "parent_group_id": 14,
+    "sort_order": 1
   },
   {
     "group_id": 55,
     "label": "Installationer/Brand",
     "member_count": 1,
-    "parent_group_id": 14
+    "parent_group_id": 14,
+    "sort_order": 2
   },
   {
     "group_id": 56,
-    "label": "Udend\u00f8rs/Affald",
+    "label": "Udendørs/Affald",
     "member_count": 2,
-    "parent_group_id": 14
+    "parent_group_id": 14,
+    "sort_order": 3
   },
   {
     "group_id": 57,
     "label": "Adgangskontrol",
     "member_count": 1,
-    "parent_group_id": 14
+    "parent_group_id": 14,
+    "sort_order": 4
   },
   {
     "group_id": 58,
     "label": "S&O",
     "member_count": 8,
-    "parent_group_id": 14
+    "parent_group_id": 14,
+    "sort_order": 5
   },
   {
     "group_id": 59,
-    "label": "M\u00f8devagt",
+    "label": "Mødevagt",
     "member_count": 9,
-    "parent_group_id": 14
+    "parent_group_id": 14,
+    "sort_order": 6
   },
   {
     "group_id": 60,
     "label": "Lukkevagt",
     "member_count": 1,
-    "parent_group_id": 14
+    "parent_group_id": 14,
+    "sort_order": 7
   },
   {
     "group_id": 61,
-    "label": "Caf\u00e9en",
+    "label": "Caféen",
     "member_count": 25,
-    "parent_group_id": 14
+    "parent_group_id": 14,
+    "sort_order": 8
   },
   {
     "group_id": 62,
-    "label": "M\u00e5gevej",
+    "label": "Mågevej",
     "member_count": 1,
-    "parent_group_id": 14
+    "parent_group_id": 14,
+    "sort_order": 9
   },
   {
     "group_id": 63,
     "label": "AV",
     "member_count": 12,
-    "parent_group_id": 15
+    "parent_group_id": 15,
+    "sort_order": 0
   },
   {
     "group_id": 64,
     "label": "Flow",
     "member_count": 3,
-    "parent_group_id": 15
+    "parent_group_id": 15,
+    "sort_order": 1
   },
   {
     "group_id": 65,
     "label": "Udvikling/Vedligehold",
     "member_count": 2,
-    "parent_group_id": 16
+    "parent_group_id": 16,
+    "sort_order": 0
   },
   {
     "group_id": 66,
     "label": "Fotografer",
     "member_count": 6,
-    "parent_group_id": 16
+    "parent_group_id": 16,
+    "sort_order": 1
   },
   {
     "group_id": 67,
     "label": "BKM.dk",
     "member_count": 2,
-    "parent_group_id": 16
+    "parent_group_id": 16,
+    "sort_order": 2
   },
   {
     "group_id": 68,
-    "label": "\u00d8lsemaglekomit\u00e9",
+    "label": "Ølsemaglekomité",
     "member_count": 15,
-    "parent_group_id": 22
+    "parent_group_id": 22,
+    "sort_order": 0
   },
   {
     "group_id": 69,
     "label": "Udleje",
     "member_count": 0,
-    "parent_group_id": 22
+    "parent_group_id": 22,
+    "sort_order": 1
   },
   {
     "group_id": 70,
     "label": "Byggeri",
     "member_count": 1,
-    "parent_group_id": 22
+    "parent_group_id": 22,
+    "sort_order": 2
   },
   {
     "group_id": 71,
-    "label": "Vicev\u00e6rt",
+    "label": "Vicevært",
     "member_count": 1,
-    "parent_group_id": 22
+    "parent_group_id": 22,
+    "sort_order": 3
   },
   {
     "group_id": 72,
     "label": "Leder",
     "member_count": 0,
-    "parent_group_id": 23
+    "parent_group_id": 23,
+    "sort_order": 0
   },
   {
     "group_id": 73,
     "label": "Medlem",
     "member_count": 0,
-    "parent_group_id": 23
+    "parent_group_id": 23,
+    "sort_order": 1
   },
   {
     "group_id": 74,
     "label": "Leder",
     "member_count": 0,
-    "parent_group_id": 24
+    "parent_group_id": 24,
+    "sort_order": 0
   },
   {
     "group_id": 75,
     "label": "Medlem",
     "member_count": 0,
-    "parent_group_id": 24
+    "parent_group_id": 24,
+    "sort_order": 1
   },
   {
     "group_id": 76,
     "label": "U8",
     "member_count": 2,
-    "parent_group_id": 30
+    "parent_group_id": 30,
+    "sort_order": 0
   },
   {
     "group_id": 77,
     "label": "G10",
     "member_count": 2,
-    "parent_group_id": 30
+    "parent_group_id": 30,
+    "sort_order": 1
   },
   {
     "group_id": 78,
     "label": "J10",
     "member_count": 0,
-    "parent_group_id": 30
+    "parent_group_id": 30,
+    "sort_order": 2
   },
   {
     "group_id": 79,
     "label": "G13",
     "member_count": 2,
-    "parent_group_id": 30
+    "parent_group_id": 30,
+    "sort_order": 3
   },
   {
     "group_id": 80,
     "label": "J13",
     "member_count": 2,
-    "parent_group_id": 30
+    "parent_group_id": 30,
+    "sort_order": 4
   },
   {
     "group_id": 81,
     "label": "G16",
     "member_count": 1,
-    "parent_group_id": 30
+    "parent_group_id": 30,
+    "sort_order": 5
   },
   {
     "group_id": 82,
     "label": "J16",
     "member_count": 2,
-    "parent_group_id": 30
+    "parent_group_id": 30,
+    "sort_order": 6
   },
   {
     "group_id": 83,
     "label": "G23",
     "member_count": 1,
-    "parent_group_id": 30
+    "parent_group_id": 30,
+    "sort_order": 7
   },
   {
     "group_id": 84,
     "label": "Piger 2010",
     "member_count": 3,
-    "parent_group_id": 42
+    "parent_group_id": 42,
+    "sort_order": 0
   },
   {
     "group_id": 85,
     "label": "Piger 2011",
     "member_count": 3,
-    "parent_group_id": 42
+    "parent_group_id": 42,
+    "sort_order": 1
   },
   {
     "group_id": 86,
     "label": "Piger 2012",
     "member_count": 3,
-    "parent_group_id": 42
+    "parent_group_id": 42,
+    "sort_order": 2
   },
   {
     "group_id": 87,
     "label": "Piger 2013",
     "member_count": 1,
-    "parent_group_id": 42
+    "parent_group_id": 42,
+    "sort_order": 3
   },
   {
     "group_id": 88,
     "label": "Piger 2014",
     "member_count": 3,
-    "parent_group_id": 42
+    "parent_group_id": 42,
+    "sort_order": 4
   },
   {
     "group_id": 89,
     "label": "Piger 2015",
     "member_count": 2,
-    "parent_group_id": 42
+    "parent_group_id": 42,
+    "sort_order": 5
   },
   {
     "group_id": 90,
     "label": "Drenge 2010",
     "member_count": 2,
-    "parent_group_id": 42
+    "parent_group_id": 42,
+    "sort_order": 6
   },
   {
     "group_id": 91,
     "label": "Drenge 2011",
     "member_count": 3,
-    "parent_group_id": 42
+    "parent_group_id": 42,
+    "sort_order": 7
   },
   {
     "group_id": 92,
     "label": "Drenge 2012",
     "member_count": 3,
-    "parent_group_id": 42
+    "parent_group_id": 42,
+    "sort_order": 8
   },
   {
     "group_id": 93,
     "label": "Drenge 2013",
     "member_count": 2,
-    "parent_group_id": 42
+    "parent_group_id": 42,
+    "sort_order": 9
   },
   {
     "group_id": 94,
     "label": "Drenge 2014",
     "member_count": 3,
-    "parent_group_id": 42
+    "parent_group_id": 42,
+    "sort_order": 10
   },
   {
     "group_id": 95,
     "label": "Drenge 2015",
     "member_count": 3,
-    "parent_group_id": 42
+    "parent_group_id": 42,
+    "sort_order": 11
   },
   {
     "group_id": 96,
     "label": "Junior",
     "member_count": 6,
-    "parent_group_id": 43
+    "parent_group_id": 43,
+    "sort_order": 0
   },
   {
     "group_id": 97,
     "label": "Explorer 1",
     "member_count": 3,
-    "parent_group_id": 43
+    "parent_group_id": 43,
+    "sort_order": 1
   },
   {
     "group_id": 98,
     "label": "Explorer 2",
     "member_count": 3,
-    "parent_group_id": 43
+    "parent_group_id": 43,
+    "sort_order": 2
   },
   {
     "group_id": 99,
     "label": "Musik",
     "member_count": 0,
-    "parent_group_id": 43
+    "parent_group_id": 43,
+    "sort_order": 3
   },
   {
     "group_id": 100,
     "label": "Mentor",
     "member_count": 2,
-    "parent_group_id": 43
+    "parent_group_id": 43,
+    "sort_order": 4
   },
   {
     "group_id": 101,
     "label": "Aktiviteter",
     "member_count": 2,
-    "parent_group_id": 43
+    "parent_group_id": 43,
+    "sort_order": 5
   },
   {
     "group_id": 102,
     "label": "Teknik",
     "member_count": 3,
-    "parent_group_id": 43
+    "parent_group_id": 43,
+    "sort_order": 6
   },
   {
     "group_id": 103,
     "label": "Koordinator",
     "member_count": 1,
-    "parent_group_id": 46
+    "parent_group_id": 46,
+    "sort_order": 0
   },
   {
     "group_id": 104,
     "label": "Mad",
     "member_count": 29,
-    "parent_group_id": 46
+    "parent_group_id": 46,
+    "sort_order": 1
   },
   {
     "group_id": 105,
     "label": "Dessert",
     "member_count": 29,
-    "parent_group_id": 46
+    "parent_group_id": 46,
+    "sort_order": 2
   },
   {
     "group_id": 106,
     "label": "Kaffeansvarlig",
     "member_count": 3,
-    "parent_group_id": 46
+    "parent_group_id": 46,
+    "sort_order": 3
   },
   {
     "group_id": 107,
     "label": "Reception",
     "member_count": 4,
-    "parent_group_id": 46
+    "parent_group_id": 46,
+    "sort_order": 4
   },
   {
     "group_id": 108,
     "label": "Tjener",
     "member_count": 86,
-    "parent_group_id": 46
+    "parent_group_id": 46,
+    "sort_order": 5
   },
   {
     "group_id": 109,
-    "label": "Reng\u00f8ring",
+    "label": "Rengøring",
     "member_count": 3,
-    "parent_group_id": 46
+    "parent_group_id": 46,
+    "sort_order": 6
   },
   {
     "group_id": 110,
     "label": "Opvask",
     "member_count": 28,
-    "parent_group_id": 46
+    "parent_group_id": 46,
+    "sort_order": 7
   },
   {
     "group_id": 111,
     "label": "Blomster + pynt",
     "member_count": 14,
-    "parent_group_id": 46
+    "parent_group_id": 46,
+    "sort_order": 8
   },
   {
     "group_id": 112,
     "label": "Vielser",
     "member_count": 2,
-    "parent_group_id": 46
+    "parent_group_id": 46,
+    "sort_order": 9
   },
   {
     "group_id": 113,
     "label": "Koordinator",
     "member_count": 0,
-    "parent_group_id": 47
+    "parent_group_id": 47,
+    "sort_order": 0
   },
   {
     "group_id": 114,
     "label": "Mad",
     "member_count": 0,
-    "parent_group_id": 47
+    "parent_group_id": 47,
+    "sort_order": 1
   },
   {
     "group_id": 115,
     "label": "Dessert",
     "member_count": 0,
-    "parent_group_id": 47
+    "parent_group_id": 47,
+    "sort_order": 2
   },
   {
     "group_id": 116,
     "label": "Kaffeansvarlig",
     "member_count": 0,
-    "parent_group_id": 47
+    "parent_group_id": 47,
+    "sort_order": 3
   },
   {
     "group_id": 117,
     "label": "Reception",
     "member_count": 0,
-    "parent_group_id": 47
+    "parent_group_id": 47,
+    "sort_order": 4
   },
   {
     "group_id": 118,
     "label": "Tjener",
     "member_count": 0,
-    "parent_group_id": 47
+    "parent_group_id": 47,
+    "sort_order": 5
   },
   {
     "group_id": 119,
-    "label": "Reng\u00f8ring",
+    "label": "Rengøring",
     "member_count": 0,
-    "parent_group_id": 47
+    "parent_group_id": 47,
+    "sort_order": 6
   },
   {
     "group_id": 120,
     "label": "Opvask",
     "member_count": 0,
-    "parent_group_id": 47
+    "parent_group_id": 47,
+    "sort_order": 7
   },
   {
     "group_id": 121,
     "label": "Blomster + pynt",
     "member_count": 0,
-    "parent_group_id": 47
+    "parent_group_id": 47,
+    "sort_order": 8
   },
   {
     "group_id": 122,
     "label": "Vielser",
     "member_count": 0,
-    "parent_group_id": 47
+    "parent_group_id": 47,
+    "sort_order": 9
   },
   {
     "group_id": 123,
     "label": "Koordinator",
     "member_count": 0,
-    "parent_group_id": 48
+    "parent_group_id": 48,
+    "sort_order": 0
   },
   {
     "group_id": 124,
     "label": "Mad",
     "member_count": 0,
-    "parent_group_id": 48
+    "parent_group_id": 48,
+    "sort_order": 1
   },
   {
     "group_id": 125,
     "label": "Dessert",
     "member_count": 0,
-    "parent_group_id": 48
+    "parent_group_id": 48,
+    "sort_order": 2
   },
   {
     "group_id": 6,
     "label": "PMO",
     "member_count": 1,
-    "parent_group_id": 141
+    "parent_group_id": 141,
+    "sort_order": 0
   },
   {
     "group_id": 7,
     "label": "TASK",
     "member_count": 4,
-    "parent_group_id": 140
+    "parent_group_id": 140,
+    "sort_order": 0
   },
   {
     "group_id": 9,
     "label": "VK",
     "member_count": 4,
-    "parent_group_id": 140
+    "parent_group_id": 140,
+    "sort_order": 1
   },
   {
     "group_id": 10,
-    "label": "\u00c6K",
+    "label": "ÆK",
     "member_count": 3,
-    "parent_group_id": 140
+    "parent_group_id": 140,
+    "sort_order": 2
   },
   {
     "group_id": 4,
     "label": "Talsperson",
     "member_count": 1,
-    "parent_group_id": 141
+    "parent_group_id": 141,
+    "sort_order": 1
   },
   {
     "group_id": 13,
     "label": "Ungdom",
     "member_count": 4,
-    "parent_group_id": 140
+    "parent_group_id": 140,
+    "sort_order": 3
   },
   {
     "group_id": 12,
-    "label": "K\u00f8kken",
+    "label": "Køkken",
     "member_count": 2,
-    "parent_group_id": 143
+    "parent_group_id": 143,
+    "sort_order": 0
   },
   {
     "group_id": 11,
     "label": "Festudvalg",
     "member_count": 2,
-    "parent_group_id": 143
+    "parent_group_id": 143,
+    "sort_order": 1
   },
   {
     "group_id": 14,
     "label": "Drift TFV",
     "member_count": 0,
-    "parent_group_id": 142
+    "parent_group_id": 142,
+    "sort_order": 0
   },
   {
     "group_id": 15,
     "label": "Teknik",
     "member_count": 0,
-    "parent_group_id": 143
+    "parent_group_id": 143,
+    "sort_order": 2
   },
   {
     "group_id": 16,
     "label": "HKOnline",
     "member_count": 1,
-    "parent_group_id": 141
+    "parent_group_id": 141,
+    "sort_order": 2
   },
   {
     "group_id": 17,
     "label": "Musik",
     "member_count": 0,
-    "parent_group_id": 143
+    "parent_group_id": 143,
+    "sort_order": 3
   },
   {
     "group_id": 18,
     "label": "Workstaff",
     "member_count": 1,
-    "parent_group_id": 144
+    "parent_group_id": 144,
+    "sort_order": 0
   },
   {
     "group_id": 19,
     "label": "Aktioner",
     "member_count": 1,
-    "parent_group_id": 144
+    "parent_group_id": 144,
+    "sort_order": 1
   },
   {
     "group_id": 20,
-    "label": "Samfundss\u00f8ndag",
+    "label": "Samfundssøndag",
     "member_count": 3,
-    "parent_group_id": 140
+    "parent_group_id": 140,
+    "sort_order": 4
   },
   {
     "group_id": 21,
-    "label": "\u00d8konomi",
+    "label": "Økonomi",
     "member_count": 4,
-    "parent_group_id": 141
+    "parent_group_id": 141,
+    "sort_order": 3
   },
   {
     "group_id": 22,
-    "label": "\u00d8lsemagle",
+    "label": "Ølsemagle",
     "member_count": 0,
-    "parent_group_id": 142
+    "parent_group_id": 142,
+    "sort_order": 1
   },
   {
     "group_id": 23,
     "label": "Medlemsudvalg",
     "member_count": 0,
-    "parent_group_id": 141
+    "parent_group_id": 141,
+    "sort_order": 4
   },
   {
     "group_id": 24,
-    "label": "Anken\u00e6vn",
+    "label": "Ankenævn",
     "member_count": 0,
-    "parent_group_id": 141
+    "parent_group_id": 141,
+    "sort_order": 5
   },
   {
     "group_id": 25,
     "label": "Kommunikation",
     "member_count": 0,
-    "parent_group_id": 141
+    "parent_group_id": 141,
+    "sort_order": 6
   },
   {
     "group_id": 26,
     "label": "Compliance / interne revision",
     "member_count": 0,
-    "parent_group_id": 141
+    "parent_group_id": 141,
+    "sort_order": 7
   },
   {
     "group_id": 126,
     "label": "Kaffeansvarlig",
     "member_count": 0,
-    "parent_group_id": 48
+    "parent_group_id": 48,
+    "sort_order": 3
   },
   {
     "group_id": 127,
     "label": "Reception",
     "member_count": 0,
-    "parent_group_id": 48
+    "parent_group_id": 48,
+    "sort_order": 4
   },
   {
     "group_id": 128,
     "label": "Tjener",
     "member_count": 0,
-    "parent_group_id": 48
+    "parent_group_id": 48,
+    "sort_order": 5
   },
   {
     "group_id": 129,
-    "label": "Reng\u00f8ring",
+    "label": "Rengøring",
     "member_count": 0,
-    "parent_group_id": 48
+    "parent_group_id": 48,
+    "sort_order": 6
   },
   {
     "group_id": 130,
     "label": "Opvask",
     "member_count": 0,
-    "parent_group_id": 48
+    "parent_group_id": 48,
+    "sort_order": 7
   },
   {
     "group_id": 131,
     "label": "Blomster + pynt",
     "member_count": 0,
-    "parent_group_id": 48
+    "parent_group_id": 48,
+    "sort_order": 8
   },
   {
     "group_id": 132,
     "label": "Vielser",
     "member_count": 0,
-    "parent_group_id": 48
+    "parent_group_id": 48,
+    "sort_order": 9
   },
   {
     "group_id": 133,
     "label": "BUK Bites",
     "member_count": 2,
-    "parent_group_id": 49
+    "parent_group_id": 49,
+    "sort_order": 0
   },
   {
     "group_id": 134,
-    "label": "M\u00f8der",
+    "label": "Møder",
     "member_count": 4,
-    "parent_group_id": 60
+    "parent_group_id": 60,
+    "sort_order": 0
   },
   {
     "group_id": 135,
-    "label": "Ungdomsm\u00f8der",
+    "label": "Ungdomsmøder",
     "member_count": 3,
-    "parent_group_id": 60
+    "parent_group_id": 60,
+    "sort_order": 1
   },
   {
     "group_id": 8,
-    "label": "B\u00f8rn",
+    "label": "Børn",
     "member_count": 0,
-    "parent_group_id": 140
+    "parent_group_id": 140,
+    "sort_order": 5
   },
   {
     "group_id": 140,
     "label": "Medlemstilbud",
     "member_count": 0,
-    "parent_group_id": 1
+    "parent_group_id": 1,
+    "sort_order": 2
   },
   {
     "group_id": 141,
     "label": "Administration",
     "member_count": 0,
-    "parent_group_id": 1
+    "parent_group_id": 1,
+    "sort_order": 3
   },
   {
     "group_id": 142,
     "label": "Ejendomme",
     "member_count": 0,
-    "parent_group_id": 1
+    "parent_group_id": 1,
+    "sort_order": 4
   },
   {
     "group_id": 143,
-    "label": "M\u00f8der og fester",
+    "label": "Møder og fester",
     "member_count": 0,
-    "parent_group_id": 1
+    "parent_group_id": 1,
+    "sort_order": 5
   },
   {
     "group_id": 144,
     "label": "Indsamling",
     "member_count": 0,
-    "parent_group_id": 1
+    "parent_group_id": 1,
+    "sort_order": 6
   },
   {
     "group_id": 5,
     "label": "Brunstad Kontakt",
     "member_count": 1,
-    "parent_group_id": 141
+    "parent_group_id": 141,
+    "sort_order": 8
   }
 ]

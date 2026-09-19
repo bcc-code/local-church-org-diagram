@@ -16,6 +16,8 @@ export const UI_CONFIG = {
   CHART: {
     CHILDREN_MARGIN: 100,
     NEIGHBOUR_MARGIN: 50,
+    SIBLINGS_MARGIN: 20,
+    SIBLINGS_MARGIN_ADMIN: 40,
     NODE_HEIGHT: 100,
     NODE_WIDTH: 200,
     COMPACT: false,
@@ -36,6 +38,7 @@ export const API_CONFIG = {
     TREE: "/tree",
     PERSONS: "/persons",
     TITLES: "/titles",
+    GROUP_SORT_ORDER: "/groups/sort-order",
   },
 } as const;
 

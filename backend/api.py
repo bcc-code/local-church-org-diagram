@@ -27,12 +27,14 @@ def get_tree():
     tenant_id = session["user"].get("churchId")
 
     q = supabase.table("groups").select(
-        "id, name, parent_id, group_membership(bcc_person_uid)"
+        "id, name, parent_id, sort_order, group_membership(bcc_person_uid)"
     )
     if tenant_id:
         q = q.eq("tenant_id", tenant_id).eq("group_membership.tenant_id", tenant_id)
     else:
         q = q.is_("tenant_id", None).is_("group_membership.tenant_id", None)
+
+    q = q.order("sort_order")
 
     groups = q.execute()
     return [
@@ -41,6 +43,7 @@ def get_tree():
             "label": group["name"],
             "parent_group_id": group["parent_id"],
             "member_count": len(group["group_membership"]),
+            "sort_order": group["sort_order"],
         }
         for group in groups.data
     ]
