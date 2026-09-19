@@ -1,16 +1,12 @@
 name: Frontend CI
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "frontend/**"
-      - ".github/workflows/frontend.yml"
   pull_request:
     branches: [main]
     paths:
       - "frontend/**"
       - ".github/workflows/frontend.yml"
+  workflow_call:
 
 jobs:
   test:
@@ -47,3 +43,9 @@ jobs:
 
       - name: Build
         run: pnpm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: backend/public

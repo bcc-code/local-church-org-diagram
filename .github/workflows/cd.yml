@@ -1,0 +1,47 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-azure
+  cancel-in-progress: false
+
+jobs:
+  backend-ci:
+    uses: ./.github/workflows/backend.yml
+
+  frontend-ci:
+    uses: ./.github/workflows/frontend.yml
+
+  deploy:
+    needs: [backend-ci, frontend-ci]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download frontend build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: backend/public
+
+      - name: Commit build output
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f backend/public
+          git commit -m "Deploy build for ${{ github.sha }}"
+
+      - name: Push to Azure SCM
+        env:
+          AZURE_SCM_URL: ${{ secrets.AZURE_SCM_URL }}
+          AZURE_SCM_USERNAME: ${{ secrets.AZURE_SCM_USERNAME }}
+          AZURE_SCM_PASSWORD: ${{ secrets.AZURE_SCM_PASSWORD }}
+        run: |
+          host="${AZURE_SCM_URL#https://}"
+          git push "https://${AZURE_SCM_USERNAME}:${AZURE_SCM_PASSWORD}@${host}" "HEAD:refs/heads/master" --force
