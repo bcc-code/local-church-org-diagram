@@ -181,7 +181,7 @@ const chartEl = ref<HTMLDivElement | null>(null);
 const personGroupsDialog = ref<InstanceType<typeof PersonGroupsDialog> | null>(null);
 const personsWithTitleDialog = ref<InstanceType<typeof PersonsWithTitleDialog> | null>(null);
 const { state, execute } = useAsyncData<Group[]>();
-const { fetchGroups, fetchTitles, searchPersons } = useApiClient();
+const { fetchGroups, fetchTitles, searchPersons, updateGroupSortOrder } = useApiClient();
 let chart: any = null;
 let skipNextRender = false;
 
@@ -409,11 +409,23 @@ const toOrgNodes = (groups: Group[]): OrgNodeData[] => {
         }
     });
 
-    return regularGroups.map((g) => {
+    // Group siblings by parent so each node knows its position among siblings
+    const siblingsByParent = new Map<string, Group[]>();
+    regularGroups.forEach(g => {
+        const key = String(g.parent_group_id);
+        if (!siblingsByParent.has(key)) siblingsByParent.set(key, []);
+        siblingsByParent.get(key)!.push(g);
+    });
+    siblingsByParent.forEach(siblings => siblings.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)));
+
+    return [...regularGroups]
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+        .map((g) => {
         const title = g.member_count > 0
             ? `${g.member_count} ${TEXTS.MEMBERS}`
             : TEXTS.NO_MEMBERS_SHORT;
         const staffGroups = staffGroupsByParent.get(g.group_id) || [];
+        const siblings = siblingsByParent.get(String(g.parent_group_id)) || [];
 
         return {
             id: g.group_id,
@@ -422,6 +434,8 @@ const toOrgNodes = (groups: Group[]): OrgNodeData[] => {
             title,
             raw: g,
             staffGroups,
+            siblingIndex: siblings.findIndex(s => s.group_id === g.group_id),
+            siblingCount: siblings.length,
         };
     });
 };
@@ -458,6 +472,123 @@ const handleMemberCountChanged = (groupId: number | string, newCount: number) =>
                 }
             }
         }
+    }
+};
+
+// Mount Vue components into each node placeholder
+const mountedApps: Record<string, ReturnType<typeof createApp>> = {};
+
+const mountNodes = () => {
+    const container: HTMLElement | null = chartEl.value;
+    if (!container || !chart) return;
+    const chartState = chart.getChartState();
+    const mounts = container.querySelectorAll('.org-node-mount');
+
+    mounts.forEach((el) => {
+        const host = el as HTMLElement;
+        const nodeId = host.getAttribute('data-node-id') || '';
+        const node = (chartState.allNodes || []).find(
+            (n: any) => chartState.nodeId(n.data).toString() === nodeId.toString(),
+        );
+        if (!node) return;
+
+        const data: OrgNodeData = node.data;
+        const width = chartState.nodeWidth(node);
+        const height = chartState.nodeHeight(node);
+        const isExpanded = node.children && node.children.length > 0;
+
+        // Avoid leaks on updates
+        mountedApps[nodeId]?.unmount?.();
+        host.innerHTML = '';
+
+        const app = createApp(OrgNode, {
+            name: data.name,
+            title: data.title,
+            width,
+            height,
+            groupId: data.id,
+            memberCount: data.raw.member_count,
+            parentGroupId: data.parentId,
+            raw: data.raw,
+            staffGroups: data.staffGroups || [],
+            adminMode: props.adminMode,
+            isExpanded,
+            canMoveLeft: (data.siblingIndex ?? 0) > 0,
+            canMoveRight: data.siblingIndex !== undefined && data.siblingCount !== undefined
+                ? data.siblingIndex < data.siblingCount - 1
+                : false,
+            onMemberCountChanged: handleMemberCountChanged,
+            onMoveGroup: handleMoveGroup,
+        });
+        app.mount(host);
+        mountedApps[nodeId] = app;
+    });
+};
+
+// Re-renders the chart in place with the given groups, preserving expand/pan state
+// (a fresh d3.OrgChart() instance would reset expanded nodes and viewport)
+const reorderChart = (groups: Group[]) => {
+    if (!chart) return;
+    const newOrgNodes = toOrgNodes(groups);
+
+    const previousById = new Map(
+        ((chart.getChartState().data || []) as any[]).map(n => [n.id, n])
+    );
+    newOrgNodes.forEach((node: any) => {
+        const prev = previousById.get(node.id);
+        if (prev) {
+            node._expanded = prev._expanded;
+            node._centered = prev._centered;
+            node._highlighted = prev._highlighted;
+            node._upToTheRootHighlighted = prev._upToTheRootHighlighted;
+        }
+    });
+
+    allNodes = newOrgNodes;
+    chart.data(newOrgNodes).render();
+};
+
+// Swaps sort_order with the previous/next sibling under the same parent (admin mode reorder buttons)
+const handleMoveGroup = async (groupId: number | string, direction: 'left' | 'right') => {
+    if (!state.value.data) return;
+    const groups = state.value.data;
+
+    const target = groups.find(g => g.group_id === groupId);
+    if (!target) return;
+
+    const siblings = groups
+        .filter(g => g.type !== 'staff-group' && g.parent_group_id === target.parent_group_id)
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+
+    const index = siblings.findIndex(g => g.group_id === groupId);
+    const swapIndex = direction === 'left' ? index - 1 : index + 1;
+    if (index === -1 || swapIndex < 0 || swapIndex >= siblings.length) return;
+
+    const other = siblings[swapIndex];
+    const targetOrder = target.sort_order ?? 0;
+    const otherOrder = other.sort_order ?? 0;
+
+    const updatedGroups = groups.map(g => {
+        if (g.group_id === target.group_id) return { ...g, sort_order: otherOrder };
+        if (g.group_id === other.group_id) return { ...g, sort_order: targetOrder };
+        return g;
+    });
+
+    // Persist locally without triggering a full chart rebuild (would close open dialogs)
+    skipNextRender = true;
+    state.value.data = updatedGroups;
+    reorderChart(updatedGroups);
+
+    try {
+        await updateGroupSortOrder([
+            { group_id: target.group_id, sort_order: otherOrder },
+            { group_id: other.group_id, sort_order: targetOrder },
+        ]);
+    } catch (error) {
+        console.error('Failed to persist group sort order:', error);
+        skipNextRender = true;
+        state.value.data = groups;
+        reorderChart(groups);
     }
 };
 
@@ -512,6 +643,7 @@ const renderChart = (data: OrgNodeData[]) => {
             .parentNodeId((d: OrgNodeData) => d.parentId)
             .childrenMargin(() => UI_CONFIG.CHART.CHILDREN_MARGIN)
             .neighbourMargin(() => UI_CONFIG.CHART.NEIGHBOUR_MARGIN)
+            .siblingsMargin(() => props.adminMode ? UI_CONFIG.CHART.SIBLINGS_MARGIN_ADMIN : UI_CONFIG.CHART.SIBLINGS_MARGIN)
             .nodeHeight(() => UI_CONFIG.CHART.NODE_HEIGHT)
             .nodeWidth(() => UI_CONFIG.CHART.NODE_WIDTH)
             .compact(UI_CONFIG.CHART.COMPACT)
@@ -522,51 +654,6 @@ const renderChart = (data: OrgNodeData[]) => {
                 return `<div class="org-node-mount" data-node-id="${id}" style=";min-width:${w}px;height:${h}px;"></div>`;
             })
             .render();
-
-        // Mount Vue components into each node placeholder
-        const mountedApps: Record<string, ReturnType<typeof createApp>> = {};
-
-        const mountNodes = () => {
-            const container: HTMLElement | null = chartEl.value;
-            if (!container) return;
-            const state = chart.getChartState();
-            const mounts = container.querySelectorAll('.org-node-mount');
-
-            mounts.forEach((el) => {
-                const host = el as HTMLElement;
-                const nodeId = host.getAttribute('data-node-id') || '';
-                const node = (state.allNodes || []).find(
-                    (n: any) => state.nodeId(n.data).toString() === nodeId.toString(),
-                );
-                if (!node) return;
-
-                const data: OrgNodeData = node.data;
-                const width = state.nodeWidth(node);
-                const height = state.nodeHeight(node);
-                const isExpanded = node.children && node.children.length > 0;
-
-                // Avoid leaks on updates
-                mountedApps[nodeId]?.unmount?.();
-                host.innerHTML = '';
-
-                const app = createApp(OrgNode, {
-                    name: data.name,
-                    title: data.title,
-                    width,
-                    height,
-                    groupId: data.id,
-                    memberCount: data.raw.member_count,
-                    parentGroupId: data.parentId,
-                    raw: data.raw,
-                    staffGroups: data.staffGroups || [],
-                    adminMode: props.adminMode,
-                    isExpanded,
-                    onMemberCountChanged: handleMemberCountChanged,
-                });
-                app.mount(host);
-                mountedApps[nodeId] = app;
-            });
-        };
 
         mountNodes();
 

@@ -218,6 +218,25 @@ export function useApiClient() {
     return response.json();
   };
 
+  const updateGroupSortOrder = async (
+    updates: { group_id: number | string; sort_order: number }[]
+  ) => {
+    const response = await fetchWithAuth(
+      `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.GROUP_SORT_ORDER}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ updates }),
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to update group order: ${response.statusText}`);
+    }
+    return response.json();
+  };
+
   const getPersonGroups = async (personUid: string) => {
     const response = await fetchWithAuth(
       `${API_CONFIG.BASE_URL}/persons/${personUid}/groups`
@@ -238,6 +257,7 @@ export function useApiClient() {
     removeGroupMember,
     updateMemberTitle,
     updateMemberLink,
+    updateGroupSortOrder,
     getPersonGroups,
   };
 }

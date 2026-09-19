@@ -4,6 +4,7 @@ export interface Group {
   label: string;
   parent_group_id: number | null;
   member_count: number;
+  sort_order?: number | null;
   type?: string;
 }
 
@@ -29,6 +30,8 @@ export interface OrgNodeData {
   title: string;
   raw: Group;
   staffGroups?: Group[];
+  siblingIndex?: number;
+  siblingCount?: number;
 }
 
 // Common Component Props
