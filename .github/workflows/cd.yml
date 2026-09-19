@@ -24,19 +24,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download frontend build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: backend/public
-
-      - name: Commit build output
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f backend/public
-          git commit -m "Deploy build for ${{ github.sha }}"
-
       - name: Push to Azure SCM
         env:
           AZURE_SCM_URL: ${{ secrets.AZURE_SCM_URL }}
