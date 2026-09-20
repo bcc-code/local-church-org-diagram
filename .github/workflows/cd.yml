@@ -10,14 +10,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  backend-ci:
+  backend:
     uses: ./.github/workflows/backend.yml
 
-  frontend-ci:
+  frontend:
     uses: ./.github/workflows/frontend.yml
 
   deploy:
-    needs: [backend-ci, frontend-ci]
+    needs: [backend, frontend]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
