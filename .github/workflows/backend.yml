@@ -1,4 +1,4 @@
-name: Backend CI
+name: Backend
 
 on:
   pull_request:
@@ -14,7 +14,8 @@ on:
   workflow_call:
 
 jobs:
-  test:
+  ci:
+    name: CI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
