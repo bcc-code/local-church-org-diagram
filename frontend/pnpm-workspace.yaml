@@ -4,6 +4,7 @@ minimumReleaseAgeExclude:
   - '@vue/language-core@3.3.11'
   - eslint@10.9.0
   - vue-tsc@3.3.11
+  - '@dotenvx/dotenvx@2.28.2'
 onlyBuiltDependencies:
   - vue-demi
 overrides:
