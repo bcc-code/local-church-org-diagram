@@ -7,3 +7,4 @@ cd "$(dirname "${BASH_SOURCE[0]}")/../frontend"
 
 corepack pnpm install --frozen-lockfile
 corepack pnpm run build
+rm -rf node_modules
