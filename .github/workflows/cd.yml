@@ -21,14 +21,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Push to Azure SCM
-        env:
-          AZURE_SCM_URL: ${{ secrets.AZURE_SCM_URL }}
-          AZURE_SCM_USERNAME: ${{ secrets.AZURE_SCM_USERNAME }}
-          AZURE_SCM_PASSWORD: ${{ secrets.AZURE_SCM_PASSWORD }}
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Build frontend
+        working-directory: frontend
         run: |
-          host="${AZURE_SCM_URL#https://}"
-          git push "https://${AZURE_SCM_USERNAME}:${AZURE_SCM_PASSWORD}@${host}" "HEAD:refs/heads/master" --force
+          pnpm install --frozen-lockfile
+          pnpm run build
+          rm -rf node_modules
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: .
