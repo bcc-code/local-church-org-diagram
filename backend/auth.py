@@ -1,6 +1,7 @@
 import logging
 
 from flask import Blueprint, current_app, redirect, session, url_for
+from roles import get_user_roles
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/")
 
@@ -47,5 +48,9 @@ def get_current_user():
     """Get current authenticated user information"""
     user = session.get("user")
     if user:
-        return user
+        roles = [
+            {k: v for k, v in assignment.items() if k != "email"}
+            for assignment in get_user_roles(user["email"])
+        ]
+        return {**user, "roles": roles}
     return {"authenticated": False}, 401

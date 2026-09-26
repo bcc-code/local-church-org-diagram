@@ -41,3 +41,19 @@ export const API_CONFIG = {
     GROUP_SORT_ORDER: "/groups/sort-order",
   },
 } as const;
+
+// Auth endpoints (served outside the /api prefix, see backend/auth.py)
+export const AUTH_CONFIG = {
+  ENDPOINTS: {
+    USER: "/user",
+    LOGIN: "/login",
+    LOGOUT: "/logout",
+  },
+} as const;
+
+// Role ids, matching the `role` table ids (see backend/demo_requests/roles.json)
+export const ROLES = {
+  GLOBAL_ADMIN: 1,
+  LOCAL_ADMIN: 2,
+  GROUP_ADMIN: 3,
+} as const;

@@ -170,12 +170,10 @@ def get_persons_by_title(title):
 
     supabase = current_app.config["SUPABASE"]
     bcc_auth = current_app.config["BCC_AUTH"]
-    persons_api = current_app.config["PERSONS_API"]
+    persons_api: PersonsApi = current_app.config["PERSONS_API"]
     tenant_id = session["user"].get("churchId")
 
-    q = supabase.table("group_membership").select("bcc_person_uid").eq(
-        "title", title
-    )
+    q = supabase.table("group_membership").select("bcc_person_uid").eq("title", title)
     if tenant_id:
         q = q.eq("tenant_id", tenant_id)
     else:

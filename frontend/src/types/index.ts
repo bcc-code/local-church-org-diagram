@@ -1,3 +1,5 @@
+import type { ROLES } from "@/constants";
+
 // Core BCC API Types
 export interface Group {
   group_id: number;
@@ -50,6 +52,23 @@ export interface AsyncState<T = any> {
   data: T | null;
   loading: boolean;
   error: string | null;
+}
+
+// Roles / permissions
+export type Role = (typeof ROLES)[keyof typeof ROLES];
+
+export interface RoleAssignment {
+  role: Role;
+  tenant_id: string | number | null;
+  group_id: number | null;
+}
+
+export interface CurrentUser {
+  email: string;
+  name?: string;
+  churchId?: number | string;
+  roles: RoleAssignment[];
+  [claim: string]: unknown;
 }
 
 // API Response types

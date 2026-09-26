@@ -3,7 +3,7 @@ import { API_CONFIG } from "@/constants";
 import type { AsyncState, ApiError } from "@/types";
 
 // Fetch wrapper that handles 401 responses by redirecting to login
-async function fetchWithAuth(
+export async function fetchWithAuth(
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<Response> {
