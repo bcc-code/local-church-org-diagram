@@ -213,11 +213,22 @@ def update_group_sort_order():
     tenant_id = session["user"].get("churchId")
 
     for update in updates:
-        q = supabase.table("groups").update(
-            {"sort_order": update["sort_order"]}
-        ).eq("id", update["group_id"])
+        q = (
+            supabase.table("groups")
+            .update({"sort_order": update["sort_order"]})
+            .eq("id", update["group_id"])
+        )
         if tenant_id:
             q = q.eq("tenant_id", tenant_id)
-        q.execute()
+        result = q.execute()
+        if not result.data:
+            logger.warning(
+                "sort_order update matched no rows: group_id=%s tenant_id=%s",
+                update["group_id"],
+                tenant_id,
+            )
+            return {
+                "error": f"Group {update['group_id']} not found or not updatable"
+            }, 404
 
     return {"success": True}, 200
