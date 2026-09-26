@@ -548,7 +548,8 @@ const reorderChart = (groups: Group[]) => {
     chart.data(newOrgNodes).render();
 };
 
-// Swaps sort_order with the previous/next sibling under the same parent (admin mode reorder buttons)
+// Moves a group one step left/right among its siblings and renumbers all siblings 0..n-1
+// (admin mode reorder buttons). Renumbering handles siblings that share the same sort_order.
 const handleMoveGroup = async (groupId: number | string, direction: 'left' | 'right') => {
     if (!state.value.data) return;
     const groups = state.value.data;
@@ -564,15 +565,12 @@ const handleMoveGroup = async (groupId: number | string, direction: 'left' | 'ri
     const swapIndex = direction === 'left' ? index - 1 : index + 1;
     if (index === -1 || swapIndex < 0 || swapIndex >= siblings.length) return;
 
-    const other = siblings[swapIndex];
-    const targetOrder = target.sort_order ?? 0;
-    const otherOrder = other.sort_order ?? 0;
+    [siblings[index], siblings[swapIndex]] = [siblings[swapIndex], siblings[index]];
+    const newOrder = new Map(siblings.map((g, i) => [g.group_id, i]));
 
-    const updatedGroups = groups.map(g => {
-        if (g.group_id === target.group_id) return { ...g, sort_order: otherOrder };
-        if (g.group_id === other.group_id) return { ...g, sort_order: targetOrder };
-        return g;
-    });
+    const updatedGroups = groups.map(g =>
+        newOrder.has(g.group_id) ? { ...g, sort_order: newOrder.get(g.group_id)! } : g
+    );
 
     // Persist locally without triggering a full chart rebuild (would close open dialogs)
     skipNextRender = true;
@@ -580,10 +578,9 @@ const handleMoveGroup = async (groupId: number | string, direction: 'left' | 'ri
     reorderChart(updatedGroups);
 
     try {
-        await updateGroupSortOrder([
-            { group_id: target.group_id, sort_order: otherOrder },
-            { group_id: other.group_id, sort_order: targetOrder },
-        ]);
+        await updateGroupSortOrder(
+            siblings.map((g, i) => ({ group_id: g.group_id, sort_order: i }))
+        );
     } catch (error) {
         console.error('Failed to persist group sort order:', error);
         skipNextRender = true;
