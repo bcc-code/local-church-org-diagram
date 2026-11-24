@@ -27,7 +27,7 @@ This project contains a Vue.js frontend (TypeScript) and a Flask backend (Python
 
 The org diagram is a D3-based interactive diagram.
 
-Data on group hierarchy and group memberships is stored in Supabase.
+Data on group hierarchy and group memberships is stored in Postgres (hosted on Supabase).
 
 Member data is pulled from [BCC Core API](https://developer.bcc.no/bcc-core-api/) and cached in-memory.
 
