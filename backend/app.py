@@ -1,6 +1,7 @@
 import logging
 import os
 
+import db
 import swagger_client as bcc_api_client
 from admin import admin_bp
 from api import api_bp
@@ -16,7 +17,6 @@ from flask import (
     url_for,
 )
 from requests_oauth2client import OAuth2Client, OAuth2ClientCredentialsAuth
-from supabase import create_client
 from swagger_client.rest import ApiException
 
 load_dotenv()
@@ -43,9 +43,8 @@ if not app.config["DEMO_MODE"]:
         client_kwargs={"scope": "openid profile email church"},
     )
 
-    app.config["SUPABASE"] = create_client(
-        os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"]
-    )
+    app.config["DATABASE_URL"] = os.environ["DATABASE_URL"]
+    db.init_app(app)
 
     bcc_oauth_client = OAuth2Client(
         token_endpoint="https://login.bcc.no/oauth/token",
