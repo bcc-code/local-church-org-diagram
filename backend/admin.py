@@ -1,6 +1,9 @@
 import logging
 
+import db
+import mutations
 from flask import Blueprint, current_app, request, session
+from psycopg2.errors import UniqueViolation
 
 logger = logging.getLogger("admin")
 
@@ -55,22 +58,15 @@ def add_group_member():
         return {"success": True}, 201
 
     tenant_id = session["user"].get("churchId")
-    membership_data = {
-        "group_id": group_id,
-        "bcc_person_uid": person_uid,
-        "tenant_id": tenant_id,
-    }
+    try:
+        with db.transaction() as conn:
+            row = mutations.add_membership(
+                conn, group_id, person_uid, tenant_id, title=title
+            )
+    except UniqueViolation:
+        return {"error": "Member already in group"}, 409
 
-    if title is not None:
-        membership_data["title"] = title
-
-    supabase = current_app.config["SUPABASE"]
-    result = supabase.table("group_membership").insert(membership_data).execute()
-
-    return {
-        "success": True,
-        "data": result.data[0] if result.data else None,
-    }, 201
+    return {"success": True, "data": db.to_json(row)}, 201
 
 
 @admin_bp.route("/group-membership", methods=["DELETE"])
@@ -111,24 +107,13 @@ def remove_group_member():
         else:
             return {"error": "Member not found in group"}, 404
 
-    supabase = current_app.config["SUPABASE"]
     tenant_id = session["user"].get("churchId")
-
-    result = (
-        supabase.table("group_membership")
-        .delete()
-        .eq("group_id", group_id)
-        .eq("bcc_person_uid", person_uid)
-        .eq("tenant_id", tenant_id)
-        .execute()
-    )
-    if not result.data:
+    with db.transaction() as conn:
+        row = mutations.remove_membership(conn, group_id, person_uid, tenant_id)
+    if row is None:
         return {"error": "Member not found in group"}, 404
 
-    return {
-        "success": True,
-        "data": result.data[0] if result.data else None,
-    }, 200
+    return {"success": True, "data": db.to_json(row)}, 200
 
 
 @admin_bp.route("/group-membership", methods=["PUT"])
@@ -169,23 +154,15 @@ def update_group_member():
     if not update_data:
         return {"success": True}, 304  # Not modified
 
-    supabase = current_app.config["SUPABASE"]
     tenant_id = session["user"].get("churchId")
-
-    result = (
-        supabase.table("group_membership")
-        .update(update_data)
-        .eq("group_id", group_id)
-        .eq("bcc_person_uid", person_uid)
-        .eq("tenant_id", tenant_id)
-    ).execute()
-    if not result.data:
+    with db.transaction() as conn:
+        row = mutations.update_membership(
+            conn, group_id, person_uid, tenant_id, update_data
+        )
+    if row is None:
         return {"error": "Member not found in group"}, 404
 
-    return {
-        "success": True,
-        "data": result.data[0] if result.data else None,
-    }, 200
+    return {"success": True, "data": db.to_json(row)}, 200
 
 
 @admin_bp.route("/groups/sort-order", methods=["PUT"])
@@ -209,26 +186,16 @@ def update_group_sort_order():
                 group["sort_order"] = update["sort_order"]
         return {"success": True}, 200
 
-    supabase = current_app.config["SUPABASE"]
     tenant_id = session["user"].get("churchId")
-
-    for update in updates:
-        q = (
-            supabase.table("groups")
-            .update({"sort_order": update["sort_order"]})
-            .eq("id", update["group_id"])
+    try:
+        with db.transaction() as conn:
+            mutations.update_sort_order(conn, updates, tenant_id)
+    except mutations.GroupsNotFound as e:
+        logger.warning(
+            "sort_order update matched no rows: group_ids=%s tenant_id=%s",
+            e.missing_ids,
+            tenant_id,
         )
-        if tenant_id:
-            q = q.eq("tenant_id", tenant_id)
-        result = q.execute()
-        if not result.data:
-            logger.warning(
-                "sort_order update matched no rows: group_id=%s tenant_id=%s",
-                update["group_id"],
-                tenant_id,
-            )
-            return {
-                "error": f"Group {update['group_id']} not found or not updatable"
-            }, 404
+        return {"error": str(e)}, 404
 
     return {"success": True}, 200
