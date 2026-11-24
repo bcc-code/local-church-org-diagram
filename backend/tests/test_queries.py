@@ -1,26 +1,8 @@
 import queries
-
-T1 = 1
-T2 = 2
-
-
-def _group(conn, name, tenant_id, parent_id=None, sort_order=None):
-    with conn.cursor() as cur:
-        cur.execute(
-            "INSERT INTO groups (name, parent_id, tenant_id, sort_order) "
-            "VALUES (%s, %s, %s, %s) RETURNING id",
-            [name, parent_id, tenant_id, sort_order],
-        )
-        return cur.fetchone()["id"]
-
-
-def _member(conn, group_id, uid, tenant_id, title=None, link=None):
-    with conn.cursor() as cur:
-        cur.execute(
-            "INSERT INTO group_membership (group_id, bcc_person_uid, tenant_id, "
-            "title, link) VALUES (%s, %s, %s, %s, %s)",
-            [group_id, uid, tenant_id, title, link],
-        )
+from factories import OTHER_TENANT as T2
+from factories import TENANT as T1
+from factories import make_group as _group
+from factories import make_member as _member
 
 
 def _by_id(rows):
@@ -139,14 +121,14 @@ def test_get_person_groups(db_conn):
     g_t2 = _group(db_conn, "GT2", T2)
     _member(db_conn, g1, "p", T1)
     _member(db_conn, g1, "x", T1)
-    _member(db_conn, g1, "y", T2)  # counted: member_count is not tenant-filtered
+    _member(db_conn, g1, "y", T2)  # not counted: member_count is tenant-scoped
     _member(db_conn, g2, "p", T1)
     _member(db_conn, g3, "p", T2)  # membership in other tenant -> excluded
     _member(db_conn, g_t2, "p", T1)  # group in other tenant -> excluded
 
     rows = queries.get_person_groups(db_conn, "p", T1)
     assert rows == [
-        {"id": g1, "name": "G1", "member_count": 3},
+        {"id": g1, "name": "G1", "member_count": 2},
         {"id": g2, "name": "G2", "member_count": 1},
     ]
     assert queries.get_person_groups(db_conn, "nobody", T1) == []
@@ -158,7 +140,7 @@ def test_get_person_groups_null_tenant(db_conn):
     _member(db_conn, g, "q", T1)
 
     rows = queries.get_person_groups(db_conn, "p", None)
-    assert rows == [{"id": g, "name": "G", "member_count": 2}]
+    assert rows == [{"id": g, "name": "G", "member_count": 1}]
     assert queries.get_person_groups(db_conn, "p", T1) == []
 
 

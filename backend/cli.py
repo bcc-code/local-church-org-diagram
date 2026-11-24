@@ -8,6 +8,7 @@ logging.getLogger().setLevel(logging.WARNING)
 import db  # noqa: E402
 from flask import current_app  # noqa: E402
 from flask.cli import with_appcontext  # noqa: E402
+from queries import get_membership_report_rows  # noqa: E402
 from reports import MembershipReport  # noqa: E402
 
 
@@ -28,7 +29,11 @@ def membership_report():
     persons_api = current_app.config["PERSONS_API"]
     bcc_auth = current_app.config["BCC_AUTH"]
 
-    report = MembershipReport(db.get_conn(), persons_api, bcc_auth)
+    # Fetch rows and end the transaction before the per-person BCC API calls.
+    with db.transaction() as conn:
+        rows = get_membership_report_rows(conn)
+
+    report = MembershipReport(rows, persons_api, bcc_auth)
     try:
         data = report.generate_report()
     except ValueError as e:

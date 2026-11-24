@@ -53,7 +53,9 @@ See [`docs/domain-model.md`](./docs/domain-model.md) for the domain model (ubiqu
   - `groups` - Org hierarchy (id, name, parent_id, tenant_id)
   - `group_membership` - Links persons (bcc_person_uid) to groups
 - Connection pooling/transactions in `backend/db.py`; reads in `backend/queries.py`, writes in `backend/mutations.py`
-- `backend/schema.sql` defines the tables for integration tests, which run only when `TEST_DATABASE_URL` is set (CI provides a postgres service)
+- `backend/schema.sql` defines the tables for integration tests, which run only when `TEST_DATABASE_URL` is set (CI provides a postgres service). The test setup drops tables, so it refuses any URL that isn't localhost or a database named `*test*`. Run locally with:
+  `docker run -d --rm --name org-pg -e POSTGRES_PASSWORD=pw -p 5432:5432 postgres:17` then `cd backend && TEST_DATABASE_URL=postgresql://postgres:pw@localhost:5432/postgres uv run pytest`
+- All DB access (reads too) goes through `with db.transaction() as conn:`; end the block before slow external calls (BCC API) so the pooler connection is released
 - Multi-tenant support via `TENANT_ID` environment variable (optional)
 
 ### Data Import (`tools/`)

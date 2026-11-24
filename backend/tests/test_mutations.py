@@ -4,40 +4,9 @@ import db
 import mutations
 import pytest
 from admin import admin_bp
+from factories import OTHER_TENANT, TENANT, get_member, make_group, make_member
 from flask import Flask
 from psycopg2.errors import UniqueViolation
-
-TENANT = 100
-OTHER_TENANT = 200
-
-
-def _insert_group(conn, name, tenant_id: int | None = TENANT, sort_order=None):
-    with conn.cursor() as cur:
-        cur.execute(
-            "INSERT INTO groups (name, tenant_id, sort_order)"
-            " VALUES (%s, %s, %s) RETURNING id",
-            [name, tenant_id, sort_order],
-        )
-        return cur.fetchone()["id"]
-
-
-def _insert_member(conn, group_id, uid, tenant_id: int | None = TENANT, title=None):
-    with conn.cursor() as cur:
-        cur.execute(
-            "INSERT INTO group_membership (group_id, bcc_person_uid, tenant_id, title)"
-            " VALUES (%s, %s, %s, %s)",
-            [group_id, uid, tenant_id, title],
-        )
-
-
-def _member(conn, group_id, uid):
-    with conn.cursor() as cur:
-        cur.execute(
-            "SELECT * FROM group_membership"
-            " WHERE group_id = %s AND bcc_person_uid = %s",
-            [group_id, uid],
-        )
-        return cur.fetchone()
 
 
 def _sort_orders(conn, ids):
@@ -50,8 +19,9 @@ def _sort_orders(conn, ids):
 
 
 def test_add_membership_returns_row(db_conn):
-    gid = _insert_group(db_conn, "A")
+    gid = make_group(db_conn, "A")
     row = mutations.add_membership(db_conn, gid, "uid-1", TENANT)
+    assert row is not None
     assert row["group_id"] == gid
     assert row["bcc_person_uid"] == "uid-1"
     assert row["tenant_id"] == TENANT
@@ -60,13 +30,37 @@ def test_add_membership_returns_row(db_conn):
 
 
 def test_add_membership_with_title(db_conn):
-    gid = _insert_group(db_conn, "A")
+    gid = make_group(db_conn, "A")
     row = mutations.add_membership(db_conn, gid, "uid-1", TENANT, title="Leader")
+    assert row is not None
     assert row["title"] == "Leader"
 
 
+def test_add_membership_takes_tenant_from_group(db_conn):
+    gid = make_group(db_conn, "A")
+    row = mutations.add_membership(db_conn, gid, "uid-1", TENANT)
+    assert row is not None
+    assert row["tenant_id"] == TENANT
+
+
+def test_add_membership_other_tenants_group_is_rejected(db_conn):
+    theirs = make_group(db_conn, "Theirs", tenant_id=OTHER_TENANT)
+    assert mutations.add_membership(db_conn, theirs, "uid-1", TENANT) is None
+    assert get_member(db_conn, theirs, "uid-1") is None
+
+
+def test_add_membership_null_tenant_cannot_use_tenant_group(db_conn):
+    gid = make_group(db_conn, "A")
+    assert mutations.add_membership(db_conn, gid, "uid-1", None) is None
+
+
+def test_add_membership_unknown_group_returns_none(db_conn):
+    gid = make_group(db_conn, "A")
+    assert mutations.add_membership(db_conn, gid + 10_000, "uid-1", TENANT) is None
+
+
 def test_add_membership_duplicate_raises_unique_violation(db_conn):
-    gid = _insert_group(db_conn, "A")
+    gid = make_group(db_conn, "A")
     mutations.add_membership(db_conn, gid, "uid-1", TENANT)
     with pytest.raises(UniqueViolation):
         mutations.add_membership(db_conn, gid, "uid-1", TENANT)
@@ -76,30 +70,30 @@ def test_add_membership_duplicate_raises_unique_violation(db_conn):
 
 
 def test_remove_membership_returns_deleted_row(db_conn):
-    gid = _insert_group(db_conn, "A")
-    _insert_member(db_conn, gid, "uid-1")
+    gid = make_group(db_conn, "A")
+    make_member(db_conn, gid, "uid-1")
     row = mutations.remove_membership(db_conn, gid, "uid-1", TENANT)
     assert row is not None
     assert row["bcc_person_uid"] == "uid-1"
-    assert _member(db_conn, gid, "uid-1") is None
+    assert get_member(db_conn, gid, "uid-1") is None
 
 
 def test_remove_membership_not_found(db_conn):
-    gid = _insert_group(db_conn, "A")
+    gid = make_group(db_conn, "A")
     assert mutations.remove_membership(db_conn, gid, "nobody", TENANT) is None
 
 
 def test_remove_membership_other_tenant_is_untouched(db_conn):
-    gid = _insert_group(db_conn, "A", tenant_id=OTHER_TENANT)
-    _insert_member(db_conn, gid, "uid-1", tenant_id=OTHER_TENANT)
+    gid = make_group(db_conn, "A", tenant_id=OTHER_TENANT)
+    make_member(db_conn, gid, "uid-1", tenant_id=OTHER_TENANT)
     assert mutations.remove_membership(db_conn, gid, "uid-1", TENANT) is None
     assert mutations.remove_membership(db_conn, gid, "uid-1", None) is None
-    assert _member(db_conn, gid, "uid-1") is not None
+    assert get_member(db_conn, gid, "uid-1") is not None
 
 
 def test_remove_membership_null_tenant_matches_null(db_conn):
-    gid = _insert_group(db_conn, "A", tenant_id=None)
-    _insert_member(db_conn, gid, "uid-1", tenant_id=None)
+    gid = make_group(db_conn, "A", tenant_id=None)
+    make_member(db_conn, gid, "uid-1", tenant_id=None)
     assert mutations.remove_membership(db_conn, gid, "uid-1", None) is not None
 
 
@@ -107,8 +101,8 @@ def test_remove_membership_null_tenant_matches_null(db_conn):
 
 
 def test_update_membership_sets_fields(db_conn):
-    gid = _insert_group(db_conn, "A")
-    _insert_member(db_conn, gid, "uid-1", title="Old")
+    gid = make_group(db_conn, "A")
+    make_member(db_conn, gid, "uid-1", title="Old")
     row = mutations.update_membership(
         db_conn, gid, "uid-1", TENANT, {"title": "New", "link": "https://x"}
     )
@@ -118,8 +112,8 @@ def test_update_membership_sets_fields(db_conn):
 
 
 def test_update_membership_partial_keeps_other_fields(db_conn):
-    gid = _insert_group(db_conn, "A")
-    _insert_member(db_conn, gid, "uid-1", title="Keep")
+    gid = make_group(db_conn, "A")
+    make_member(db_conn, gid, "uid-1", title="Keep")
     row = mutations.update_membership(
         db_conn, gid, "uid-1", TENANT, {"link": "https://x"}
     )
@@ -128,7 +122,7 @@ def test_update_membership_partial_keeps_other_fields(db_conn):
 
 
 def test_update_membership_not_found(db_conn):
-    gid = _insert_group(db_conn, "A")
+    gid = make_group(db_conn, "A")
     assert (
         mutations.update_membership(db_conn, gid, "nobody", TENANT, {"title": "x"})
         is None
@@ -136,18 +130,20 @@ def test_update_membership_not_found(db_conn):
 
 
 def test_update_membership_other_tenant_is_untouched(db_conn):
-    gid = _insert_group(db_conn, "A", tenant_id=OTHER_TENANT)
-    _insert_member(db_conn, gid, "uid-1", tenant_id=OTHER_TENANT, title="Orig")
+    gid = make_group(db_conn, "A", tenant_id=OTHER_TENANT)
+    make_member(db_conn, gid, "uid-1", tenant_id=OTHER_TENANT, title="Orig")
     assert (
         mutations.update_membership(db_conn, gid, "uid-1", TENANT, {"title": "Hack"})
         is None
     )
-    assert _member(db_conn, gid, "uid-1")["title"] == "Orig"
+    member = get_member(db_conn, gid, "uid-1")
+    assert member is not None
+    assert member["title"] == "Orig"
 
 
 def test_update_membership_rejects_unknown_column(db_conn):
-    gid = _insert_group(db_conn, "A")
-    _insert_member(db_conn, gid, "uid-1")
+    gid = make_group(db_conn, "A")
+    make_member(db_conn, gid, "uid-1")
     with pytest.raises(ValueError):
         mutations.update_membership(db_conn, gid, "uid-1", TENANT, {"tenant_id": 1})
     with pytest.raises(ValueError):
@@ -158,19 +154,19 @@ def test_update_membership_rejects_unknown_column(db_conn):
 
 
 def test_update_sort_order_success(db_conn):
-    a = _insert_group(db_conn, "A", sort_order=0)
-    b = _insert_group(db_conn, "B", sort_order=1)
+    a = make_group(db_conn, "A", sort_order=0)
+    b = make_group(db_conn, "B", sort_order=1)
     mutations.update_sort_order(
         db_conn,
-        [{"group_id": a, "sort_order": 1}, {"group_id": str(b), "sort_order": 0}],
+        [(a, 1), (b, 0)],
         TENANT,
     )
     assert _sort_orders(db_conn, [a, b]) == {a: 1, b: 0}
 
 
 def test_update_sort_order_missing_id_changes_nothing(db_conn):
-    a = _insert_group(db_conn, "A", sort_order=0)
-    b = _insert_group(db_conn, "B", sort_order=1)
+    a = make_group(db_conn, "A", sort_order=0)
+    b = make_group(db_conn, "B", sort_order=1)
     missing = b + 10_000
     with db_conn.cursor() as cur:
         cur.execute("SAVEPOINT before_sort")
@@ -178,9 +174,9 @@ def test_update_sort_order_missing_id_changes_nothing(db_conn):
         mutations.update_sort_order(
             db_conn,
             [
-                {"group_id": a, "sort_order": 5},
-                {"group_id": missing, "sort_order": 6},
-                {"group_id": b, "sort_order": 7},
+                (a, 5),
+                (missing, 6),
+                (b, 7),
             ],
             TENANT,
         )
@@ -192,14 +188,14 @@ def test_update_sort_order_missing_id_changes_nothing(db_conn):
 
 
 def test_update_sort_order_does_not_touch_other_tenant(db_conn):
-    mine = _insert_group(db_conn, "Mine", sort_order=0)
-    theirs = _insert_group(db_conn, "Theirs", tenant_id=OTHER_TENANT, sort_order=0)
+    mine = make_group(db_conn, "Mine", sort_order=0)
+    theirs = make_group(db_conn, "Theirs", tenant_id=OTHER_TENANT, sort_order=0)
     with pytest.raises(mutations.GroupsNotFound) as exc:
         mutations.update_sort_order(
             db_conn,
             [
-                {"group_id": mine, "sort_order": 3},
-                {"group_id": theirs, "sort_order": 3},
+                (mine, 3),
+                (theirs, 3),
             ],
             TENANT,
         )
@@ -208,16 +204,12 @@ def test_update_sort_order_does_not_touch_other_tenant(db_conn):
 
 
 def test_update_sort_order_null_tenant_scoped_to_null(db_conn):
-    null_group = _insert_group(db_conn, "Null", tenant_id=None, sort_order=0)
-    tenant_group = _insert_group(db_conn, "T", sort_order=0)
-    mutations.update_sort_order(
-        db_conn, [{"group_id": null_group, "sort_order": 4}], None
-    )
+    null_group = make_group(db_conn, "Null", tenant_id=None, sort_order=0)
+    tenant_group = make_group(db_conn, "T", sort_order=0)
+    mutations.update_sort_order(db_conn, [(null_group, 4)], None)
     assert _sort_orders(db_conn, [null_group]) == {null_group: 4}
     with pytest.raises(mutations.GroupsNotFound):
-        mutations.update_sort_order(
-            db_conn, [{"group_id": tenant_group, "sort_order": 4}], None
-        )
+        mutations.update_sort_order(db_conn, [(tenant_group, 4)], None)
 
 
 # --- Flask routes (live mode, against db_conn) ------------------------------
@@ -253,7 +245,7 @@ def admin_client(db_conn, monkeypatch):
 
 
 def test_route_add_member(admin_client, db_conn):
-    gid = _insert_group(db_conn, "A")
+    gid = make_group(db_conn, "A")
     resp = admin_client.post(
         "/api/group-membership", json={"group_id": gid, "person_uid": "uid-1"}
     )
@@ -265,8 +257,8 @@ def test_route_add_member(admin_client, db_conn):
 
 
 def test_route_add_member_duplicate_is_409(admin_client, db_conn):
-    gid = _insert_group(db_conn, "A")
-    _insert_member(db_conn, gid, "uid-1")
+    gid = make_group(db_conn, "A")
+    make_member(db_conn, gid, "uid-1")
     resp = admin_client.post(
         "/api/group-membership", json={"group_id": gid, "person_uid": "uid-1"}
     )
@@ -275,8 +267,8 @@ def test_route_add_member_duplicate_is_409(admin_client, db_conn):
 
 
 def test_route_remove_member(admin_client, db_conn):
-    gid = _insert_group(db_conn, "A")
-    _insert_member(db_conn, gid, "uid-1")
+    gid = make_group(db_conn, "A")
+    make_member(db_conn, gid, "uid-1")
     resp = admin_client.delete(
         "/api/group-membership", json={"group_id": gid, "person_uid": "uid-1"}
     )
@@ -289,8 +281,8 @@ def test_route_remove_member(admin_client, db_conn):
 
 
 def test_route_update_member(admin_client, db_conn):
-    gid = _insert_group(db_conn, "A")
-    _insert_member(db_conn, gid, "uid-1")
+    gid = make_group(db_conn, "A")
+    make_member(db_conn, gid, "uid-1")
     resp = admin_client.put(
         "/api/group-membership",
         json={"group_id": gid, "person_uid": "uid-1", "title": "Boss"},
@@ -300,7 +292,7 @@ def test_route_update_member(admin_client, db_conn):
 
 
 def test_route_sort_order_missing_is_404_and_atomic(admin_client, db_conn):
-    a = _insert_group(db_conn, "A", sort_order=0)
+    a = make_group(db_conn, "A", sort_order=0)
     missing = a + 10_000
     resp = admin_client.put(
         "/api/groups/sort-order",
@@ -317,8 +309,8 @@ def test_route_sort_order_missing_is_404_and_atomic(admin_client, db_conn):
 
 
 def test_route_sort_order_success(admin_client, db_conn):
-    a = _insert_group(db_conn, "A", sort_order=0)
-    b = _insert_group(db_conn, "B", sort_order=1)
+    a = make_group(db_conn, "A", sort_order=0)
+    b = make_group(db_conn, "B", sort_order=1)
     resp = admin_client.put(
         "/api/groups/sort-order",
         json={
@@ -331,3 +323,45 @@ def test_route_sort_order_success(admin_client, db_conn):
     assert resp.status_code == 200
     assert resp.get_json() == {"success": True}
     assert _sort_orders(db_conn, [a, b]) == {a: 1, b: 0}
+
+
+def test_route_add_member_other_tenants_group_is_404(admin_client, db_conn):
+    theirs = make_group(db_conn, "Theirs", tenant_id=OTHER_TENANT)
+    resp = admin_client.post(
+        "/api/group-membership", json={"group_id": theirs, "person_uid": "uid-1"}
+    )
+    assert resp.status_code == 404
+    assert get_member(db_conn, theirs, "uid-1") is None
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"group_id": "abc", "person_uid": "uid-1"},
+        {"group_id": True, "person_uid": "uid-1"},
+        {"group_id": 1.5, "person_uid": "uid-1"},
+        {"group_id": [1], "person_uid": "uid-1"},
+        {"group_id": 2**63, "person_uid": "uid-1"},
+        {"group_id": 1, "person_uid": {"x": 1}},
+        {"group_id": 1, "person_uid": "uid-1", "title": 5},
+    ],
+)
+def test_route_add_member_invalid_input_is_400(admin_client, payload):
+    resp = admin_client.post("/api/group-membership", json=payload)
+    assert resp.status_code == 400
+    assert "error" in resp.get_json()
+
+
+@pytest.mark.parametrize(
+    "updates",
+    [
+        [{"group_id": "x", "sort_order": 1}],
+        [{"group_id": 1, "sort_order": 2**31}],
+        [{"group_id": 1, "sort_order": None}],
+        [{"group_id": 1, "sort_order": 1}, {"group_id": 1, "sort_order": 2}],
+        ["not-a-dict"],
+    ],
+)
+def test_route_sort_order_invalid_input_is_400(admin_client, updates):
+    resp = admin_client.put("/api/groups/sort-order", json={"updates": updates})
+    assert resp.status_code == 400

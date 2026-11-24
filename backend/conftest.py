@@ -11,6 +11,23 @@ os.environ.setdefault("DEMO_MODE", "1")
 
 SCHEMA_SQL = Path(__file__).parent / "schema.sql"
 
+_LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1", ""}
+
+
+def _assert_disposable(url: str) -> None:
+    """Refuse to drop tables anywhere but a local or explicitly test database."""
+    params = psycopg2.extensions.parse_dsn(url)
+    host = params.get("host", "")
+    dbname = params.get("dbname", "")
+    if host in _LOCAL_HOSTS or "test" in dbname:
+        return
+    pytest.exit(
+        f"Refusing to run DB tests against host={host!r} dbname={dbname!r}: "
+        "TEST_DATABASE_URL must point at localhost or a database named *test*, "
+        "because the test setup drops tables.",
+        returncode=2,
+    )
+
 
 @pytest.fixture(scope="session")
 def _db_schema() -> str:
@@ -18,6 +35,7 @@ def _db_schema() -> str:
     url = os.environ.get("TEST_DATABASE_URL")
     if not url:
         pytest.skip("TEST_DATABASE_URL not set")
+    _assert_disposable(url)
     conn = psycopg2.connect(url)
     try:
         with conn, conn.cursor() as cur:

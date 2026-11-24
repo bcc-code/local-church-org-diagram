@@ -26,7 +26,8 @@ def get_tree():
         return current_app.config["DEMO_TREE"]
 
     tenant_id = session["user"].get("churchId")
-    groups = queries.get_tree(db.get_conn(), tenant_id)
+    with db.transaction() as conn:
+        groups = queries.get_tree(conn, tenant_id)
     return [
         {
             "group_id": group["id"],
@@ -76,7 +77,9 @@ def get_persons_in_group():
     persons_api = current_app.config["PERSONS_API"]
     tenant_id = session["user"].get("churchId")
 
-    memberships = queries.get_group_memberships(db.get_conn(), group_id, tenant_id)
+    # Finish the DB transaction before calling the BCC API.
+    with db.transaction() as conn:
+        memberships = queries.get_group_memberships(conn, group_id, tenant_id)
 
     membership_by_uid = {m["bcc_person_uid"]: m for m in memberships}
     if not membership_by_uid:
@@ -119,7 +122,8 @@ def get_titles():
         titles = {member.get("title") for member in all_members}
     else:
         tenant_id = session["user"].get("churchId")
-        titles = set(queries.get_titles(db.get_conn(), tenant_id))
+        with db.transaction() as conn:
+            titles = set(queries.get_titles(conn, tenant_id))
 
     return sorted(title.strip() for title in titles if title and title.strip())
 
@@ -143,7 +147,9 @@ def get_persons_by_title(title):
     persons_api = current_app.config["PERSONS_API"]
     tenant_id = session["user"].get("churchId")
 
-    person_uids = set(queries.get_person_uids_by_title(db.get_conn(), title, tenant_id))
+    # Finish the DB transaction before calling the BCC API.
+    with db.transaction() as conn:
+        person_uids = set(queries.get_person_uids_by_title(conn, title, tenant_id))
     if not person_uids:
         return []
 
@@ -240,7 +246,8 @@ def get_person_groups(person_uid):
         return {"groups": groups}
 
     tenant_id = session["user"].get("churchId")
-    groups_data = queries.get_person_groups(db.get_conn(), person_uid, tenant_id)
+    with db.transaction() as conn:
+        groups_data = queries.get_person_groups(conn, person_uid, tenant_id)
 
     groups = [
         {

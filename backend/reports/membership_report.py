@@ -2,15 +2,18 @@
 Reports module for generating various types of reports.
 """
 
+from collections.abc import Iterable, Mapping
 from typing import Any, cast
 
-from queries import get_membership_report_rows
 from swagger_client.api.persons_api import PersonsApi
 
 
 class MembershipReport:
-    def __init__(self, conn, persons_api: PersonsApi, bcc_auth):
-        self.conn = conn
+    def __init__(
+        self, rows: Iterable[Mapping[str, Any]], persons_api: PersonsApi, bcc_auth
+    ):
+        """``rows`` come from ``queries.get_membership_report_rows``."""
+        self.rows = rows
         self.persons_api = persons_api
         self.bcc_auth = bcc_auth
 
@@ -32,7 +35,7 @@ class MembershipReport:
         """
         # Collect group names grouped by person_uid
         groups_by_uid = {}
-        for member in get_membership_report_rows(self.conn):
+        for member in self.rows:
             person_uid = member["bcc_person_uid"]
             group_name = member["group_name"]
             title = member.get("title") or ""

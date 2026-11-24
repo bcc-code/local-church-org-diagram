@@ -1,15 +1,15 @@
 """Write operations on groups / group_membership.
 
 All functions take an open connection as first argument and never commit or
-roll back; callers wrap them in ``db.transaction()``.
+roll back; callers wrap them in ``db.transaction()``. Inputs are expected to be
+validated and typed by the caller (see ``admin.py``).
 """
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
 
-from db import tenant_clause
+from db import Connection, Row, TenantId, fetch_all, fetch_one, tenant_clause
 from psycopg2 import sql
-from psycopg2.extras import execute_values
 
 UPDATABLE_MEMBERSHIP_FIELDS = frozenset({"title", "link"})
 
@@ -19,29 +19,36 @@ class GroupsNotFound(Exception):
 
     def __init__(self, missing_ids: Iterable[int]):
         self.missing_ids = sorted(missing_ids)
-        ids = ", ".join(str(i) for i in self.missing_ids)
-        super().__init__(f"Group(s) {ids} not found or not updatable")
+        super().__init__(f"Groups not found or not updatable: {self.missing_ids}")
 
 
-def add_membership(conn, group_id, person_uid, tenant_id, title=None) -> dict:
-    columns = ["group_id", "bcc_person_uid", "tenant_id"]
-    values: list[Any] = [group_id, person_uid, tenant_id]
-    if title is not None:
-        columns.append("title")
-        values.append(title)
+def add_membership(
+    conn: Connection,
+    group_id: int,
+    person_uid: str,
+    tenant_id: TenantId,
+    title: str | None = None,
+) -> Row | None:
+    """Insert a membership if the group belongs to the tenant.
 
-    query = sql.SQL(
-        "INSERT INTO group_membership ({cols}) VALUES ({vals}) RETURNING *"
-    ).format(
-        cols=sql.SQL(", ").join(sql.Identifier(c) for c in columns),
-        vals=sql.SQL(", ").join(sql.Placeholder() * len(values)),
-    )
+    Returns the new row, or None if the group doesn't exist for the tenant.
+    The membership's tenant_id is taken from the group itself.
+    """
+    tenant_sql, tenant_params = tenant_clause("g.tenant_id", tenant_id)
     with conn.cursor() as cur:
-        cur.execute(query, values)
-        return cur.fetchone()
+        cur.execute(
+            "INSERT INTO group_membership (group_id, bcc_person_uid, tenant_id, title)"
+            " SELECT g.id, %s, g.tenant_id, %s FROM groups g"
+            f" WHERE g.id = %s AND {tenant_sql}"
+            " RETURNING *",
+            [person_uid, title, group_id, *tenant_params],
+        )
+        return fetch_one(cur)
 
 
-def remove_membership(conn, group_id, person_uid, tenant_id) -> dict | None:
+def remove_membership(
+    conn: Connection, group_id: int, person_uid: str, tenant_id: TenantId
+) -> Row | None:
     tenant_sql, tenant_params = tenant_clause("tenant_id", tenant_id)
     with conn.cursor() as cur:
         cur.execute(
@@ -50,12 +57,17 @@ def remove_membership(conn, group_id, person_uid, tenant_id) -> dict | None:
             f" AND {tenant_sql} RETURNING *",
             [group_id, person_uid, *tenant_params],
         )
-        return cur.fetchone()
+        return fetch_one(cur)
 
 
 def update_membership(
-    conn, group_id, person_uid, tenant_id, fields: Mapping[str, Any]
-) -> dict | None:
+    conn: Connection,
+    group_id: int,
+    person_uid: str,
+    tenant_id: TenantId,
+    fields: Mapping[str, Any],
+) -> Row | None:
+    """Update title/link. Column names are dynamic, so this uses psycopg2.sql."""
     if not fields:
         raise ValueError("No fields to update")
     unknown = set(fields) - UPDATABLE_MEMBERSHIP_FIELDS
@@ -78,41 +90,34 @@ def update_membership(
             query,
             [*(fields[n] for n in names), group_id, person_uid, *tenant_params],
         )
-        return cur.fetchone()
+        return fetch_one(cur)
 
 
-def update_sort_order(conn, updates: list[dict], tenant_id) -> None:
-    """Set sort_order for several groups atomically.
+def update_sort_order(
+    conn: Connection, updates: Sequence[tuple[int, int]], tenant_id: TenantId
+) -> None:
+    """Set sort_order for several groups in one statement.
 
+    ``updates`` is a sequence of (group_id, sort_order) with unique group ids.
     Raises GroupsNotFound if any group_id doesn't match a group for the tenant;
     the caller's transaction must then be rolled back so nothing is changed.
     """
     if not updates:
         return
-    rows = [(int(u["group_id"]), int(u["sort_order"])) for u in updates]
-    requested = {group_id for group_id, _ in rows}
+    ids = [group_id for group_id, _ in updates]
+    orders = [sort_order for _, sort_order in updates]
 
     tenant_sql, tenant_params = tenant_clause("g.tenant_id", tenant_id)
-    # execute_values only substitutes the VALUES %s; escape the tenant
-    # parameters into the query text via mogrify.
     with conn.cursor() as cur:
-        tenant_sql_bound = cur.mogrify(tenant_sql, tenant_params).decode()
-        query = (
+        cur.execute(
             "UPDATE groups g SET sort_order = v.sort_order"
-            " FROM (VALUES %s) AS v(id, sort_order)"
-            f" WHERE g.id = v.id AND {tenant_sql_bound.replace('%', '%%')}"
-            " RETURNING g.id"
+            " FROM unnest(%s::bigint[], %s::int[]) AS v(id, sort_order)"
+            f" WHERE g.id = v.id AND {tenant_sql}"
+            " RETURNING g.id",
+            [ids, orders, *tenant_params],
         )
-        result = execute_values(
-            cur,
-            query,
-            rows,
-            template="(%s::bigint, %s::int)",
-            page_size=max(len(rows), 1),
-            fetch=True,
-        )
+        updated = {row["id"] for row in fetch_all(cur)}
 
-    updated = {r["id"] if isinstance(r, Mapping) else r[0] for r in result}
-    missing = requested - updated
+    missing = set(ids) - updated
     if missing:
         raise GroupsNotFound(missing)

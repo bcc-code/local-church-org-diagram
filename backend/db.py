@@ -16,7 +16,7 @@ from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 import psycopg2
@@ -26,6 +26,11 @@ from psycopg2.extras import RealDictCursor
 from psycopg2.pool import PoolError, ThreadedConnectionPool
 
 logger = logging.getLogger("db")
+
+Connection = psycopg2.extensions.connection
+Cursor = psycopg2.extensions.cursor
+Row = dict[str, Any]
+TenantId = int | None
 
 _G_CONN = "_db_conn"
 _G_BROKEN = "_db_conn_broken"
@@ -85,7 +90,12 @@ def get_conn() -> psycopg2.extensions.connection:
 
 @contextmanager
 def transaction() -> Iterator[psycopg2.extensions.connection]:
-    """Yield the app-context connection; commit on success, roll back on error."""
+    """Yield the app-context connection; commit on success, roll back on error.
+
+    Use this for reads as well as writes, and keep the block free of slow
+    external calls (e.g. the BCC API) so the pooler connection is released
+    as soon as the SQL is done.
+    """
     conn = get_conn()
     try:
         yield conn
@@ -132,14 +142,24 @@ def _teardown(exc: BaseException | None) -> None:
         conn.close()
 
 
-def tenant_clause(col: str, tenant_id: Any) -> tuple[str, list[Any]]:
+def tenant_clause(col: str, tenant_id: TenantId) -> tuple[str, list[Any]]:
     """SQL filter on a tenant column. ``col`` must be a trusted literal."""
     if tenant_id is not None:
         return f"{col} = %s", [tenant_id]
     return f"{col} IS NULL", []
 
 
-def to_json(row: Mapping[str, Any] | None) -> dict[str, Any] | None:
+def fetch_all(cur: Cursor) -> list[Row]:
+    """``cur.fetchall()`` typed for RealDictCursor (the stubs say tuples)."""
+    return cast(list[Row], cur.fetchall())
+
+
+def fetch_one(cur: Cursor) -> Row | None:
+    """``cur.fetchone()`` typed for RealDictCursor (the stubs say tuples)."""
+    return cast(Row | None, cur.fetchone())
+
+
+def to_json(row: Mapping[str, Any] | None) -> Row | None:
     """Copy a row into a JSON-serialisable dict."""
     if row is None:
         return None
