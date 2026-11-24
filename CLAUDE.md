@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a monorepo for an organizational chart/diagram visualization tool. It displays hierarchical org structures using d3-org-chart, with data sourced from either:
 
-- **Live mode**: Supabase database + BCC Core API (for person details)
+- **Live mode**: Postgres (hosted on Supabase) + BCC Core API (for person details)
 - **Demo mode**: Static JSON files in `backend/demo_requests/`
 
 The Flask backend serves both the API endpoints and the built Vue frontend as a single application.
@@ -24,10 +24,10 @@ See [`docs/domain-model.md`](./docs/domain-model.md) for the domain model (ubiqu
 
 ### Backend (`backend/`)
 
-- **Stack**: Flask (Python) + Authlib (for OIDC)
+- **Stack**: Flask (Python) + Authlib (for OIDC) + psycopg2 (Postgres)
 - **Serves**: Built Vue frontend from `public/` directory + API endpoints
 - **API Endpoints**:
-  - `GET /api/tree` - Returns org structure from Supabase (groups with member UIDs)
+  - `GET /api/tree` - Returns org structure from Postgres (groups with member UIDs)
   - `GET /api/persons?uids=...` - Returns person details from BCC Core API
   - `GET /api/user` - Returns current authenticated user info
 - **Authentication Routes**:
@@ -48,14 +48,17 @@ See [`docs/domain-model.md`](./docs/domain-model.md) for the domain model (ubiqu
 
 ### Database
 
-- **Supabase** tables:
+- **Postgres (hosted on Supabase)**, accessed with plain SQL via psycopg2 over the Supavisor transaction pooler (`DATABASE_URL`)
+- Tables:
   - `groups` - Org hierarchy (id, name, parent_id, tenant_id)
   - `group_membership` - Links persons (bcc_person_uid) to groups
+- Connection pooling/transactions in `backend/db.py`; reads in `backend/queries.py`, writes in `backend/mutations.py`
+- `backend/schema.sql` defines the tables for integration tests, which run only when `TEST_DATABASE_URL` is set (CI provides a postgres service)
 - Multi-tenant support via `TENANT_ID` environment variable (optional)
 
 ### Data Import (`tools/`)
 
-- `import_from_excel.ipynb` - Jupyter notebook to import org structure from Excel into Supabase
+- `import_from_excel.ipynb` - Jupyter notebook to import org structure from Excel into Supabase (still uses the Supabase SDK, not psycopg2)
 - Processes hierarchical Excel data (L1/L2/L3 columns) into groups table
 
 ## Local Development Workflow (Recommended)
@@ -127,7 +130,7 @@ uv run flask run
 Python dependencies are managed with `uv` from the repo root (`pyproject.toml` / `uv.lock`):
 
 ```bash
-uv sync              # Installs Flask, Supabase, BCC API client, etc.
+uv sync              # Installs Flask, psycopg2, BCC API client, etc.
 uv sync --group tools  # Also installs pandas/rapidfuzz/openpyxl for the import notebook
 ```
 
@@ -138,9 +141,11 @@ uv sync --group tools  # Also installs pandas/rapidfuzz/openpyxl for the import 
 Required for live mode (in `backend/.env`):
 
 ```bash
-# Supabase Configuration
-SUPABASE_URL=https://...
-SUPABASE_KEY=...
+# Postgres (Supabase Supavisor transaction pooler URI)
+DATABASE_URL=postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres?sslmode=require
+
+# Optional: max pooled connections per gunicorn worker (default 2)
+DB_POOL_MAX=2
 
 # BCC OAuth2 Client Credentials (for API access)
 BCC_OAUTH_CLIENT_ID=...
@@ -174,12 +179,14 @@ SUPABASE_URL=...
 SUPABASE_KEY=...
 ```
 
+The notebook still uses the Supabase SDK, which is no longer a project dependency; run it with e.g. `uv run --group tools --with supabase jupyter lab`.
+
 ## Key Integration Points
 
 1. **Flask ↔ Frontend Build**: Flask serves built frontend from `backend/public/` folder (Vite builds directly to this location)
 2. **Frontend ↔ Static Data**: Frontend loads `/org-data.json` from static files (option 1)
 3. **Frontend ↔ Backend API**: Frontend can fetch from `/api/tree` and `/api/persons` (option 2)
-4. **Backend ↔ Supabase**: Flask app queries `groups` table with joined `group_membership` data
+4. **Backend ↔ Postgres**: Flask app queries `groups` table with joined `group_membership` data
 5. **Backend ↔ BCC API**: OAuth2 client credentials flow to fetch person details by UIDs
 6. **User Authentication**: OpenID Connect flow with BCC for user login (session-based)
 7. **Demo Mode Flow**: All `/api/*` endpoints serve static JSON from `demo_requests/{path}.json` (without `/api` prefix)
@@ -188,7 +195,7 @@ SUPABASE_KEY=...
 
 1. Flask serves built Vue app at `http://localhost:5000/`
 2. Frontend fetches backend `/api/tree` endpoint
-3. Backend queries Supabase for groups + member UIDs
+3. Backend queries Postgres for groups + member UIDs
 4. Backend calls BCC Core API `/v2/persons` with UIDs to get names
 5. Backend returns combined data to frontend
 6. Frontend renders org chart with d3-org-chart

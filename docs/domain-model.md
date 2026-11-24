@@ -8,12 +8,12 @@
 - **Title** — A role label on a Membership, not on a Person or Group. "Leder" and "Ansvarlig" are leadership titles and sort first in member lists.
 - **Tenant** (`tenant_id`) — Multi-tenant partition. `NULL` tenant_id means single-tenant/default mode. Derived from the logged-in user's `churchId`.
 - **Org Chart / Tree** — The rendered hierarchy of Groups (via `parent_id`), shown with d3-org-chart. The `/api/tree` payload is groups only — members are fetched per-group on demand via `/api/persons`.
-- **Demo Mode** — Runtime mode (`DEMO_MODE=1`) where `/api/*` responses come from static JSON/in-memory state instead of Supabase/BCC, for dev without credentials.
+- **Demo Mode** — Runtime mode (`DEMO_MODE=1`) where `/api/*` responses come from static JSON/in-memory state instead of Postgres/BCC, for dev without credentials.
 
 ## Bounded Contexts
 
 ### Org Diagram (this app)
-Owns the **Group** hierarchy and **Membership** records. Source of truth: Supabase (`groups`, `group_membership` tables). Responsible for:
+Owns the **Group** hierarchy and **Membership** records. Source of truth: Postgres hosted on Supabase (`groups`, `group_membership` tables). Responsible for:
 - Org structure (create/move/query groups)
 - Who belongs to which group, and their title/link within it
 - Rendering the tree (frontend) and reporting (`backend/reports/`)
