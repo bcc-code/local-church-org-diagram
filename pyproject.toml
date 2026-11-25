@@ -5,7 +5,8 @@ description = "Org chart visualization backend"
 requires-python = ">=3.14"
 dependencies = [
     "flask>=2.0.0",
-    "psycopg2-binary>=2.9.11",
+    "psycopg[binary]>=3.2",
+    "psycopg-pool>=3.2",
     "dotenv",
     "requests-oauth2client>=1.7.0",
     "authlib>=1.3.0",
@@ -17,7 +18,6 @@ dependencies = [
 dev = [
     "pyright>=1.1.411",
     "pytest>=9.1.1",
-    "types-psycopg2",
     "ruff>=0.16.4",
 ]
 tools = [

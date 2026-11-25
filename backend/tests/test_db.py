@@ -1,12 +1,11 @@
-from collections.abc import Iterator
+from collections.abc import Generator
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Any, cast
 from uuid import UUID
 
 import db
-import psycopg2
-import psycopg2.extensions
+import psycopg
 import pytest
 from flask import Flask
 
@@ -58,19 +57,15 @@ def test_init_app_requires_database_url():
 
 
 @pytest.fixture()
-def db_app(_db_schema: str) -> Iterator[Flask]:
+def db_app(_db_schema: str) -> Generator[Flask]:
     app = Flask("test-db")
     app.config["DATABASE_URL"] = _db_schema
     db.init_app(app)
     yield app
-    conn = psycopg2.connect(_db_schema)
-    try:
-        with conn, conn.cursor() as cur:
-            cur.execute("DELETE FROM groups WHERE tenant_id = %s", [TENANT])
-    finally:
-        conn.close()
+    with psycopg.connect(_db_schema) as conn, conn.cursor() as cur:
+        cur.execute("DELETE FROM groups WHERE tenant_id = %s", [TENANT])
     if db._pool is not None:
-        db._pool.closeall()
+        db._pool.close()
     db._pool = None
     db._pool_pid = None
 
@@ -106,8 +101,8 @@ def test_transaction_rolls_back_and_reraises(db_app: Flask):
                     ["rolled-back", TENANT],
                 )
             raise ValueError("boom")
-        status = db.get_conn().get_transaction_status()
-        assert status == psycopg2.extensions.TRANSACTION_STATUS_IDLE
+        status = db.get_conn().info.transaction_status
+        assert status == psycopg.pq.TransactionStatus.IDLE
     assert _count(db_app, "rolled-back") == 0
 
 
@@ -118,6 +113,7 @@ def test_get_conn_reused_within_app_context(db_app: Flask):
         with db.transaction() as tx_conn:
             assert tx_conn is conn
         assert not conn.autocommit
+        assert conn.prepare_threshold is None
         with conn.cursor() as cur:
             cur.execute("SELECT 1 AS one")
             assert cur.fetchone() == {"one": 1}
@@ -140,5 +136,20 @@ def test_teardown_discards_closed_connection(db_app: Flask):
         conn = db.get_conn()
         assert not conn.closed
         with conn.cursor() as cur:
+            cur.execute("SELECT 1 AS one")
+            assert cur.fetchone() == {"one": 1}
+
+
+def test_terminated_backend_is_replaced_on_checkout(db_app: Flask, _db_schema: str):
+    """A server-killed connection (e.g. Supavisor restart) must not cause an error."""
+    with db_app.app_context():
+        conn = db.get_conn()
+        pid = conn.info.backend_pid
+    with psycopg.connect(_db_schema, autocommit=True) as admin:
+        admin.execute("SELECT pg_terminate_backend(%s)", [pid])
+    with db_app.app_context():
+        conn = db.get_conn()
+        assert conn.info.backend_pid != pid
+        with db.transaction() as tx, tx.cursor() as cur:
             cur.execute("SELECT 1 AS one")
             assert cur.fetchone() == {"one": 1}

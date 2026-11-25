@@ -4,7 +4,7 @@ from typing import Any
 import db
 import mutations
 from flask import Blueprint, current_app, request, session
-from psycopg2.errors import UniqueViolation
+from psycopg.errors import UniqueViolation
 
 logger = logging.getLogger("admin")
 

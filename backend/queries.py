@@ -1,10 +1,10 @@
 """Read-only SQL queries against the org hierarchy tables.
 
-All functions take a connection (RealDictCursor) as the first argument and never
+All functions take a connection (dict_row) as the first argument and never
 commit or roll back; callers wrap them in ``db.transaction()``.
 """
 
-from db import Connection, Row, TenantId, fetch_all, tenant_clause
+from db import Connection, Row, TenantId, tenant_clause
 
 
 def get_tree(conn: Connection, tenant_id: TenantId) -> list[Row]:
@@ -25,7 +25,7 @@ def get_tree(conn: Connection, tenant_id: TenantId) -> list[Row]:
     """
     with conn.cursor() as cur:
         cur.execute(sql, m_params + g_params)
-        return fetch_all(cur)
+        return cur.fetchall()
 
 
 def get_group_memberships(
@@ -40,7 +40,7 @@ def get_group_memberships(
     """
     with conn.cursor() as cur:
         cur.execute(sql, [group_id, *params])
-        return fetch_all(cur)
+        return cur.fetchall()
 
 
 def get_titles(conn: Connection, tenant_id: TenantId) -> list[str]:
@@ -52,7 +52,7 @@ def get_titles(conn: Connection, tenant_id: TenantId) -> list[str]:
     """
     with conn.cursor() as cur:
         cur.execute(sql, params)
-        return [row["title"] for row in fetch_all(cur)]
+        return [row["title"] for row in cur.fetchall()]
 
 
 def get_person_uids_by_title(
@@ -66,7 +66,7 @@ def get_person_uids_by_title(
     """
     with conn.cursor() as cur:
         cur.execute(sql, [title, *params])
-        return [row["bcc_person_uid"] for row in fetch_all(cur)]
+        return [row["bcc_person_uid"] for row in cur.fetchall()]
 
 
 def get_person_groups(
@@ -93,7 +93,7 @@ def get_person_groups(
     """
     with conn.cursor() as cur:
         cur.execute(sql, [*a_params, *g_params, person_uid, *m_params])
-        return fetch_all(cur)
+        return cur.fetchall()
 
 
 def get_membership_report_rows(conn: Connection) -> list[Row]:
@@ -106,4 +106,4 @@ def get_membership_report_rows(conn: Connection) -> list[Row]:
     """
     with conn.cursor() as cur:
         cur.execute(sql)
-        return fetch_all(cur)
+        return cur.fetchall()

@@ -24,7 +24,7 @@ See [`docs/domain-model.md`](./docs/domain-model.md) for the domain model (ubiqu
 
 ### Backend (`backend/`)
 
-- **Stack**: Flask (Python) + Authlib (for OIDC) + psycopg2 (Postgres)
+- **Stack**: Flask (Python) + Authlib (for OIDC) + psycopg 3 + psycopg_pool (Postgres)
 - **Serves**: Built Vue frontend from `public/` directory + API endpoints
 - **API Endpoints**:
   - `GET /api/tree` - Returns org structure from Postgres (groups with member UIDs)
@@ -48,7 +48,7 @@ See [`docs/domain-model.md`](./docs/domain-model.md) for the domain model (ubiqu
 
 ### Database
 
-- **Postgres (hosted on Supabase)**, accessed with plain SQL via psycopg2 over the Supavisor transaction pooler (`DATABASE_URL`)
+- **Postgres (hosted on Supabase)**, accessed with plain SQL via psycopg 3 over the Supavisor transaction pooler (`DATABASE_URL`; server-side prepared statements disabled with `prepare_threshold=None`, which the pooler requires)
 - Tables:
   - `groups` - Org hierarchy (id, name, parent_id, tenant_id)
   - `group_membership` - Links persons (bcc_person_uid) to groups
@@ -60,7 +60,7 @@ See [`docs/domain-model.md`](./docs/domain-model.md) for the domain model (ubiqu
 
 ### Data Import (`tools/`)
 
-- `import_from_excel.ipynb` - Jupyter notebook to import org structure from Excel into Supabase (still uses the Supabase SDK, not psycopg2)
+- `import_from_excel.ipynb` - Jupyter notebook to import org structure from Excel into Supabase (still uses the Supabase SDK, not psycopg)
 - Processes hierarchical Excel data (L1/L2/L3 columns) into groups table
 
 ## Local Development Workflow (Recommended)
@@ -132,7 +132,7 @@ uv run flask run
 Python dependencies are managed with `uv` from the repo root (`pyproject.toml` / `uv.lock`):
 
 ```bash
-uv sync              # Installs Flask, psycopg2, BCC API client, etc.
+uv sync              # Installs Flask, psycopg, BCC API client, etc.
 uv sync --group tools  # Also installs pandas/rapidfuzz/openpyxl for the import notebook
 ```
 
@@ -146,8 +146,8 @@ Required for live mode (in `backend/.env`):
 # Postgres (Supabase Supavisor transaction pooler URI)
 DATABASE_URL=postgresql://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres?sslmode=require
 
-# Optional: max pooled connections per gunicorn worker (default 2)
-DB_POOL_MAX=2
+# Optional: max pooled connections per process (default 1; gunicorn sync workers use one each)
+DB_POOL_MAX=1
 
 # BCC OAuth2 Client Credentials (for API access)
 BCC_OAUTH_CLIENT_ID=...

@@ -8,8 +8,8 @@ validated and typed by the caller (see ``admin.py``).
 from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
 
-from db import Connection, Row, TenantId, fetch_all, fetch_one, tenant_clause
-from psycopg2 import sql
+from db import Connection, Row, TenantId, tenant_clause
+from psycopg import sql
 
 UPDATABLE_MEMBERSHIP_FIELDS = frozenset({"title", "link"})
 
@@ -43,7 +43,7 @@ def add_membership(
             " RETURNING *",
             [person_uid, title, group_id, *tenant_params],
         )
-        return fetch_one(cur)
+        return cur.fetchone()
 
 
 def remove_membership(
@@ -57,7 +57,7 @@ def remove_membership(
             f" AND {tenant_sql} RETURNING *",
             [group_id, person_uid, *tenant_params],
         )
-        return fetch_one(cur)
+        return cur.fetchone()
 
 
 def update_membership(
@@ -67,7 +67,7 @@ def update_membership(
     tenant_id: TenantId,
     fields: Mapping[str, Any],
 ) -> Row | None:
-    """Update title/link. Column names are dynamic, so this uses psycopg2.sql."""
+    """Update title/link. Column names are dynamic, so this uses psycopg.sql."""
     if not fields:
         raise ValueError("No fields to update")
     unknown = set(fields) - UPDATABLE_MEMBERSHIP_FIELDS
@@ -90,7 +90,7 @@ def update_membership(
             query,
             [*(fields[n] for n in names), group_id, person_uid, *tenant_params],
         )
-        return fetch_one(cur)
+        return cur.fetchone()
 
 
 def update_sort_order(
@@ -116,7 +116,7 @@ def update_sort_order(
             " RETURNING g.id",
             [ids, orders, *tenant_params],
         )
-        updated = {row["id"] for row in fetch_all(cur)}
+        updated = {row["id"] for row in cur.fetchall()}
 
     missing = set(ids) - updated
     if missing:

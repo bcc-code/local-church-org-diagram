@@ -1,6 +1,6 @@
 """Shared row factories and tenant constants for DB-backed tests."""
 
-from db import Connection, Row, TenantId, fetch_one
+from db import Connection, Row, TenantId
 
 TENANT = 1
 OTHER_TENANT = 2
@@ -19,7 +19,7 @@ def make_group(
             " VALUES (%s, %s, %s, %s) RETURNING id",
             [name, parent_id, tenant_id, sort_order],
         )
-        row = fetch_one(cur)
+        row = cur.fetchone()
         assert row is not None
         return row["id"]
 
@@ -47,4 +47,4 @@ def get_member(conn: Connection, group_id: int, uid: str) -> Row | None:
             " WHERE group_id = %s AND bcc_person_uid = %s",
             [group_id, uid],
         )
-        return fetch_one(cur)
+        return cur.fetchone()

@@ -6,7 +6,7 @@ import pytest
 from admin import admin_bp
 from factories import OTHER_TENANT, TENANT, get_member, make_group, make_member
 from flask import Flask
-from psycopg2.errors import UniqueViolation
+from psycopg.errors import UniqueViolation
 
 
 def _sort_orders(conn, ids):

@@ -1,11 +1,12 @@
 import os
-from collections.abc import Iterator
+from collections.abc import Generator
 from pathlib import Path
 
-import psycopg2
-import psycopg2.extensions
+import psycopg
 import pytest
-from psycopg2.extras import RealDictCursor
+from db import Connection
+from psycopg.conninfo import conninfo_to_dict
+from psycopg.rows import dict_row
 
 os.environ.setdefault("DEMO_MODE", "1")
 
@@ -16,9 +17,9 @@ _LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1", ""}
 
 def _assert_disposable(url: str) -> None:
     """Refuse to drop tables anywhere but a local or explicitly test database."""
-    params = psycopg2.extensions.parse_dsn(url)
-    host = params.get("host", "")
-    dbname = params.get("dbname", "")
+    params = conninfo_to_dict(url)
+    host = str(params.get("host") or "")
+    dbname = str(params.get("dbname") or "")
     if host in _LOCAL_HOSTS or "test" in dbname:
         return
     pytest.exit(
@@ -36,22 +37,18 @@ def _db_schema() -> str:
     if not url:
         pytest.skip("TEST_DATABASE_URL not set")
     _assert_disposable(url)
-    conn = psycopg2.connect(url)
-    try:
-        with conn, conn.cursor() as cur:
-            cur.execute(
-                "DROP TABLE IF EXISTS public.group_membership, public.groups CASCADE"
-            )
-            cur.execute(SCHEMA_SQL.read_text())
-    finally:
-        conn.close()
+    with psycopg.connect(url) as conn, conn.cursor() as cur:
+        cur.execute(
+            "DROP TABLE IF EXISTS public.group_membership, public.groups CASCADE"
+        )
+        cur.execute(SCHEMA_SQL.read_text().encode())
     return url
 
 
 @pytest.fixture()
-def db_conn(_db_schema: str) -> Iterator[psycopg2.extensions.connection]:
-    """A RealDictCursor connection to the test DB, rolled back after each test."""
-    conn = psycopg2.connect(_db_schema, cursor_factory=RealDictCursor)
+def db_conn(_db_schema: str) -> Generator[Connection]:
+    """A dict_row connection to the test DB, rolled back after each test."""
+    conn = Connection.connect(_db_schema, row_factory=dict_row)
     try:
         yield conn
     finally:
