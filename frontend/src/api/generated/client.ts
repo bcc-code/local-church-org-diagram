@@ -18,6 +18,363 @@ export class ApiClient {
     }
 
     /**
+     * GET_titles
+     * @return OK
+     */
+    listTitles(): Promise<string[]> {
+        let url_ = this.baseUrl + "/api/titles";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListTitles(_response);
+        });
+    }
+
+    protected processListTitles(response: Response): Promise<string[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(item);
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<string[]>(null as any);
+    }
+
+    /**
+     * GET_titles_title_persons
+     * @return OK
+     */
+    listTitleHolders(title: string): Promise<TitleHolder[]> {
+        let url_ = this.baseUrl + "/api/titles/{title}/persons";
+        if (title === undefined || title === null)
+            throw new globalThis.Error("The parameter 'title' must be defined.");
+        url_ = url_.replace("{title}", encodeURIComponent("" + title));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListTitleHolders(_response);
+        });
+    }
+
+    protected processListTitleHolders(response: Response): Promise<TitleHolder[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TitleHolder.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TitleHolder[]>(null as any);
+    }
+
+    /**
+     * GET_persons_search
+     * @param q (optional) 
+     * @return OK
+     */
+    searchPersons(q?: string | undefined): Promise<PersonSearchResult[]> {
+        let url_ = this.baseUrl + "/api/persons/search?";
+        if (q === null)
+            throw new globalThis.Error("The parameter 'q' cannot be null.");
+        else if (q !== undefined)
+            url_ += "q=" + encodeURIComponent("" + q) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSearchPersons(_response);
+        });
+    }
+
+    protected processSearchPersons(response: Response): Promise<PersonSearchResult[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(PersonSearchResult.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PersonSearchResult[]>(null as any);
+    }
+
+    /**
+     * GET_persons_personUid_groups
+     * @return OK
+     */
+    listPersonGroups(personUid: string): Promise<PersonGroup[]> {
+        let url_ = this.baseUrl + "/api/persons/{personUid}/groups";
+        if (personUid === undefined || personUid === null)
+            throw new globalThis.Error("The parameter 'personUid' must be defined.");
+        url_ = url_.replace("{personUid}", encodeURIComponent("" + personUid));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListPersonGroups(_response);
+        });
+    }
+
+    protected processListPersonGroups(response: Response): Promise<PersonGroup[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(PersonGroup.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PersonGroup[]>(null as any);
+    }
+
+    /**
+     * GET_groups
+     * @return OK
+     */
+    listGroups(): Promise<GroupNode[]> {
+        let url_ = this.baseUrl + "/api/groups";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListGroups(_response);
+        });
+    }
+
+    protected processListGroups(response: Response): Promise<GroupNode[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(GroupNode.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GroupNode[]>(null as any);
+    }
+
+    /**
+     * GET_groups_id_members
+     * @return OK
+     */
+    listGroupMembers(id: string): Promise<GroupMember[]> {
+        let url_ = this.baseUrl + "/api/groups/{id}/members";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListGroupMembers(_response);
+        });
+    }
+
+    protected processListGroupMembers(response: Response): Promise<GroupMember[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(GroupMember.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Found", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GroupMember[]>(null as any);
+    }
+
+    /**
      * @return OK
      */
     up(): Promise<UpStatus> {
@@ -53,6 +410,446 @@ export class ApiClient {
         }
         return Promise.resolve<UpStatus>(null as any);
     }
+}
+
+export class GroupMember implements IGroupMember {
+    personUid!: string;
+    name!: string;
+    profilePicture!: string | undefined;
+    title!: string | undefined;
+    link!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IGroupMember) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.personUid = _data["personUid"];
+            this.name = _data["name"];
+            this.profilePicture = _data["profilePicture"];
+            this.title = _data["title"];
+            this.link = _data["link"];
+        }
+    }
+
+    static fromJS(data: any): GroupMember {
+        data = typeof data === 'object' ? data : {};
+        let result = new GroupMember();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["personUid"] = this.personUid;
+        data["name"] = this.name;
+        data["profilePicture"] = this.profilePicture;
+        data["title"] = this.title;
+        data["link"] = this.link;
+        return data;
+    }
+}
+
+export interface IGroupMember {
+    personUid: string;
+    name: string;
+    profilePicture: string | undefined;
+    title: string | undefined;
+    link: string | undefined;
+
+    [key: string]: any;
+}
+
+export class GroupNode implements IGroupNode {
+    id!: string;
+    name!: string;
+    parentId!: string | undefined;
+    sortOrder!: number | undefined;
+    memberCount!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IGroupNode) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.parentId = _data["parentId"];
+            this.sortOrder = _data["sortOrder"];
+            this.memberCount = _data["memberCount"];
+        }
+    }
+
+    static fromJS(data: any): GroupNode {
+        data = typeof data === 'object' ? data : {};
+        let result = new GroupNode();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["parentId"] = this.parentId;
+        data["sortOrder"] = this.sortOrder;
+        data["memberCount"] = this.memberCount;
+        return data;
+    }
+}
+
+export interface IGroupNode {
+    id: string;
+    name: string;
+    parentId: string | undefined;
+    sortOrder: number | undefined;
+    memberCount: number;
+
+    [key: string]: any;
+}
+
+export class HttpValidationProblemDetails implements IHttpValidationProblemDetails {
+    type?: string | undefined;
+    title?: string | undefined;
+    status?: number | undefined;
+    detail?: string | undefined;
+    instance?: string | undefined;
+    errors?: { [key: string]: string[]; };
+
+    [key: string]: any;
+
+    constructor(data?: IHttpValidationProblemDetails) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.type = _data["type"];
+            this.title = _data["title"];
+            this.status = _data["status"];
+            this.detail = _data["detail"];
+            this.instance = _data["instance"];
+            if (_data["errors"]) {
+                this.errors = {} as any;
+                for (let key in _data["errors"]) {
+                    if (_data["errors"].hasOwnProperty(key))
+                        (this.errors as any)![key] = _data["errors"][key] !== undefined ? _data["errors"][key] : [];
+                }
+            }
+        }
+    }
+
+    static fromJS(data: any): HttpValidationProblemDetails {
+        data = typeof data === 'object' ? data : {};
+        let result = new HttpValidationProblemDetails();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["type"] = this.type;
+        data["title"] = this.title;
+        data["status"] = this.status;
+        data["detail"] = this.detail;
+        data["instance"] = this.instance;
+        if (this.errors) {
+            data["errors"] = {};
+            for (let key in this.errors) {
+                if (this.errors.hasOwnProperty(key))
+                    (data["errors"] as any)[key] = (this.errors as any)[key];
+            }
+        }
+        return data;
+    }
+}
+
+export interface IHttpValidationProblemDetails {
+    type?: string | undefined;
+    title?: string | undefined;
+    status?: number | undefined;
+    detail?: string | undefined;
+    instance?: string | undefined;
+    errors?: { [key: string]: string[]; };
+
+    [key: string]: any;
+}
+
+export class PersonGroup implements IPersonGroup {
+    id!: string;
+    name!: string;
+    memberCount!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IPersonGroup) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.memberCount = _data["memberCount"];
+        }
+    }
+
+    static fromJS(data: any): PersonGroup {
+        data = typeof data === 'object' ? data : {};
+        let result = new PersonGroup();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["memberCount"] = this.memberCount;
+        return data;
+    }
+}
+
+export interface IPersonGroup {
+    id: string;
+    name: string;
+    memberCount: number;
+
+    [key: string]: any;
+}
+
+export class PersonSearchResult implements IPersonSearchResult {
+    personUid!: string;
+    name!: string;
+    profilePicture!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IPersonSearchResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.personUid = _data["personUid"];
+            this.name = _data["name"];
+            this.profilePicture = _data["profilePicture"];
+        }
+    }
+
+    static fromJS(data: any): PersonSearchResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new PersonSearchResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["personUid"] = this.personUid;
+        data["name"] = this.name;
+        data["profilePicture"] = this.profilePicture;
+        return data;
+    }
+}
+
+export interface IPersonSearchResult {
+    personUid: string;
+    name: string;
+    profilePicture: string | undefined;
+
+    [key: string]: any;
+}
+
+export class ProblemDetails implements IProblemDetails {
+    type?: string | undefined;
+    title?: string | undefined;
+    status?: number | undefined;
+    detail?: string | undefined;
+    instance?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IProblemDetails) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.type = _data["type"];
+            this.title = _data["title"];
+            this.status = _data["status"];
+            this.detail = _data["detail"];
+            this.instance = _data["instance"];
+        }
+    }
+
+    static fromJS(data: any): ProblemDetails {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProblemDetails();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["type"] = this.type;
+        data["title"] = this.title;
+        data["status"] = this.status;
+        data["detail"] = this.detail;
+        data["instance"] = this.instance;
+        return data;
+    }
+}
+
+export interface IProblemDetails {
+    type?: string | undefined;
+    title?: string | undefined;
+    status?: number | undefined;
+    detail?: string | undefined;
+    instance?: string | undefined;
+
+    [key: string]: any;
+}
+
+export class TitleHolder implements ITitleHolder {
+    personUid!: string;
+    name!: string;
+    profilePicture!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ITitleHolder) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.personUid = _data["personUid"];
+            this.name = _data["name"];
+            this.profilePicture = _data["profilePicture"];
+        }
+    }
+
+    static fromJS(data: any): TitleHolder {
+        data = typeof data === 'object' ? data : {};
+        let result = new TitleHolder();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["personUid"] = this.personUid;
+        data["name"] = this.name;
+        data["profilePicture"] = this.profilePicture;
+        return data;
+    }
+}
+
+export interface ITitleHolder {
+    personUid: string;
+    name: string;
+    profilePicture: string | undefined;
+
+    [key: string]: any;
 }
 
 export class UpStatus implements IUpStatus {

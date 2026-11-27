@@ -18,6 +18,9 @@ dotnet format                   # CI runs it with --verify-no-changes
 - `backend/` – ASP.NET Core
   - `GET /up` – liveness, no dependencies
   - `GET /health` – readiness: `Healthy` (200) when Postgres and the BCC Core API answer, `Unhealthy` (503) otherwise
+  - `Auth/` – session cookie and authorization policies (`ChurchMember`), BCC sign-on claims; see [Authentication](#authentication)
+  - `Features/<Feature>/` – the API, one folder per feature (endpoints, their response records and pure logic); see
+    [API](#api)
   - `CoreApi/` – BCC Core API client (`BccCode.Core.Api.Client`): `IPersonDirectory` gets person details
     (UID, display name, profile picture) by UID or by free-text search
   - `Auth/` – BCC sign-on (cookie session), claims, roles from the `Admins` table and policies, see
@@ -57,9 +60,10 @@ mode (a single instance); everywhere else it's `Balanced`, since local worktrees
 
 ### Database tests
 
-Tests in `backend.Tests/Database/` (`Category=Database`) boot the app against a real Postgres: they create the database
-`org_diagram_test` on the server `TEST_DATABASE_URL` points to (localhost or a `*test*` database only) and are skipped
-without it. CI provides a postgres service.
+Database tests (`Category=Database`, `[DatabaseFact]`, `[Collection(DatabaseCollection.Name)]`) boot the app against a
+real Postgres, sharing one host and running one at a time: they create the database `org_diagram_test` on the server
+`TEST_DATABASE_URL` points to (localhost or a `*test*` database only) and are skipped without it. CI provides a
+postgres service.
 
 ```bash
 docker run -d --rm --name org-pg -e POSTGRES_PASSWORD=pw -p 5432:5432 postgres:17
@@ -71,10 +75,22 @@ TEST_DATABASE_URL=postgresql://postgres:pw@localhost:5432/postgres dotnet test
 Each group is an event stream (`Groups/`), and its memberships are events on that stream. Stream IDs are UUIDv5s
 derived from the legacy `groups.id` (`GroupIds`). Inline projections reproduce the Flask backend's tables:
 
-- `GroupView` (`groups`): name, parent, tenant, sort order, created at
+- `GroupView` (`groups`): name, parent, tenant, sort order, created at, and the group's member count
 - `MembershipView` (`group_membership`), one per group and person: person UID, title, link, tenant, created at
 
 Legacy IDs are only on the events (`LegacyId`, …), not on the views.
+
+### Rebuilding projections
+
+An inline projection only applies to events appended after it changes. After changing one (e.g. a new field on
+`GroupView`), rebuild it from the event store, here in Development against the Aspire database:
+
+```bash
+dotnet run --project backend -- projections rebuild -p GroupView
+```
+
+Against production, set `ASPNETCORE_ENVIRONMENT` and `ConnectionStrings__Default` as for the import below and add
+`--no-launch-profile`; like the import, it runs from a checkout without `codegen write`.
 
 ### Importing the Flask backend's tables
 
@@ -177,6 +193,31 @@ var client = factory.CreateClient(TestUser.Member(churchId: 51));     // also No
 
 Policy and handler unit tests use `TestUser.Principal()`. `Database/AdminsTests` cover the claims transformation and the
 table's constraints.
+
+## API
+
+Wolverine.Http endpoints under `/api`, one folder per feature in `backend/Features/`. They read the projections and need a
+signed-in member (the default policy). All but the search are scoped to the user's church and check it with
+`TenantReader` in `Before` (`AuthorizeOwnChurchAsync`, 403 without a church; see
+[Authentication and authorization](#authentication-and-authorization)); the group members endpoint checks the group's
+own tenant, so its admins can read it too. Groups and persons are identified by Guid (group stream ID, person UID).
+
+| Feature                   | Endpoint                               | Operation ID       | Reads                                   |
+| ------------------------- | -------------------------------------- | ------------------ | --------------------------------------- |
+| `MembershipTree`          | `GET /api/groups`                      | `ListGroups`       | `GroupView`                             |
+| `GroupMembershipListing`  | `GET /api/groups/{id}/members`         | `ListGroupMembers` | `GroupView`, `MembershipView`, Core API |
+| `TitleSearch`             | `GET /api/titles`                      | `ListTitles`       | `MembershipView`                        |
+| `TitleSearch`             | `GET /api/titles/{title}/persons`      | `ListTitleHolders` | `MembershipView`, Core API              |
+| `PersonSearch`            | `GET /api/persons/search?q=`           | `SearchPersons`    | Core API (any church)                   |
+| `PersonMembershipListing` | `GET /api/persons/{personUid}/groups`  | `ListPersonGroups` | `MembershipView`, `GroupView`           |
+
+They replace the Flask backend's GET endpoints (`/api/tree`, `/api/persons?group_id=`, `/api/titles…`,
+`/api/persons/search`, `/api/persons/<uid>/groups`) with the same data and ordering, but camelCase JSON, Guid IDs and
+REST routes, so the frontend moves over to the generated client in one go once the write endpoints are ported too.
+Demo mode (`DEMO_MODE`) isn't ported.
+
+Tests mirror the folders in `backend.Tests/Features/`: unit tests of the pure methods, and database tests calling the
+endpoints over HTTP (see [Database tests](#database-tests)), seeded with `Seed` under a tenant of their own.
 
 ## API client
 
