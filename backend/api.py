@@ -1,5 +1,7 @@
 import logging
 
+import db
+import queries
 from flask import Blueprint, current_app, json, request, session
 from swagger_client.api.persons_api import PersonsApi
 from swagger_client.models.person import Person
@@ -23,29 +25,18 @@ def get_tree():
         # Return in-memory tree data (which gets updated by admin operations)
         return current_app.config["DEMO_TREE"]
 
-    supabase = current_app.config["SUPABASE"]
     tenant_id = session["user"].get("churchId")
-
-    q = supabase.table("groups").select(
-        "id, name, parent_id, sort_order, group_membership(bcc_person_uid)"
-    )
-    if tenant_id:
-        q = q.eq("tenant_id", tenant_id).eq("group_membership.tenant_id", tenant_id)
-    else:
-        q = q.is_("tenant_id", None).is_("group_membership.tenant_id", None)
-
-    q = q.order("sort_order")
-
-    groups = q.execute()
+    with db.transaction() as conn:
+        groups = queries.get_tree(conn, tenant_id)
     return [
         {
             "group_id": group["id"],
             "label": group["name"],
             "parent_group_id": group["parent_id"],
-            "member_count": len(group["group_membership"]),
+            "member_count": group["member_count"],
             "sort_order": group["sort_order"],
         }
-        for group in groups.data
+        for group in groups
     ]
 
 
@@ -82,23 +73,15 @@ def get_persons_in_group():
 
         return _sort_members_by_title(results)
 
-    supabase = current_app.config["SUPABASE"]
     bcc_auth = current_app.config["BCC_AUTH"]
     persons_api = current_app.config["PERSONS_API"]
     tenant_id = session["user"].get("churchId")
 
-    q = (
-        supabase.table("group_membership")
-        .select("bcc_person_uid, title, link")
-        .eq("group_id", group_id)
-    )
-    if tenant_id:
-        q = q.eq("tenant_id", tenant_id)
-    else:
-        q = q.is_("tenant_id", None)
-    memberships = q.execute()
+    # Finish the DB transaction before calling the BCC API.
+    with db.transaction() as conn:
+        memberships = queries.get_group_memberships(conn, group_id, tenant_id)
 
-    membership_by_uid = {m["bcc_person_uid"]: m for m in memberships.data}
+    membership_by_uid = {m["bcc_person_uid"]: m for m in memberships}
     if not membership_by_uid:
         return []
 
@@ -138,17 +121,9 @@ def get_titles():
         all_members = current_app.config["DEMO_MEMBERS"]
         titles = {member.get("title") for member in all_members}
     else:
-        supabase = current_app.config["SUPABASE"]
         tenant_id = session["user"].get("churchId")
-
-        q = supabase.table("group_membership").select("title")
-        if tenant_id:
-            q = q.eq("tenant_id", tenant_id)
-        else:
-            q = q.is_("tenant_id", None)
-
-        memberships = q.execute()
-        titles = {membership.get("title") for membership in memberships.data}
+        with db.transaction() as conn:
+            titles = set(queries.get_titles(conn, tenant_id))
 
     return sorted(title.strip() for title in titles if title and title.strip())
 
@@ -168,21 +143,13 @@ def get_persons_by_title(title):
         ]
         return _sort_persons_by_name(results)
 
-    supabase = current_app.config["SUPABASE"]
     bcc_auth = current_app.config["BCC_AUTH"]
     persons_api = current_app.config["PERSONS_API"]
     tenant_id = session["user"].get("churchId")
 
-    q = supabase.table("group_membership").select("bcc_person_uid").eq(
-        "title", title
-    )
-    if tenant_id:
-        q = q.eq("tenant_id", tenant_id)
-    else:
-        q = q.is_("tenant_id", None)
-
-    memberships = q.execute()
-    person_uids = {m["bcc_person_uid"] for m in memberships.data}
+    # Finish the DB transaction before calling the BCC API.
+    with db.transaction() as conn:
+        person_uids = set(queries.get_person_uids_by_title(conn, title, tenant_id))
     if not person_uids:
         return []
 
@@ -278,46 +245,17 @@ def get_person_groups(person_uid):
         ]
         return {"groups": groups}
 
-    supabase = current_app.config["SUPABASE"]
     tenant_id = session["user"].get("churchId")
-
-    # Get group memberships
-    q = (
-        supabase.table("group_membership")
-        .select("group_id")
-        .eq("bcc_person_uid", person_uid)
-    )
-    if tenant_id:
-        q = q.eq("tenant_id", tenant_id)
-    else:
-        q = q.is_("tenant_id", None)
-
-    memberships = q.execute()
-    group_ids = [m["group_id"] for m in memberships.data]
-
-    if not group_ids:
-        return {"groups": []}
-
-    # Get group details
-    q = (
-        supabase.table("groups")
-        .select("id, name, group_membership(bcc_person_uid)")
-        .in_("id", group_ids)
-    )
-    if tenant_id:
-        q = q.eq("tenant_id", tenant_id)
-    else:
-        q = q.is_("tenant_id", None)
-
-    groups_data = q.execute()
+    with db.transaction() as conn:
+        groups_data = queries.get_person_groups(conn, person_uid, tenant_id)
 
     groups = [
         {
             "group_id": g["id"],
             "name": g["name"],
-            "member_count": len(g["group_membership"]),
+            "member_count": g["member_count"],
         }
-        for g in groups_data.data
+        for g in groups_data
     ]
 
     return {"groups": groups}
