@@ -5,11 +5,15 @@ on:
     branches: [main]
     paths:
       - "backend_new/**"
+      - "frontend/nswag.json"
+      - "frontend/src/api/generated/**"
       - ".github/workflows/backend-new.yml"
   push:
     branches: [main]
     paths:
       - "backend_new/**"
+      - "frontend/nswag.json"
+      - "frontend/src/api/generated/**"
       - ".github/workflows/backend-new.yml"
   workflow_call:
   workflow_dispatch:
@@ -32,6 +36,18 @@ jobs:
     defaults:
       run:
         working-directory: backend_new
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v5
 
@@ -45,14 +61,47 @@ jobs:
 
       - run: dotnet format backend.slnx --verify-no-changes --no-restore
 
+      # Also writes the OpenAPI document (backend_new/openapi/backend.json), used for the API client check below
       - run: dotnet build backend.slnx --no-restore -c Release
 
+      # Includes the Category=Database tests, which create their own database on this server
       - run: >-
           dotnet test backend.slnx --no-build -c Release
           --logger "trx;LogFileName=results.trx" --results-directory TestResults
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: backend-new-test-results
           path: backend_new/TestResults/
+
+      # Production loads pre-generated Marten/Wolverine code (TypeLoadMode.Static) and refuses to start without it.
+      # Generated as Production, since the code depends on the service registrations. Never connects: the connection
+      # string only needs to parse.
+      - name: Generate Wolverine/Marten code
+        env:
+          ASPNETCORE_ENVIRONMENT: Production
+          ConnectionStrings__Default: Host=localhost
+        run: >-
+          dotnet run --project backend --no-launch-profile -c Release
+          -p:OpenApiGenerateDocumentsOnBuild=false -- codegen write
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Check generated API client is up to date
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec nswag run nswag.json
+          git diff --exit-code src/api/generated/ \
+            || { echo "::error::Generated API client is stale. Run 'pnpm generate:api' in frontend/ and commit the result."; exit 1; }

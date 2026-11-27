@@ -1,11 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Shouldly;
 
 namespace Backend.Tests;
 
-public class HealthCheckTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+public class HealthCheckTests(BackendFactory factory) : IClassFixture<BackendFactory>
 {
     [Fact]
     public async Task Up_ReturnsOk()

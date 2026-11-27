@@ -1,0 +1,22 @@
+{
+  "runtime": "Net100",
+  "documentGenerator": {
+    "fromDocument": {
+      "json": "../backend_new/openapi/backend.json"
+    }
+  },
+  "codeGenerators": {
+    "openApiToTypeScriptClient": {
+      "className": "ApiClient",
+      "template": "Fetch",
+      "enumStyle": "StringLiteral",
+      "operationGenerationMode": "SingleClientFromOperationId",
+      "generateClientClasses": true,
+      "generateDtoTypes": true,
+      "generateOptionalParameters": true,
+      "nullValue": "Undefined",
+      "typeScriptVersion": 5.0,
+      "output": "src/api/generated/client.ts"
+    }
+  }
+}
