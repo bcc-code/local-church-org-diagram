@@ -184,6 +184,10 @@ app.MapDefaultEndpoints();
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
+// The built SPA's assets in the web root (wwwroot, added by CD), public like Flask's static folder. Only its pages
+// (index.html, AppPages) need a signed-in user.
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

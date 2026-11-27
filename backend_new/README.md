@@ -1,6 +1,7 @@
 # backend_new
 
-.NET 10 replacement for the Flask backend (issue #61). Runs alongside `backend/` until the migration is done.
+.NET 10 replacement for the Flask backend (issue #61), deployed to production (see [Deployment](#deployment)). The Flask
+backend in `backend/` is no longer deployed and stays until the migration is done.
 
 ```bash
 cd backend_new
@@ -356,3 +357,37 @@ The OpenID Connect client users sign in with (scopes `openid profile email churc
 dotnet user-secrets --project backend set BccSignOn:ClientId ...
 dotnet user-secrets --project backend set BccSignOn:ClientSecret ...
 ```
+
+## Deployment
+
+`.github/workflows/cd.yml` deploys on every push to `main` (or manually) to the Azure Web App `org-diagram` (resource
+group `org-diagram_group`, Linux, B1, a single instance), which serves https://org.hkonline.dk:
+
+1. `backend-new.yml` (CI, then `codegen write` and `dotnet publish`, framework-dependent) and `frontend.yml` (CI and
+   `pnpm build`) run with `publish: true` and upload the artifacts `backend-new` and `frontend`
+2. the deploy job puts the SPA into the published backend's `wwwroot` and zip-deploys it with the publish profile
+   (`AZURE_WEBAPP_PUBLISH_PROFILE` secret, `AZURE_WEBAPP_NAME` variable). App Service runs it as it is
+   (`SCM_DO_BUILD_DURING_DEPLOYMENT=false`), with `dotnet backend.dll`
+3. it waits for `GET /up` to answer 200: startup applies EF Core migrations and Marten/Wolverine schema changes first
+
+The app serves the SPA's assets from `wwwroot` (public, as Flask's static folder) and its pages through `AppPages`.
+
+Configuration is in the Web App's app settings, not in the repository (`appsettings.Production.json` only sets log
+levels):
+
+| App setting                                       | Value                                                                    |
+| ------------------------------------------------- | ------------------------------------------------------------------------ |
+| `ASPNETCORE_ENVIRONMENT`                          | `Production`                                                             |
+| `ASPNETCORE_FORWARDEDHEADERS_ENABLED`             | `true`: App Service terminates TLS, and the sign-in callback must be https |
+| `ConnectionStrings__Default`                      | Supabase's session pooler (port 5432), see [Database](#database)         |
+| `BCC_OAUTH_CLIENT_ID`, `BCC_OAUTH_CLIENT_SECRET`  | the Core API client, see [BCC Core API](#bcc-core-api)                   |
+| `BCC_OIDC_CLIENT_ID`, `BCC_OIDC_CLIENT_SECRET`    | the sign-on client, see [BCC sign-on](#bcc-sign-on)                      |
+| `SCM_DO_BUILD_DURING_DEPLOYMENT`                  | `false`                                                                  |
+
+Site settings: runtime `DOTNETCORE|10.0`, startup command `dotnet backend.dll`, health check path `/up` (`/health`
+also checks the Core API, whose outage shouldn't get the instance replaced), Always On (Wolverine's durability agent
+runs in the background).
+
+Production runs exactly one instance: Wolverine's `Solo` mode relies on it. Never scale the app out, and never run a
+second app (or a local `dotnet run` as Production) against its database. The one-off commands (legacy import,
+`projections rebuild`, `admins`) don't start Wolverine, so they're safe to run from a checkout.

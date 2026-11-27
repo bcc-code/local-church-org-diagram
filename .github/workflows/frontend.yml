@@ -6,7 +6,13 @@ on:
     paths:
       - "frontend/**"
       - ".github/workflows/frontend.yml"
+  # CD (cd.yml) runs it on main, with publish: true
   workflow_call:
+    inputs:
+      publish:
+        description: Upload the built SPA as the artifact "frontend" for deploying
+        type: boolean
+        default: false
 
 jobs:
   ci:
@@ -44,3 +50,12 @@ jobs:
 
       - name: Build
         run: pnpm run build
+
+      # Vite builds into backend/public (outDir)
+      - uses: actions/upload-artifact@v4
+        if: inputs.publish
+        with:
+          name: frontend
+          path: backend/public/
+          if-no-files-found: error
+          retention-days: 7
