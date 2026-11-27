@@ -36,9 +36,11 @@ public static class BccSignOn
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SameSite = SameSiteMode.Lax;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-                // Pages are the SPA's, so only GET /login starts a sign-in. API calls get a status code to act on
-                // instead of a redirect that fetch would follow silently.
+                // Pages redirect to GET /login?returnUrl=<path>, the only route that starts a sign-in. API calls get a
+                // status code to act on instead of a redirect that fetch would follow silently (and an ApiError body,
+                // from Api/ApiConventions, when the authorization middleware fails them).
                 options.LoginPath = "/login";
+                options.ReturnUrlParameter = "returnUrl";
                 options.ExpireTimeSpan = SessionLifetime;
                 options.SlidingExpiration = true;
                 // Persistent, so the session survives closing the browser

@@ -2,31 +2,54 @@ using System.Security.Claims;
 using Backend.Auth;
 using Backend.CoreApi;
 using Backend.Groups;
+using FluentValidation;
 using Marten;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wolverine.Http;
-using Wolverine.Http.Marten;
 
 namespace Backend.Features.GroupMembershipListing;
 
 /// <param name="Name">The Core API display name, or "?" when the Core API doesn't know the person.</param>
 public record GroupMember(Guid PersonUid, string Name, string? ProfilePicture, string? Title, string? Link);
 
+/// <param name="GroupId">Required, a group ID (as the Flask backend's <c>?group_id=</c>).</param>
+public record GroupMembersQuery([FromQuery(Name = "group_id")] string? GroupId)
+{
+    public Guid Id => Guid.Parse(GroupId!);
+
+    public class Validator : AbstractValidator<GroupMembersQuery>
+    {
+        public Validator() =>
+            RuleFor(x => x.GroupId).Cascade(CascadeMode.Stop)
+                .Must(id => !string.IsNullOrEmpty(id)).WithMessage("No group_id provided")
+                .Must(id => Guid.TryParse(id, out _)).WithMessage("Invalid group_id")
+                // Keyed like the query parameter, not the property
+                .OverridePropertyName("group_id");
+    }
+}
+
+/// <summary>
+/// A group's members in the user's church. A group of another church (or none) has no members there, so it lists
+/// none, as with the Flask backend.
+/// </summary>
 public static class Endpoints
 {
     public const string UnknownPersonName = "?";
 
-    // Against the group's own tenant: its church's members and its admins
-    public static Task<ProblemDetails> Before(GroupView group, ClaimsPrincipal user, IAuthorizationService authorization) =>
-        authorization.AuthorizeTenantAsync(user, group.TenantId, AuthPolicies.TenantReader);
+    // The user's church: its members and its admins
+    public static Task<ProblemDetails> Before(ClaimsPrincipal user, IAuthorizationService authorization) =>
+        authorization.AuthorizeTenantAsync(user, user.GetChurchId()!.Value, AuthPolicies.TenantReader);
 
-    [WolverineGet("/groups/{id}/members", OperationId = "ListGroupMembers")]
+    [WolverineGet("/persons", OperationId = "ListGroupMembers")]
     public static async Task<IReadOnlyList<GroupMember>> Get(
-        [Document] GroupView group, IQuerySession session, IPersonDirectory persons, CancellationToken ct)
+        [FromQuery] GroupMembersQuery query, ClaimsPrincipal user, IQuerySession session, IPersonDirectory persons,
+        CancellationToken ct)
     {
+        var groupId = query.Id;
+        var tenantId = user.GetChurchId()!.Value;
         var memberships = await session.Query<MembershipView>()
-            .Where(m => m.GroupId == group.Id && m.TenantId == group.TenantId)
+            .Where(m => m.GroupId == groupId && m.TenantId == tenantId)
             .ToListAsync(ct);
         if (memberships.Count == 0)
             return [];

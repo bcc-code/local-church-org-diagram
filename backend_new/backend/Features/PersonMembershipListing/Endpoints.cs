@@ -9,7 +9,9 @@ using Wolverine.Http;
 namespace Backend.Features.PersonMembershipListing;
 
 /// <summary>A group the person is a member of.</summary>
-public record PersonGroup(Guid Id, string Name, int MemberCount);
+public record PersonGroup(Guid GroupId, string Name, int MemberCount);
+
+public record PersonGroups(IReadOnlyList<PersonGroup> Groups);
 
 public static class Endpoints
 {
@@ -17,7 +19,7 @@ public static class Endpoints
         authorization.AuthorizeTenantAsync(user, user.GetChurchId()!.Value, AuthPolicies.TenantReader);
 
     [WolverineGet("/persons/{personUid}/groups", OperationId = "ListPersonGroups")]
-    public static async Task<IReadOnlyList<PersonGroup>> Get(
+    public static async Task<PersonGroups> Get(
         Guid personUid, ClaimsPrincipal user, IQuerySession session, CancellationToken ct)
     {
         var tenantId = user.GetChurchId()!.Value;
@@ -26,10 +28,10 @@ public static class Endpoints
             .Select(m => m.GroupId)
             .ToListAsync(ct);
         if (groupIds.Count == 0)
-            return [];
+            return new PersonGroups([]);
 
         var groups = await session.LoadManyAsync<GroupView>(ct, groupIds.Distinct());
-        return ToPersonGroups(groups, tenantId);
+        return new PersonGroups(ToPersonGroups(groups, tenantId));
     }
 
     /// <summary>The church's groups, in creation order (the Flask backend's legacy ID order).</summary>

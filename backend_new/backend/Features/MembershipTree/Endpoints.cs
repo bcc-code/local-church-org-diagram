@@ -8,15 +8,16 @@ using Wolverine.Http;
 
 namespace Backend.Features.MembershipTree;
 
-/// <summary>A group in the org chart; the client builds the tree from <see cref="ParentId"/>.</summary>
-public record GroupNode(Guid Id, string Name, Guid? ParentId, int? SortOrder, int MemberCount);
+/// <summary>A group in the org chart; the client builds the tree from <see cref="ParentGroupId"/>.</summary>
+/// <param name="Label">The group's name.</param>
+public record GroupNode(Guid GroupId, string Label, Guid? ParentGroupId, int MemberCount, int? SortOrder);
 
 public static class Endpoints
 {
     public static Task<ProblemDetails> Before(ClaimsPrincipal user, IAuthorizationService authorization) =>
         authorization.AuthorizeTenantAsync(user, user.GetChurchId()!.Value, AuthPolicies.TenantReader);
 
-    [WolverineGet("/groups", OperationId = "ListGroups")]
+    [WolverineGet("/tree", OperationId = "ListGroups")]
     public static async Task<IReadOnlyList<GroupNode>> Get(
         ClaimsPrincipal user, IQuerySession session, CancellationToken ct)
     {
@@ -36,6 +37,6 @@ public static class Endpoints
             .ThenBy(g => g.SortOrder)
             .ThenBy(g => g.CreatedAt)
             .ThenBy(g => g.Id)
-            .Select(g => new GroupNode(g.Id, g.Name, g.ParentId, g.SortOrder, g.MemberCount)),
+            .Select(g => new GroupNode(g.Id, g.Name, g.ParentId, g.MemberCount, g.SortOrder)),
     ];
 }

@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Backend.Features.MembershipTree;
 using Backend.Groups;
+using Backend.Tests.Api;
 using Backend.Tests.Auth;
 using Backend.Tests.Database;
 using Shouldly;
@@ -25,7 +26,7 @@ public class MembershipTreeTests
             Group("0", 0, Day1.AddDays(2)),
         ]);
 
-        nodes.Select(n => n.Name).ShouldBe(["0", "1 earlier", "1 later", "unset"]);
+        nodes.Select(n => n.Label).ShouldBe(["0", "1 earlier", "1 later", "unset"]);
     }
 
     [Fact]
@@ -35,7 +36,7 @@ public class MembershipTreeTests
         var view = new GroupView(Guid.NewGuid(), "Styre", parent, 7, 3, Day1, MemberCount: 4);
 
         Endpoints.ToNodes([view]).ShouldHaveSingleItem()
-            .ShouldBe(new GroupNode(view.Id, "Styre", parent, 3, 4));
+            .ShouldBe(new GroupNode(view.Id, "Styre", parent, 4, 3));
     }
 
     [Fact]
@@ -64,26 +65,26 @@ public class MembershipTreeDatabaseTests(DatabaseBackendFactory factory)
         await factory.StoreAsync(root, child, empty, otherChurch,
             Seed.Member(child, Guid.NewGuid()), Seed.Member(child, Guid.NewGuid()), Seed.Member(otherChurch, Guid.NewGuid()));
 
-        var nodes = await factory.CreateClient(TestUser.Member(tenant)).GetFromJsonAsync<List<GroupNode>>("/api/groups");
+        var nodes = await factory.CreateClient(TestUser.Member(tenant)).GetApiAsync<List<GroupNode>>("/api/tree");
 
         nodes.ShouldBe([
             new GroupNode(root.GroupId, "Root", null, 0, 0),
-            new GroupNode(child.GroupId, "Child", root.GroupId, 0, 2),
-            new GroupNode(empty.GroupId, "Empty", root.GroupId, 1, 0),
+            new GroupNode(child.GroupId, "Child", root.GroupId, 2, 0),
+            new GroupNode(empty.GroupId, "Empty", root.GroupId, 0, 1),
         ]);
     }
 
     [DatabaseFact]
     public async Task RequiresSignIn() =>
-        (await factory.CreateClient().GetAsync("/api/groups")).StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        (await factory.CreateClient().GetAsync("/api/tree")).StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
 
     [DatabaseFact]
     public async Task RequiresMembership() =>
-        (await factory.CreateClient(TestUser.NonMember(Seed.NewTenant())).GetAsync("/api/groups")).StatusCode
+        (await factory.CreateClient(TestUser.NonMember(Seed.NewTenant())).GetAsync("/api/tree")).StatusCode
             .ShouldBe(HttpStatusCode.Forbidden);
 
     [DatabaseFact]
     public async Task RequiresAChurch() =>
-        (await factory.CreateClient(TestUser.Member(churchId: null)).GetAsync("/api/groups")).StatusCode
+        (await factory.CreateClient(TestUser.Member(churchId: null)).GetAsync("/api/tree")).StatusCode
             .ShouldBe(HttpStatusCode.Forbidden);
 }

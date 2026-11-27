@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Backend.Features.PersonMembershipListing;
 using Backend.Groups;
+using Backend.Tests.Api;
 using Backend.Tests.Auth;
 using Backend.Tests.Database;
 using Shouldly;
@@ -43,14 +44,14 @@ public class PersonMembershipListingDatabaseTests(DatabaseBackendFactory factory
             Seed.Member(notMember, Guid.NewGuid()), Seed.Member(theirs, person));
 
         var groups = await factory.CreateClient(TestUser.Member(tenant))
-            .GetFromJsonAsync<List<PersonGroup>>($"/api/persons/{person}/groups");
+            .GetApiAsync<PersonGroups>($"/api/persons/{person}/groups");
 
-        groups.ShouldBe([new PersonGroup(ungdom.GroupId, "Ungdom", 1), new PersonGroup(styre.GroupId, "Styre", 2)]);
+        groups!.Groups.ShouldBe([new PersonGroup(ungdom.GroupId, "Ungdom", 1), new PersonGroup(styre.GroupId, "Styre", 2)]);
     }
 
     [DatabaseFact]
     public async Task NoMemberships_IsEmpty() =>
         (await factory.CreateClient(TestUser.Member(Seed.NewTenant()))
-            .GetFromJsonAsync<List<PersonGroup>>($"/api/persons/{Guid.NewGuid()}/groups"))
-        .ShouldBeEmpty();
+            .GetApiAsync<PersonGroups>($"/api/persons/{Guid.NewGuid()}/groups"))!
+        .Groups.ShouldBeEmpty();
 }
