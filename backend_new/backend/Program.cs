@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Reflection;
+using Backend.Auth;
 using Backend.CoreApi;
 using Backend.Data;
 using Backend.Groups;
@@ -10,6 +11,7 @@ using JasperFx.Resources;
 using JasperFx.Events.Projections;
 using Marten;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Wolverine;
@@ -147,6 +149,12 @@ builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing.AddSource("Wolverine", "Marten"))
     .WithMetrics(metrics => metrics.AddMeter("Wolverine:*", "Marten"));
 
+// Users sign in with BCC sign-on and keep a cookie session; roles come from the Admins table (Auth/)
+builder.Services.AddBccSignOn(builder.Configuration);
+// The Data Protection key ring (session cookies, sign-in state) in Postgres, so sessions survive restarts and deploys
+if (!isGeneratingOpenApi)
+    builder.Services.AddDataProtection().PersistKeysToDbContext<AppDbContext>();
+
 // BCC Core API (person details): one client with the app's own credentials, see CoreApiSettings
 builder.Services.AddCoreApi(builder.Configuration);
 
@@ -157,6 +165,12 @@ app.MapDefaultEndpoints();
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+// GET /login, /logout, and the sign-in callback /authorize
+app.MapBccSignOn();
+
 // Liveness: no dependencies
 app.MapGet("/up", () => TypedResults.Ok(new UpStatus("OK")))
     .WithName("Up");
@@ -164,10 +178,12 @@ app.MapGet("/up", () => TypedResults.Ok(new UpStatus("OK")))
 app.MapHealthChecks("/health");
 
 // Wolverine.Http endpoints. Invalid requests get a 400 with field-keyed ValidationProblemDetails from FluentValidation;
-// Marten concurrency failures map to 409 Conflict instead of 500.
+// Marten concurrency failures map to 409 Conflict instead of 500. Every endpoint requires a signed-in BCC member (the
+// default policy, AuthPolicies) unless it says otherwise ([AllowAnonymous], [Authorize(Policy = ...)]).
 app.MapWolverineEndpoints(options =>
 {
     options.RoutePrefix("api");
+    options.RequireAuthorizeOnAll();
     options.UseFluentValidationProblemDetailMiddleware();
     options.MapMartenConcurrencyFailuresToConflict();
 });

@@ -9,9 +9,10 @@ async function fetchWithAuth(
 ): Promise<Response> {
   const response = await fetch(input, init);
 
-  // Redirect to login if unauthorized
+  // Redirect to login if unauthorized, coming back to this page afterwards
   if (response.status === 401) {
-    window.location.href = "/login";
+    const returnUrl = window.location.pathname + window.location.search;
+    window.location.href = `/login?returnUrl=${encodeURIComponent(returnUrl)}`;
     throw new Error("Unauthorized - redirecting to login");
   }
 
