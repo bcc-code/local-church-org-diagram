@@ -8,14 +8,13 @@ on:
       - "frontend/nswag.json"
       - "frontend/src/api/generated/**"
       - ".github/workflows/backend-new.yml"
-  push:
-    branches: [main]
-    paths:
-      - "backend_new/**"
-      - "frontend/nswag.json"
-      - "frontend/src/api/generated/**"
-      - ".github/workflows/backend-new.yml"
+  # CD (cd.yml) runs it on main, with publish: true
   workflow_call:
+    inputs:
+      publish:
+        description: Upload the published backend as the artifact "backend-new" for deploying
+        type: boolean
+        default: false
   workflow_dispatch:
 
 concurrency:
@@ -87,6 +86,21 @@ jobs:
         run: >-
           dotnet run --project backend --no-launch-profile -c Release
           -p:OpenApiGenerateDocumentsOnBuild=false -- codegen write
+
+      # Framework-dependent: App Service (DOTNETCORE|10.0) provides the runtime. Compiles the generated code above.
+      - name: Publish
+        if: inputs.publish
+        run: >-
+          dotnet publish backend -c Release -o "$RUNNER_TEMP/backend-new"
+          -p:OpenApiGenerateDocumentsOnBuild=false
+
+      - uses: actions/upload-artifact@v4
+        if: inputs.publish
+        with:
+          name: backend-new
+          path: ${{ runner.temp }}/backend-new/
+          if-no-files-found: error
+          retention-days: 7
 
       - uses: pnpm/action-setup@v4
         with:

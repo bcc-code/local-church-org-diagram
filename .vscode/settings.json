@@ -40,7 +40,6 @@
     "env.bak{,/**}",
     "venv.bak{,/**}",
     ".vscode{,/**}",
-    ".deployment",
     "*.md"
   ],
   "appService.defaultWebAppToDeploy": "/subscriptions/17d25552-b59d-4e27-9d48-a382e48a3532/resourceGroups/org-diagram_group/providers/Microsoft.Web/sites/org-diagram",

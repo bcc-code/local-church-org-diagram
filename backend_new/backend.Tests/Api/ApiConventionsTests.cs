@@ -77,6 +77,8 @@ public class AppPageTests(AppPageTests.WithIndex factory) : IClassFixture<AppPag
         {
             base.ConfigureWebHost(builder);
             File.WriteAllText(Path.Combine(WebRoot, "index.html"), "<!doctype html><title>Org chart</title>");
+            Directory.CreateDirectory(Path.Combine(WebRoot, "assets"));
+            File.WriteAllText(Path.Combine(WebRoot, "assets", "index-abc123.js"), "console.log('org chart')");
             builder.UseWebRoot(WebRoot);
         }
 
@@ -116,6 +118,20 @@ public class AppPageTests(AppPageTests.WithIndex factory) : IClassFixture<AppPag
         response.Headers.CacheControl!.NoCache.ShouldBeTrue();
         (await response.Content.ReadAsStringAsync()).ShouldContain("<title>Org chart</title>");
     }
+
+    [Fact]
+    public async Task Assets_AreServedToAnyone()
+    {
+        var response = await Anonymous().GetAsync("/assets/index-abc123.js");
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.Content.Headers.ContentType!.MediaType.ShouldBe("text/javascript");
+        (await response.Content.ReadAsStringAsync()).ShouldBe("console.log('org chart')");
+    }
+
+    [Fact]
+    public async Task UnknownFile_IsNotFound() =>
+        (await Anonymous().GetAsync("/assets/missing.js")).StatusCode.ShouldBe(HttpStatusCode.NotFound);
 
     [Fact]
     public async Task AnotherChurchsAdmin_IsForbidden()

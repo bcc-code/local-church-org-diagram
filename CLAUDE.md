@@ -114,7 +114,13 @@ uv run flask run                        # Run Flask server (http://localhost:500
 DEMO_MODE=1 uv run flask run
 ```
 
-### Production Build
+### Deployment
+
+Production (Azure Web App `org-diagram`, https://org.hkonline.dk) runs the .NET backend (`backend_new/`), not Flask:
+`.github/workflows/cd.yml` deploys it on every push to `main`. See the Deployment section of
+[`backend_new/README.md`](./backend_new/README.md#deployment).
+
+### Production Build (Flask, no longer deployed)
 
 ```bash
 # Build frontend
