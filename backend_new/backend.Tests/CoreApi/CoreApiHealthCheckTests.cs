@@ -1,11 +1,10 @@
 using System.Net;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Shouldly;
 
 namespace Backend.Tests.CoreApi;
 
-public class CoreApiHealthCheckTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public class CoreApiHealthCheckTests(BackendFactory factory)
+    : IClassFixture<BackendFactory>
 {
     private readonly CoreApiStub stub = new();
 

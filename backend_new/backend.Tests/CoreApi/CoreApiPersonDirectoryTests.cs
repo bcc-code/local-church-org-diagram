@@ -1,12 +1,11 @@
 using Backend.CoreApi;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
 namespace Backend.Tests.CoreApi;
 
-public class CoreApiPersonDirectoryTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public class CoreApiPersonDirectoryTests(BackendFactory factory)
+    : IClassFixture<BackendFactory>
 {
     private static readonly CancellationToken Ct = CancellationToken.None;
 
