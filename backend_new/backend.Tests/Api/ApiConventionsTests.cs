@@ -83,7 +83,9 @@ public class AppPageTests(AppPageTests.WithIndex factory) : IClassFixture<AppPag
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            Directory.Delete(WebRoot, recursive: true);
+            // DisposeAsync and Dispose both end up here
+            if (Directory.Exists(WebRoot))
+                Directory.Delete(WebRoot, recursive: true);
         }
     }
 
