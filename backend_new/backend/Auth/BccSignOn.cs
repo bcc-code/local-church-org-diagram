@@ -21,9 +21,28 @@ public static class BccSignOn
     /// <summary>How long a session lasts without activity; each request past the halfway point renews it.</summary>
     public static readonly TimeSpan SessionLifetime = TimeSpan.FromDays(30);
 
-    public static IServiceCollection AddBccSignOn(this IServiceCollection services, IConfiguration configuration)
+    /// <param name="validateOnStart">
+    /// Refuse to start without the client's credentials, rather than failing the first sign-in. Off only for build-time
+    /// OpenAPI generation, which starts the host without them.
+    /// </param>
+    public static IServiceCollection AddBccSignOn(
+        this IServiceCollection services, IConfiguration configuration, bool validateOnStart = true)
     {
         var settings = BccSignOnSettings.From(configuration);
+
+        // Checked here rather than on OpenIdConnectOptions, whose own validation throws on the first missing value
+        var credentials = services.AddOptions<BccSignOnSettings>()
+            .Configure(s =>
+            {
+                s.Authority = settings.Authority;
+                s.ClientId = settings.ClientId;
+                s.ClientSecret = settings.ClientSecret;
+            })
+            .Validate(s => !string.IsNullOrEmpty(s.ClientId) && !string.IsNullOrEmpty(s.ClientSecret),
+                $"BCC sign-on needs {BccSignOnSettings.Section}:ClientId and {BccSignOnSettings.Section}:ClientSecret " +
+                $"(or {BccSignOnSettings.LegacyClientIdVariable} and {BccSignOnSettings.LegacySecretVariable})");
+        if (validateOnStart)
+            credentials.ValidateOnStart();
 
         services.AddAuthentication(options =>
             {

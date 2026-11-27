@@ -47,7 +47,8 @@ public class ApiErrorTests(BackendFactory factory) : IClassFixture<BackendFactor
     [Fact]
     public async Task OpenApi_DocumentsTheErrorsAndSnakeCase()
     {
-        await using var development = factory.WithWebHostBuilder(builder => builder.UseEnvironment("Development"));
+        // The document is only served in Development, which signs in with LocalDev instead of TestUser
+        await using var development = new DevelopmentBackendFactory();
 
         var document = (await (await development.CreateClient().GetAsync("/openapi/v1.json")).ReadJsonAsync())!;
 
