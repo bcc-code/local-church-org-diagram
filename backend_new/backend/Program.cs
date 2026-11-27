@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Reflection;
+using Backend.Admins;
 using Backend.Auth;
 using Backend.CoreApi;
 using Backend.Data;
@@ -13,6 +14,7 @@ using Marten;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Console;
 using Npgsql;
 using Wolverine;
 using Wolverine.EntityFrameworkCore;
@@ -116,12 +118,19 @@ builder.UseWolverine(options =>
 // applies it once at startup. Everywhere else (Development, Testing, build-time OpenAPI and `codegen write` itself,
 // which run as Production) code is generated at runtime and schema objects are created/updated on demand.
 var isWritingCode = args.FirstOrDefault() == "codegen";
-// One-off commands run from a checkout against production, without `codegen write`: the legacy import (LegacyImport/)
-// and `projections rebuild` (README, "Rebuilding projections")
+// One-off commands run from a checkout against production, without `codegen write`: the legacy import (LegacyImport/),
+// `projections rebuild` (README, "Rebuilding projections") and `admins` (Admins/)
 var isOneOffCommand = LegacyImporter.CommandNames.Contains(args.FirstOrDefault() ?? "") ||
-                      args.FirstOrDefault() == "projections";
+                      args.FirstOrDefault() is "projections" or AdminsCommand.Name;
 var usesPreGeneratedCode = builder.Environment.IsProduction() && !isGeneratingOpenApi && !isWritingCode &&
                            !isOneOffCommand;
+// `admins` prints its result (`--json`) on stdout: console logs go to stderr, warnings and errors only
+if (args.FirstOrDefault() == AdminsCommand.Name)
+{
+    builder.Services.Configure<ConsoleLoggerOptions>(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
+    builder.Logging.AddFilter<ConsoleLoggerProvider>(null, LogLevel.Warning);
+}
+
 builder.Services.CritterStackDefaults(defaults =>
 {
     defaults.Production.GeneratedCodeMode = usesPreGeneratedCode ? TypeLoadMode.Static : TypeLoadMode.Dynamic;
@@ -191,7 +200,10 @@ app.MapWolverineEndpoints(options =>
 });
 
 // JasperFx command line: `run` (the default) starts the app; `codegen write` generates the code production loads;
-// import-groups, import-memberships and import-reset import the Flask backend's tables (LegacyImport/)
+// import-groups, import-memberships and import-reset import the Flask backend's tables (LegacyImport/); admins manages
+// the Admins table (Admins/)
+if (args.FirstOrDefault() == AdminsCommand.Name)
+    AdminsCommand.ReserveStdout();
 return await app.RunJasperFxCommands(args);
 
 record UpStatus(string Status);
