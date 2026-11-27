@@ -4,7 +4,15 @@ import db
 import mutations
 import pytest
 from admin import admin_bp
-from factories import OTHER_TENANT, TENANT, get_member, make_group, make_member
+from factories import (
+    OTHER_TENANT,
+    TENANT,
+    U1,
+    U5,
+    get_member,
+    make_group,
+    make_member,
+)
 from flask import Flask
 from psycopg.errors import UniqueViolation
 
@@ -20,10 +28,10 @@ def _sort_orders(conn, ids):
 
 def test_add_membership_returns_row(db_conn):
     gid = make_group(db_conn, "A")
-    row = mutations.add_membership(db_conn, gid, "uid-1", TENANT)
+    row = mutations.add_membership(db_conn, gid, U1, TENANT)
     assert row is not None
     assert row["group_id"] == gid
-    assert row["bcc_person_uid"] == "uid-1"
+    assert row["bcc_person_uid"] == U1
     assert row["tenant_id"] == TENANT
     assert row["title"] is None
     assert row["id"] is not None
@@ -31,39 +39,39 @@ def test_add_membership_returns_row(db_conn):
 
 def test_add_membership_with_title(db_conn):
     gid = make_group(db_conn, "A")
-    row = mutations.add_membership(db_conn, gid, "uid-1", TENANT, title="Leader")
+    row = mutations.add_membership(db_conn, gid, U1, TENANT, title="Leader")
     assert row is not None
     assert row["title"] == "Leader"
 
 
 def test_add_membership_takes_tenant_from_group(db_conn):
     gid = make_group(db_conn, "A")
-    row = mutations.add_membership(db_conn, gid, "uid-1", TENANT)
+    row = mutations.add_membership(db_conn, gid, U1, TENANT)
     assert row is not None
     assert row["tenant_id"] == TENANT
 
 
 def test_add_membership_other_tenants_group_is_rejected(db_conn):
     theirs = make_group(db_conn, "Theirs", tenant_id=OTHER_TENANT)
-    assert mutations.add_membership(db_conn, theirs, "uid-1", TENANT) is None
-    assert get_member(db_conn, theirs, "uid-1") is None
+    assert mutations.add_membership(db_conn, theirs, U1, TENANT) is None
+    assert get_member(db_conn, theirs, U1) is None
 
 
 def test_add_membership_null_tenant_cannot_use_tenant_group(db_conn):
     gid = make_group(db_conn, "A")
-    assert mutations.add_membership(db_conn, gid, "uid-1", None) is None
+    assert mutations.add_membership(db_conn, gid, U1, None) is None
 
 
 def test_add_membership_unknown_group_returns_none(db_conn):
     gid = make_group(db_conn, "A")
-    assert mutations.add_membership(db_conn, gid + 10_000, "uid-1", TENANT) is None
+    assert mutations.add_membership(db_conn, gid + 10_000, U1, TENANT) is None
 
 
 def test_add_membership_duplicate_raises_unique_violation(db_conn):
     gid = make_group(db_conn, "A")
-    mutations.add_membership(db_conn, gid, "uid-1", TENANT)
+    mutations.add_membership(db_conn, gid, U1, TENANT)
     with pytest.raises(UniqueViolation):
-        mutations.add_membership(db_conn, gid, "uid-1", TENANT)
+        mutations.add_membership(db_conn, gid, U1, TENANT)
 
 
 # --- remove_membership ------------------------------------------------------
@@ -71,30 +79,30 @@ def test_add_membership_duplicate_raises_unique_violation(db_conn):
 
 def test_remove_membership_returns_deleted_row(db_conn):
     gid = make_group(db_conn, "A")
-    make_member(db_conn, gid, "uid-1")
-    row = mutations.remove_membership(db_conn, gid, "uid-1", TENANT)
+    make_member(db_conn, gid, U1)
+    row = mutations.remove_membership(db_conn, gid, U1, TENANT)
     assert row is not None
-    assert row["bcc_person_uid"] == "uid-1"
-    assert get_member(db_conn, gid, "uid-1") is None
+    assert row["bcc_person_uid"] == U1
+    assert get_member(db_conn, gid, U1) is None
 
 
 def test_remove_membership_not_found(db_conn):
     gid = make_group(db_conn, "A")
-    assert mutations.remove_membership(db_conn, gid, "nobody", TENANT) is None
+    assert mutations.remove_membership(db_conn, gid, U5, TENANT) is None
 
 
 def test_remove_membership_other_tenant_is_untouched(db_conn):
     gid = make_group(db_conn, "A", tenant_id=OTHER_TENANT)
-    make_member(db_conn, gid, "uid-1", tenant_id=OTHER_TENANT)
-    assert mutations.remove_membership(db_conn, gid, "uid-1", TENANT) is None
-    assert mutations.remove_membership(db_conn, gid, "uid-1", None) is None
-    assert get_member(db_conn, gid, "uid-1") is not None
+    make_member(db_conn, gid, U1, tenant_id=OTHER_TENANT)
+    assert mutations.remove_membership(db_conn, gid, U1, TENANT) is None
+    assert mutations.remove_membership(db_conn, gid, U1, None) is None
+    assert get_member(db_conn, gid, U1) is not None
 
 
 def test_remove_membership_null_tenant_matches_null(db_conn):
     gid = make_group(db_conn, "A", tenant_id=None)
-    make_member(db_conn, gid, "uid-1", tenant_id=None)
-    assert mutations.remove_membership(db_conn, gid, "uid-1", None) is not None
+    make_member(db_conn, gid, U1, tenant_id=None)
+    assert mutations.remove_membership(db_conn, gid, U1, None) is not None
 
 
 # --- update_membership ------------------------------------------------------
@@ -102,9 +110,9 @@ def test_remove_membership_null_tenant_matches_null(db_conn):
 
 def test_update_membership_sets_fields(db_conn):
     gid = make_group(db_conn, "A")
-    make_member(db_conn, gid, "uid-1", title="Old")
+    make_member(db_conn, gid, U1, title="Old")
     row = mutations.update_membership(
-        db_conn, gid, "uid-1", TENANT, {"title": "New", "link": "https://x"}
+        db_conn, gid, U1, TENANT, {"title": "New", "link": "https://x"}
     )
     assert row is not None
     assert row["title"] == "New"
@@ -113,41 +121,35 @@ def test_update_membership_sets_fields(db_conn):
 
 def test_update_membership_partial_keeps_other_fields(db_conn):
     gid = make_group(db_conn, "A")
-    make_member(db_conn, gid, "uid-1", title="Keep")
-    row = mutations.update_membership(
-        db_conn, gid, "uid-1", TENANT, {"link": "https://x"}
-    )
+    make_member(db_conn, gid, U1, title="Keep")
+    row = mutations.update_membership(db_conn, gid, U1, TENANT, {"link": "https://x"})
     assert row is not None
     assert row["title"] == "Keep"
 
 
 def test_update_membership_not_found(db_conn):
     gid = make_group(db_conn, "A")
-    assert (
-        mutations.update_membership(db_conn, gid, "nobody", TENANT, {"title": "x"})
-        is None
-    )
+    assert mutations.update_membership(db_conn, gid, U5, TENANT, {"title": "x"}) is None
 
 
 def test_update_membership_other_tenant_is_untouched(db_conn):
     gid = make_group(db_conn, "A", tenant_id=OTHER_TENANT)
-    make_member(db_conn, gid, "uid-1", tenant_id=OTHER_TENANT, title="Orig")
+    make_member(db_conn, gid, U1, tenant_id=OTHER_TENANT, title="Orig")
     assert (
-        mutations.update_membership(db_conn, gid, "uid-1", TENANT, {"title": "Hack"})
-        is None
+        mutations.update_membership(db_conn, gid, U1, TENANT, {"title": "Hack"}) is None
     )
-    member = get_member(db_conn, gid, "uid-1")
+    member = get_member(db_conn, gid, U1)
     assert member is not None
     assert member["title"] == "Orig"
 
 
 def test_update_membership_rejects_unknown_column(db_conn):
     gid = make_group(db_conn, "A")
-    make_member(db_conn, gid, "uid-1")
+    make_member(db_conn, gid, U1)
     with pytest.raises(ValueError):
-        mutations.update_membership(db_conn, gid, "uid-1", TENANT, {"tenant_id": 1})
+        mutations.update_membership(db_conn, gid, U1, TENANT, {"tenant_id": 1})
     with pytest.raises(ValueError):
-        mutations.update_membership(db_conn, gid, "uid-1", TENANT, {})
+        mutations.update_membership(db_conn, gid, U1, TENANT, {})
 
 
 # --- update_sort_order ------------------------------------------------------
@@ -247,20 +249,20 @@ def admin_client(db_conn, monkeypatch):
 def test_route_add_member(admin_client, db_conn):
     gid = make_group(db_conn, "A")
     resp = admin_client.post(
-        "/api/group-membership", json={"group_id": gid, "person_uid": "uid-1"}
+        "/api/group-membership", json={"group_id": gid, "person_uid": U1}
     )
     assert resp.status_code == 201
     body = resp.get_json()
     assert body["success"] is True
-    assert body["data"]["bcc_person_uid"] == "uid-1"
+    assert body["data"]["bcc_person_uid"] == U1
     assert isinstance(body["data"]["created_at"], str)
 
 
 def test_route_add_member_duplicate_is_409(admin_client, db_conn):
     gid = make_group(db_conn, "A")
-    make_member(db_conn, gid, "uid-1")
+    make_member(db_conn, gid, U1)
     resp = admin_client.post(
-        "/api/group-membership", json={"group_id": gid, "person_uid": "uid-1"}
+        "/api/group-membership", json={"group_id": gid, "person_uid": U1}
     )
     assert resp.status_code == 409
     assert resp.get_json() == {"error": "Member already in group"}
@@ -268,24 +270,24 @@ def test_route_add_member_duplicate_is_409(admin_client, db_conn):
 
 def test_route_remove_member(admin_client, db_conn):
     gid = make_group(db_conn, "A")
-    make_member(db_conn, gid, "uid-1")
+    make_member(db_conn, gid, U1)
     resp = admin_client.delete(
-        "/api/group-membership", json={"group_id": gid, "person_uid": "uid-1"}
+        "/api/group-membership", json={"group_id": gid, "person_uid": U1}
     )
     assert resp.status_code == 200
-    assert resp.get_json()["data"]["bcc_person_uid"] == "uid-1"
+    assert resp.get_json()["data"]["bcc_person_uid"] == U1
     resp = admin_client.delete(
-        "/api/group-membership", json={"group_id": gid, "person_uid": "uid-1"}
+        "/api/group-membership", json={"group_id": gid, "person_uid": U1}
     )
     assert resp.status_code == 404
 
 
 def test_route_update_member(admin_client, db_conn):
     gid = make_group(db_conn, "A")
-    make_member(db_conn, gid, "uid-1")
+    make_member(db_conn, gid, U1)
     resp = admin_client.put(
         "/api/group-membership",
-        json={"group_id": gid, "person_uid": "uid-1", "title": "Boss"},
+        json={"group_id": gid, "person_uid": U1, "title": "Boss"},
     )
     assert resp.status_code == 200
     assert resp.get_json()["data"]["title"] == "Boss"
@@ -328,22 +330,22 @@ def test_route_sort_order_success(admin_client, db_conn):
 def test_route_add_member_other_tenants_group_is_404(admin_client, db_conn):
     theirs = make_group(db_conn, "Theirs", tenant_id=OTHER_TENANT)
     resp = admin_client.post(
-        "/api/group-membership", json={"group_id": theirs, "person_uid": "uid-1"}
+        "/api/group-membership", json={"group_id": theirs, "person_uid": U1}
     )
     assert resp.status_code == 404
-    assert get_member(db_conn, theirs, "uid-1") is None
+    assert get_member(db_conn, theirs, U1) is None
 
 
 @pytest.mark.parametrize(
     "payload",
     [
-        {"group_id": "abc", "person_uid": "uid-1"},
-        {"group_id": True, "person_uid": "uid-1"},
-        {"group_id": 1.5, "person_uid": "uid-1"},
-        {"group_id": [1], "person_uid": "uid-1"},
-        {"group_id": 2**63, "person_uid": "uid-1"},
+        {"group_id": "abc", "person_uid": U1},
+        {"group_id": True, "person_uid": U1},
+        {"group_id": 1.5, "person_uid": U1},
+        {"group_id": [1], "person_uid": U1},
+        {"group_id": 2**63, "person_uid": U1},
         {"group_id": 1, "person_uid": {"x": 1}},
-        {"group_id": 1, "person_uid": "uid-1", "title": 5},
+        {"group_id": 1, "person_uid": U1, "title": 5},
     ],
 )
 def test_route_add_member_invalid_input_is_400(admin_client, payload):

@@ -5,6 +5,9 @@ from db import Connection, Row, TenantId
 TENANT = 1
 OTHER_TENANT = 2
 
+# bcc_person_uid is a uuid column; ordered so sorting matches U1 < U2 < ...
+U1, U2, U3, U4, U5 = (f"00000000-0000-0000-0000-00000000000{i}" for i in range(1, 6))
+
 
 def make_group(
     conn: Connection,
