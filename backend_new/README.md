@@ -171,8 +171,22 @@ The Data Protection key ring (session cookies, sign-in state) is stored in Postg
 survive restarts and deploys. Behind a TLS-terminating proxy, the request scheme must be forwarded
 (`ASPNETCORE_FORWARDEDHEADERS_ENABLED=true`), or the callback URL sent to BCC sign-on is `http://`.
 
-There is no local dev login yet: Development signs in with BCC sign-on too, so it needs the client's credentials.
-Through Vite (`:5173`), the callback URL is `http://localhost:5173/authorize`, which the client must allow.
+Outside Development the app refuses to start without the client's credentials (`BccSignOn:ClientId`/`ClientSecret`,
+see [Configuration](#configuration)), instead of failing the first sign-in.
+
+### Local development
+
+Development skips BCC sign-on entirely and needs no credentials (`Auth/LocalDev`): every request is signed in as the
+**Dev Admin**, a made-up person (UID `de7de7de-0000-4000-8000-000000000001`, person ID 1) in BCC København
+(`churchId` 51, the imported production groups' tenant), with the claims BCC sign-on issues. `GET /login` just returns
+to `returnUrl`, `GET /logout` goes to `/` (still signed in), and `/authorize` isn't mapped.
+
+Its Global Admin role isn't hard-coded: EF Core seeding (`UseLocalDevSeeding`, Development only) adds an `Admins` row
+(`TenantId` null) when migrating at startup, and `RoleClaimsTransformation` reads it as in production. Remove the row
+(`admins remove de7de7de-0000-4000-8000-000000000001 --global --allow-last-global --yes`) to work as a plain member
+until the next restart re-seeds it.
+
+Local dev sign-in is only registered in Development, and refuses to register or authenticate in any other environment.
 
 ### Adding admins
 
@@ -180,14 +194,15 @@ With the `admins` command, see [Admins](#admins).
 
 ### Tests
 
-`BackendFactory` signs requests in as a `TestUser` (`backend.Tests/Auth/TestAuth.cs`) carried in a header, roles
+`BackendFactory` runs as `Testing` (BCC sign-on with a test client) and signs requests in as a `TestUser` (`backend.Tests/Auth/TestAuth.cs`) carried in a header, roles
 included, so endpoint tests need neither BCC sign-on nor the `Admins` table; requests without it are signed out:
 
 ```csharp
 var client = factory.CreateClient(TestUser.Member(churchId: 51));     // also NonMember, LocalAdmin(51), Global()
 ```
 
-Policy and handler unit tests use `TestUser.Principal()`. `Database/AdminsTests` cover the claims transformation and the
+Policy and handler unit tests use `TestUser.Principal()`. `DevelopmentBackendFactory` and `ProductionBackendFactory`
+(`Auth/LocalDevTests`) cover which sign-in each environment gets. `Database/AdminsTests` cover the claims transformation and the
 table's constraints.
 
 ## Admins
@@ -293,7 +308,9 @@ Group IDs are Guid strings where Flask had integers: the frontend only compares 
 
 The pages `GET /` and `GET /{tenantId}/admin` (`Api/AppPages`) serve the SPA's `index.html` from the web root to
 signed-in members, as Flask's `index()`: signed-out users are redirected to `/login?returnUrl=<path>`, and
-`/{tenantId}/admin` answers 403 `Unauthorized` unless `tenantId` is the user's church.
+`/{tenantId}/admin` answers 403 `Unauthorized` unless `tenantId` is the user's church. In Development, without a built
+SPA in the web root, they redirect to the same path on the Vite dev server (`Frontend:DevServerUrl`,
+`http://localhost:5173` in `appsettings.Development.json`), which serves the SPA and proxies `/api` and `/login` back.
 Demo mode (`DEMO_MODE`) isn't ported.
 
 Tests: one file per feature, `backend.Tests/Features/<Feature>Tests.cs` (namespace `Backend.Tests.Features`), with unit
@@ -345,6 +362,8 @@ unhealthy.
 ### BCC sign-on
 
 The OpenID Connect client users sign in with (scopes `openid profile email church`), shared with the Flask backend.
+Required outside Development (the app doesn't start without it); Development ignores it, see
+[Local development](#local-development).
 
 | Setting                  | Fallback                 | Default                |
 | ------------------------ | ------------------------ | ---------------------- |

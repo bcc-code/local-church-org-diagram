@@ -26,16 +26,18 @@ public class BackendFactory : WebApplicationFactory<Program>
     public const string TestClientId = "test-client-id";
     private const string BccSignOnScheme = Backend.Auth.BccSignOn.Scheme;
 
+    /// <summary>The environment the app runs in: "Testing", except for tests of environment-specific behavior.</summary>
+    protected virtual string Environment => "Testing";
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Testing");
+        builder.UseEnvironment(Environment);
 
         // Marten and Npgsql need a syntactically valid connection string to build, but never connect
         builder.UseSetting("ConnectionStrings:Default", "Host=localhost");
         builder.UseSetting("Aspire:Npgsql:DisableHealthChecks", "true");
 
-        builder.UseSetting("BccSignOn:ClientId", TestClientId);
-        builder.UseSetting("BccSignOn:ClientSecret", "test-client-secret");
+        ConfigureSignIn(builder);
 
         builder.ConfigureTestServices(services =>
         {
@@ -48,6 +50,24 @@ public class BackendFactory : WebApplicationFactory<Program>
             // The Data Protection key ring lives in Postgres; keep it in memory instead (sign-in state, session cookies)
             services.AddDataProtection().UseEphemeralDataProtectionProvider();
 
+            foreach (var descriptor in services.Where(d => d.ServiceType == typeof(IHostedService)
+                         && (d.ImplementationType?.Name == "ResourceSetupHostService"
+                             || d.ImplementationType == typeof(MigrateOnStartup))).ToList())
+                services.Remove(descriptor);
+        });
+    }
+
+    /// <summary>
+    /// BCC sign-on with a test client, and <see cref="TestUserAuthentication"/>: requests with a <see cref="TestUser"/>
+    /// are signed in as that user, the others are signed out.
+    /// </summary>
+    protected virtual void ConfigureSignIn(IWebHostBuilder builder)
+    {
+        builder.UseSetting("BccSignOn:ClientId", TestClientId);
+        builder.UseSetting("BccSignOn:ClientSecret", "test-client-secret");
+
+        builder.ConfigureTestServices(services =>
+        {
             // BCC sign-on's metadata, so a sign-in challenge doesn't fetch it from login.bcc.no
             services.PostConfigure<OpenIdConnectOptions>(BccSignOnScheme, options =>
                 options.Configuration = new OpenIdConnectConfiguration
@@ -59,11 +79,6 @@ public class BackendFactory : WebApplicationFactory<Program>
 
             // Requests with TestUser's header are signed in as that user (factory.CreateClient(TestUser))
             TestUserAuthentication.Register(services);
-
-            foreach (var descriptor in services.Where(d => d.ServiceType == typeof(IHostedService)
-                         && (d.ImplementationType?.Name == "ResourceSetupHostService"
-                             || d.ImplementationType == typeof(MigrateOnStartup))).ToList())
-                services.Remove(descriptor);
         });
     }
 }

@@ -91,8 +91,13 @@ builder.Services.AddMarten(options =>
 
 // EF Core with Wolverine's transactional middleware and outbox: Wolverine's envelope tables are mapped into the model
 // (excluded from migrations), so DbContext changes and outgoing messages commit in the same transaction.
+// Development seeds the local dev user's Global Admin row when migrating (Auth/LocalDev).
 builder.Services.AddDbContextWithWolverineIntegration<AppDbContext>((services, options) =>
-    options.UseNpgsql(services.GetRequiredService<NpgsqlDataSource>()));
+{
+    options.UseNpgsql(services.GetRequiredService<NpgsqlDataSource>());
+    if (builder.Environment.IsDevelopment())
+        options.UseLocalDevSeeding();
+});
 
 builder.UseWolverine(options =>
 {
@@ -168,8 +173,12 @@ builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing.AddSource("Wolverine", "Marten"))
     .WithMetrics(metrics => metrics.AddMeter("Wolverine:*", "Marten"));
 
-// Users sign in with BCC sign-on and keep a cookie session; roles come from the Admins table (Auth/)
-builder.Services.AddBccSignOn(builder.Configuration);
+// Users sign in with BCC sign-on and keep a cookie session; roles come from the Admins table (Auth/). Development skips
+// BCC sign-on: every request is signed in as the local dev Global Admin (Auth/LocalDev), and needs no credentials.
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddLocalDevAuthentication(builder.Environment);
+else
+    builder.Services.AddBccSignOn(builder.Configuration, validateOnStart: !isGeneratingOpenApi);
 // The Data Protection key ring (session cookies, sign-in state) in Postgres, so sessions survive restarts and deploys
 if (!isGeneratingOpenApi)
     builder.Services.AddDataProtection().PersistKeysToDbContext<AppDbContext>();
@@ -187,8 +196,11 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
-// GET /login, /logout, and the sign-in callback /authorize
-app.MapBccSignOn();
+// GET /login, /logout, and the sign-in callback /authorize (Development: /login and /logout only, see Auth/LocalDev)
+if (app.Environment.IsDevelopment())
+    app.MapLocalDevAuthentication();
+else
+    app.MapBccSignOn();
 // GET / and /{tenantId}/admin: the SPA, for signed-in users
 app.MapAppPages();
 
