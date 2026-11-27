@@ -21,6 +21,8 @@ dotnet format                   # CI runs it with --verify-no-changes
   - `CoreApi/` – BCC Core API client (`BccCode.Core.Api.Client`): `IPersonDirectory` gets person details
     (UID, display name, profile picture) by UID or by free-text search
   - `Data/` – EF Core `AppDbContext` and its migrations
+  - `Groups/` – group events and projections (`GroupView`, `MembershipView`), see [Groups and memberships](#groups-and-memberships)
+  - `LegacyImport/` – CLI commands importing the Flask backend's tables
 - `backend.Tests/` – xUnit + `WebApplicationFactory` tests; `CoreApiStub` stands in for login.bcc.no and the Core API
 
 ## Persistence and messaging
@@ -60,6 +62,47 @@ without it. CI provides a postgres service.
 ```bash
 docker run -d --rm --name org-pg -e POSTGRES_PASSWORD=pw -p 5432:5432 postgres:17
 TEST_DATABASE_URL=postgresql://postgres:pw@localhost:5432/postgres dotnet test
+```
+
+## Groups and memberships
+
+Each group is an event stream (`Groups/`), and its memberships are events on that stream. Stream IDs are UUIDv5s
+derived from the legacy `groups.id` (`GroupIds`). Inline projections reproduce the Flask backend's tables:
+
+- `GroupView` (`groups`): name, parent, tenant, sort order, created at
+- `MembershipView` (`group_membership`), one per group and person: person UID, title, link, tenant, created at
+
+Legacy IDs are only on the events (`LegacyId`, …), not on the views.
+
+### Importing the Flask backend's tables
+
+`GroupImported` and `MembershipImported` come only from a one-off import of `public.groups` and
+`public.group_membership` (`LegacyImport/`). Each command runs in a single transaction and prints the rows read, the
+events appended and the view counts. Rows without a `tenant_id` fail the import, and nothing is written. Import groups
+first: memberships are appended to their group's stream.
+
+```bash
+dotnet run --project backend -- import-groups      [--source <connection string>] [--dry-run]
+dotnet run --project backend -- import-memberships [--source <connection string>] [--dry-run]
+dotnet run --project backend -- import-reset --yes   # deletes ALL Marten events and documents
+```
+
+- Target: `ConnectionStrings:Default`. The commands create or update the Marten schema themselves.
+- Source: the target database by default, or `--source` (an Npgsql connection string, not a `postgresql://` URI). It
+  is only read, in a read-only transaction.
+- `--dry-run` imports, reports, then rolls back. A memberships dry run needs the groups imported.
+- The commands don't start the app (no web server, no Wolverine) and, in Production, don't need `codegen write`.
+- The commands don't check for an earlier import: run each once, or `import-reset --yes` and start over.
+
+Against production (Supabase session pooler, port 5432):
+
+```bash
+export ASPNETCORE_ENVIRONMENT=Production
+export ConnectionStrings__Default="Host=aws-0-<region>.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.<project-ref>;Password=...;SSL Mode=Require"
+dotnet run --project backend --no-launch-profile -- import-groups --dry-run
+dotnet run --project backend --no-launch-profile -- import-groups
+dotnet run --project backend --no-launch-profile -- import-memberships --dry-run
+dotnet run --project backend --no-launch-profile -- import-memberships
 ```
 
 ## API client

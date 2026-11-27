@@ -2,9 +2,12 @@ using System.Diagnostics;
 using System.Reflection;
 using Backend.CoreApi;
 using Backend.Data;
+using Backend.Groups;
+using Backend.LegacyImport;
 using JasperFx;
 using JasperFx.CodeGeneration;
 using JasperFx.Resources;
+using JasperFx.Events.Projections;
 using Marten;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -53,6 +56,12 @@ builder.Services.AddMarten(options =>
         // session, so its inline snapshot is updated without loading it again. Never mutate the fetched aggregate
         // yourself: only append events.
         options.Projections.UseIdentityMapForAggregates = true;
+
+        // Groups: one stream per group (memberships are events on it), projected inline
+        options.Projections.Add<GroupViewProjection>(ProjectionLifecycle.Inline);
+        options.Projections.Add<MembershipViewProjection>(ProjectionLifecycle.Inline);
+        options.Schema.For<GroupView>().Index(x => x.TenantId).Index(x => x.ParentId);
+        options.Schema.For<MembershipView>().Index(x => x.TenantId).Index(x => x.GroupId).Index(x => x.PersonUid);
 
         // Stored with each event: the correlation and causation IDs and headers Wolverine propagates, so the
         // request or message that produced an event can be traced from the event store
@@ -105,7 +114,10 @@ builder.UseWolverine(options =>
 // applies it once at startup. Everywhere else (Development, Testing, build-time OpenAPI and `codegen write` itself,
 // which run as Production) code is generated at runtime and schema objects are created/updated on demand.
 var isWritingCode = args.FirstOrDefault() == "codegen";
-var usesPreGeneratedCode = builder.Environment.IsProduction() && !isGeneratingOpenApi && !isWritingCode;
+// The one-off legacy import commands (LegacyImport/) run from a checkout against production, without `codegen write`
+var isLegacyImport = LegacyImporter.CommandNames.Contains(args.FirstOrDefault() ?? "");
+var usesPreGeneratedCode = builder.Environment.IsProduction() && !isGeneratingOpenApi && !isWritingCode &&
+                           !isLegacyImport;
 builder.Services.CritterStackDefaults(defaults =>
 {
     defaults.Production.GeneratedCodeMode = usesPreGeneratedCode ? TypeLoadMode.Static : TypeLoadMode.Dynamic;
@@ -160,7 +172,8 @@ app.MapWolverineEndpoints(options =>
     options.MapMartenConcurrencyFailuresToConflict();
 });
 
-// JasperFx command line: `run` (the default) starts the app; `codegen write` generates the code production loads
+// JasperFx command line: `run` (the default) starts the app; `codegen write` generates the code production loads;
+// import-groups, import-memberships and import-reset import the Flask backend's tables (LegacyImport/)
 return await app.RunJasperFxCommands(args);
 
 record UpStatus(string Status);
