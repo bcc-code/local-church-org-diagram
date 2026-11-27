@@ -37,11 +37,11 @@ public class SearchRankingTests
     [InlineData("   ")]
     [InlineData(" ab ")]
     public void Validator_RejectsShortOrMissingQueries(string? q) =>
-        new SearchPersons.Validator().Validate(new SearchPersons(q)).IsValid.ShouldBeFalse();
+        new PersonSearchQuery.Validator().Validate(new PersonSearchQuery(q)).IsValid.ShouldBeFalse();
 
     [Fact]
     public void Validator_AcceptsThreeCharacters() =>
-        new SearchPersons.Validator().Validate(new SearchPersons(" abc ")).IsValid.ShouldBeTrue();
+        new PersonSearchQuery.Validator().Validate(new PersonSearchQuery(" abc ")).IsValid.ShouldBeTrue();
 }
 
 /// <summary>Through HTTP, without a database: search only calls the Core API.</summary>
@@ -56,13 +56,13 @@ public class PersonSearchEndpointTests
         };
         await using var factory = new BackendFactory().WithStubbedCoreApi(stub);
 
-        var results = await factory.CreateClient(TestUser.Member(churchId: null))
+        var results = await factory.CreateClient(TestUser.Member())
             .GetFromJsonAsync<List<PersonSearchResult>>("/api/persons/search?q=%20hans%20");
 
-        results!.Count.ShouldBe(PersonSearchEndpoint.Results);
+        results!.Count.ShouldBe(Endpoints.Results);
         var query = stub.PersonQueries.ShouldHaveSingleItem().Query;
         query["search"].ShouldBe("hans");
-        query["limit"].ShouldBe($"{PersonSearchEndpoint.Candidates}");
+        query["limit"].ShouldBe($"{Endpoints.Candidates}");
     }
 
     [Theory]
@@ -72,7 +72,7 @@ public class PersonSearchEndpointTests
     {
         await using var factory = new BackendFactory();
 
-        var response = await factory.CreateClient(TestUser.Member(churchId: null)).GetAsync(url);
+        var response = await factory.CreateClient(TestUser.Member()).GetAsync(url);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }

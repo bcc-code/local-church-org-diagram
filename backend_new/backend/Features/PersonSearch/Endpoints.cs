@@ -7,11 +7,11 @@ namespace Backend.Features.PersonSearch;
 
 /// <summary>Persons by name, for adding members (not limited to the user's church).</summary>
 /// <param name="Q">At least <see cref="MinimumLength"/> characters, not counting surrounding whitespace.</param>
-public record SearchPersons([FromQuery(Name = "q")] string? Q)
+public record PersonSearchQuery([FromQuery(Name = "q")] string? Q)
 {
     public const int MinimumLength = 3;
 
-    public class Validator : AbstractValidator<SearchPersons>
+    public class Validator : AbstractValidator<PersonSearchQuery>
     {
         public Validator() =>
             RuleFor(x => x.Q).Cascade(CascadeMode.Stop)
@@ -25,7 +25,7 @@ public record SearchPersons([FromQuery(Name = "q")] string? Q)
 
 public record PersonSearchResult(Guid PersonUid, string Name, string? ProfilePicture);
 
-public static class PersonSearchEndpoint
+public static class Endpoints
 {
     /// <summary>Core API matches ranked by <see cref="SearchRanking"/>.</summary>
     public const int Candidates = 50;
@@ -34,7 +34,7 @@ public static class PersonSearchEndpoint
 
     [WolverineGet("/persons/search", OperationId = "SearchPersons")]
     public static async Task<IReadOnlyList<PersonSearchResult>> Get(
-        [FromQuery] SearchPersons query, IPersonDirectory persons, CancellationToken ct)
+        [FromQuery] PersonSearchQuery query, IPersonDirectory persons, CancellationToken ct)
     {
         var text = query.Q!.Trim();
         var found = await persons.SearchAsync(text, Candidates, ct);

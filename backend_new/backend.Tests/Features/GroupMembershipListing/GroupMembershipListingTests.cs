@@ -49,13 +49,13 @@ public class GroupMembershipListingTests
     [Fact]
     public void ToMembers_JoinsPersonDetailsAndKeepsUnknownPersons()
     {
-        var members = GroupMembershipListingEndpoint.ToMembers(
+        var members = Endpoints.ToMembers(
             [Membership(Unknown, null), Membership(Known, "Leder", "https://x")],
             [new PersonSummary(Known, "Kari Nordmann", "https://pic")]);
 
         members.ShouldBe([
             new GroupMember(Known, "Kari Nordmann", "https://pic", "Leder", "https://x"),
-            new GroupMember(Unknown, GroupMembershipListingEndpoint.UnknownPersonName, null, null, null),
+            new GroupMember(Unknown, Endpoints.UnknownPersonName, null, null, null),
         ]);
     }
 }

@@ -18,7 +18,7 @@ public class MembershipTreeTests
     [Fact]
     public void ToNodes_OrdersBySortOrderUnsetLastThenCreation()
     {
-        var nodes = MembershipTreeEndpoint.ToNodes([
+        var nodes = Endpoints.ToNodes([
             Group("unset", null, Day1),
             Group("1 later", 1, Day1.AddDays(1)),
             Group("1 earlier", 1, Day1),
@@ -34,7 +34,7 @@ public class MembershipTreeTests
         var parent = Guid.NewGuid();
         var view = new GroupView(Guid.NewGuid(), "Styre", parent, 7, 3, Day1, MemberCount: 4);
 
-        MembershipTreeEndpoint.ToNodes([view]).ShouldHaveSingleItem()
+        Endpoints.ToNodes([view]).ShouldHaveSingleItem()
             .ShouldBe(new GroupNode(view.Id, "Styre", parent, 3, 4));
     }
 

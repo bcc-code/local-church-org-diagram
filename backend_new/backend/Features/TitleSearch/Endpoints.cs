@@ -16,17 +16,17 @@ public record TitleHolder(Guid PersonUid, string Name, string? ProfilePicture);
 /// The titles in use in the user's church, and who holds one. Titles are compared trimmed: memberships store them as
 /// entered.
 /// </summary>
-public static class TitleSearchEndpoint
+public static class Endpoints
 {
     // Runs before both endpoints
     public static Task<ProblemDetails> Before(ClaimsPrincipal user, IAuthorizationService authorization) =>
-        authorization.AuthorizeOwnChurchAsync(user);
+        authorization.AuthorizeTenantAsync(user, user.GetChurchId()!.Value, AuthPolicies.TenantReader);
 
     [WolverineGet("/titles", OperationId = "ListTitles")]
     public static async Task<IReadOnlyList<string>> ListTitles(
         ClaimsPrincipal user, IQuerySession session, CancellationToken ct)
     {
-        var tenantId = user.OwnChurchId();
+        var tenantId = user.GetChurchId()!.Value;
         var titles = await session.Query<MembershipView>()
             .Where(m => m.TenantId == tenantId && m.Title != null)
             .Select(m => m.Title!)
@@ -39,7 +39,7 @@ public static class TitleSearchEndpoint
     public static async Task<IReadOnlyList<TitleHolder>> ListTitleHolders(
         string title, ClaimsPrincipal user, IQuerySession session, IPersonDirectory persons, CancellationToken ct)
     {
-        var tenantId = user.OwnChurchId();
+        var tenantId = user.GetChurchId()!.Value;
         var trimmed = title.Trim();
         if (trimmed.Length == 0)
             return [];

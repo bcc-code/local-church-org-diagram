@@ -18,7 +18,7 @@ public class PersonMembershipListingTests
         var earlier = new GroupView(Guid.NewGuid(), "Earlier", null, 7, 5, Day1, MemberCount: 1);
         var theirs = new GroupView(Guid.NewGuid(), "Theirs", null, 8, 0, Day1);
 
-        PersonMembershipListingEndpoint.ToPersonGroups([later, theirs, earlier], 7).ShouldBe([
+        Endpoints.ToPersonGroups([later, theirs, earlier], 7).ShouldBe([
             new PersonGroup(earlier.Id, "Earlier", 1),
             new PersonGroup(later.Id, "Later", 2),
         ]);

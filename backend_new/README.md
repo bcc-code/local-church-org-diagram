@@ -19,7 +19,7 @@ dotnet format                   # CI runs it with --verify-no-changes
   - `GET /up` – liveness, no dependencies
   - `GET /health` – readiness: `Healthy` (200) when Postgres and the BCC Core API answer, `Unhealthy` (503) otherwise
   - `Auth/` – session cookie and authorization policies (`ChurchMember`), BCC sign-on claims; see [Authentication](#authentication)
-  - `Features/<Feature>/` – the API, one folder per feature (endpoints, their response records and pure logic); see
+  - `Features/<Feature>/` – the API, one folder per feature: its `Endpoints` class, response records and pure logic; see
     [API](#api)
   - `CoreApi/` – BCC Core API client (`BccCode.Core.Api.Client`): `IPersonDirectory` gets person details
     (UID, display name, profile picture) by UID or by free-text search
@@ -147,8 +147,8 @@ every request (`RoleClaimsTransformation`), so changes apply on the next request
 
 A row has a required `Name` (who it is for) and is unique per person and tenant (one global row per person).
 
-Policies (`Auth/AuthPolicies`). Every policy, the default one included, requires a signed-in BCC member (person UID and
-`hasMembership`). Wolverine.Http endpoints require the default policy unless they say otherwise
+Policies (`Auth/AuthPolicies`). Every policy, the default one included, requires a signed-in BCC member (person UID,
+`hasMembership` and a `churchId`: a person without a church is refused like one without membership). Wolverine.Http endpoints require the default policy unless they say otherwise
 (`RequireAuthorizeOnAll`; `[AllowAnonymous]`, `[Authorize(Policy = …)]`).
 
 - default (`[Authorize]`, every `/api` endpoint) – a signed-in member
@@ -197,10 +197,9 @@ table's constraints.
 ## API
 
 Wolverine.Http endpoints under `/api`, one folder per feature in `backend/Features/`. They read the projections and need a
-signed-in member (the default policy). All but the search are scoped to the user's church and check it with
-`TenantReader` in `Before` (`AuthorizeOwnChurchAsync`, 403 without a church; see
-[Authentication and authorization](#authentication-and-authorization)); the group members endpoint checks the group's
-own tenant, so its admins can read it too. Groups and persons are identified by Guid (group stream ID, person UID).
+signed-in member (the default policy). All but the search are scoped to the user's church (`GetChurchId()`) and check
+it with `TenantReader` in `Before` (see [Authentication and authorization](#authentication-and-authorization)); the group
+members endpoint checks the group's own tenant, so its admins can read it too. Groups and persons are identified by Guid (group stream ID, person UID).
 
 | Feature                   | Endpoint                               | Operation ID       | Reads                                   |
 | ------------------------- | -------------------------------------- | ------------------ | --------------------------------------- |

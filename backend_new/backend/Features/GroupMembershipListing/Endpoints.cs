@@ -13,7 +13,7 @@ namespace Backend.Features.GroupMembershipListing;
 /// <param name="Name">The Core API display name, or "?" when the Core API doesn't know the person.</param>
 public record GroupMember(Guid PersonUid, string Name, string? ProfilePicture, string? Title, string? Link);
 
-public static class GroupMembershipListingEndpoint
+public static class Endpoints
 {
     public const string UnknownPersonName = "?";
 

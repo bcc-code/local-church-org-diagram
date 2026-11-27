@@ -11,16 +11,16 @@ namespace Backend.Features.PersonMembershipListing;
 /// <summary>A group the person is a member of.</summary>
 public record PersonGroup(Guid Id, string Name, int MemberCount);
 
-public static class PersonMembershipListingEndpoint
+public static class Endpoints
 {
     public static Task<ProblemDetails> Before(ClaimsPrincipal user, IAuthorizationService authorization) =>
-        authorization.AuthorizeOwnChurchAsync(user);
+        authorization.AuthorizeTenantAsync(user, user.GetChurchId()!.Value, AuthPolicies.TenantReader);
 
     [WolverineGet("/persons/{personUid}/groups", OperationId = "ListPersonGroups")]
     public static async Task<IReadOnlyList<PersonGroup>> Get(
         Guid personUid, ClaimsPrincipal user, IQuerySession session, CancellationToken ct)
     {
-        var tenantId = user.OwnChurchId();
+        var tenantId = user.GetChurchId()!.Value;
         var groupIds = await session.Query<MembershipView>()
             .Where(m => m.PersonUid == personUid && m.TenantId == tenantId)
             .Select(m => m.GroupId)

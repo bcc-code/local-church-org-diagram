@@ -11,16 +11,16 @@ namespace Backend.Features.MembershipTree;
 /// <summary>A group in the org chart; the client builds the tree from <see cref="ParentId"/>.</summary>
 public record GroupNode(Guid Id, string Name, Guid? ParentId, int? SortOrder, int MemberCount);
 
-public static class MembershipTreeEndpoint
+public static class Endpoints
 {
     public static Task<ProblemDetails> Before(ClaimsPrincipal user, IAuthorizationService authorization) =>
-        authorization.AuthorizeOwnChurchAsync(user);
+        authorization.AuthorizeTenantAsync(user, user.GetChurchId()!.Value, AuthPolicies.TenantReader);
 
     [WolverineGet("/groups", OperationId = "ListGroups")]
     public static async Task<IReadOnlyList<GroupNode>> Get(
         ClaimsPrincipal user, IQuerySession session, CancellationToken ct)
     {
-        var tenantId = user.OwnChurchId();
+        var tenantId = user.GetChurchId()!.Value;
         var groups = await session.Query<GroupView>().Where(g => g.TenantId == tenantId).ToListAsync(ct);
         return ToNodes(groups);
     }

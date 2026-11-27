@@ -13,13 +13,13 @@ public class TitleSearchTests
 {
     [Fact]
     public void NormalizeTitles_TrimsDropsBlanksAndDuplicatesAndSorts() =>
-        TitleSearchEndpoint.NormalizeTitles(["Leder", " Leder ", "", "   ", null, "Ansvarlig", "Økonomi", "kasserer"])
+        Endpoints.NormalizeTitles(["Leder", " Leder ", "", "   ", null, "Ansvarlig", "Økonomi", "kasserer"])
             .ShouldBe(["Ansvarlig", "Leder", "kasserer", "Økonomi"]);
 
     [Fact]
     public void ToHolders_SortsByNameCaseInsensitive()
     {
-        var holders = TitleSearchEndpoint.ToHolders([
+        var holders = Endpoints.ToHolders([
             new PersonSummary(Guid.NewGuid(), "ola", null),
             new PersonSummary(Guid.NewGuid(), "Kari", "https://pic"),
         ]);

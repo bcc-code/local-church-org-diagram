@@ -44,6 +44,13 @@ public class AuthPoliciesTests
     }
 
     [Fact]
+    public async Task Default_requires_a_church()
+    {
+        (await Passes(TestUser.Member(churchId: null), null)).ShouldBeFalse();
+        (await Passes(TestUser.Global(churchId: null), AuthPolicies.GlobalAdmin)).ShouldBeFalse();
+    }
+
+    [Fact]
     public async Task Default_requires_a_person_uid()
     {
         var principal = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(
