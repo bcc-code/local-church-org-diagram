@@ -8,7 +8,7 @@ using Backend.Tests.CoreApi;
 using Backend.Tests.Database;
 using Shouldly;
 
-namespace Backend.Tests.Features.GroupMembershipListing;
+namespace Backend.Tests.Features;
 
 public class MemberOrderingTests
 {

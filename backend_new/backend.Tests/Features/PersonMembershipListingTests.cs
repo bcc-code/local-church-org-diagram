@@ -5,7 +5,7 @@ using Backend.Tests.Auth;
 using Backend.Tests.Database;
 using Shouldly;
 
-namespace Backend.Tests.Features.PersonMembershipListing;
+namespace Backend.Tests.Features;
 
 public class PersonMembershipListingTests
 {

@@ -215,8 +215,9 @@ They replace the Flask backend's GET endpoints (`/api/tree`, `/api/persons?group
 REST routes, so the frontend moves over to the generated client in one go once the write endpoints are ported too.
 Demo mode (`DEMO_MODE`) isn't ported.
 
-Tests mirror the folders in `backend.Tests/Features/`: unit tests of the pure methods, and database tests calling the
-endpoints over HTTP (see [Database tests](#database-tests)), seeded with `Seed` under a tenant of their own.
+Tests: one file per feature, `backend.Tests/Features/<Feature>Tests.cs` (namespace `Backend.Tests.Features`), with unit
+tests of the pure methods and database tests calling the endpoints over HTTP (see [Database tests](#database-tests)),
+seeded with `Seed` under a tenant of their own.
 
 ## API client
 

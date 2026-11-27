@@ -6,7 +6,7 @@ using Backend.Tests.Auth;
 using Backend.Tests.Database;
 using Shouldly;
 
-namespace Backend.Tests.Features.MembershipTree;
+namespace Backend.Tests.Features;
 
 public class MembershipTreeTests
 {

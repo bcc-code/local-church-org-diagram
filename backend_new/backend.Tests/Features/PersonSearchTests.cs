@@ -6,7 +6,7 @@ using Backend.Tests.Auth;
 using Backend.Tests.CoreApi;
 using Shouldly;
 
-namespace Backend.Tests.Features.PersonSearch;
+namespace Backend.Tests.Features;
 
 public class SearchRankingTests
 {
