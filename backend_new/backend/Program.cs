@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using Backend.Admins;
+using Backend.Api;
 using Backend.Auth;
 using Backend.CoreApi;
 using Backend.Data;
@@ -36,7 +37,12 @@ var isGeneratingOpenApi = Assembly.GetEntryAssembly()?.GetName().Name == "GetDoc
 if (isGeneratingOpenApi)
     builder.Configuration["ConnectionStrings:Default"] ??= "Host=localhost";
 
-builder.Services.AddOpenApi();
+// /api errors are documented as they're written (Api/ApiConventions)
+builder.Services.AddOpenApi(options =>
+{
+    options.AddOperationTransformer<ApiErrorsOpenApi>();
+    options.AddDocumentTransformer<ApiErrorsOpenApi>();
+});
 
 // One NpgsqlDataSource (connection string "Default") shared by Marten and EF Core, with a "/health" check and tracing.
 // Production connects through Supabase's session pooler (port 5432), not the transaction pooler (6543): Marten and
@@ -155,6 +161,8 @@ else
 }
 
 builder.Services.AddWolverineHttp();
+// /api answers like the Flask backend: snake_case JSON and {"error": "..."} bodies (Api/)
+builder.Services.AddApiConventions();
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing.AddSource("Wolverine", "Marten"))
@@ -181,6 +189,8 @@ app.UseAuthorization();
 
 // GET /login, /logout, and the sign-in callback /authorize
 app.MapBccSignOn();
+// GET / and /{tenantId}/admin: the SPA, for signed-in users
+app.MapAppPages();
 
 // Liveness: no dependencies
 app.MapGet("/up", () => TypedResults.Ok(new UpStatus("OK")))

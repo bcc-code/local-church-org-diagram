@@ -1,8 +1,8 @@
 using System.Net;
-using System.Net.Http.Json;
 using Backend.CoreApi;
 using Backend.Features.GroupMembershipListing;
 using Backend.Groups;
+using Backend.Tests.Api;
 using Backend.Tests.Auth;
 using Backend.Tests.CoreApi;
 using Backend.Tests.Database;
@@ -75,7 +75,7 @@ public class GroupMembershipListingDatabaseTests(DatabaseBackendFactory factory)
         factory.CoreApi.Persons = _ => [CoreApiStub.Person(leader, "Kari"), CoreApiStub.Person(member, "Ola", "https://pic")];
 
         var members = await factory.CreateClient(TestUser.Member(tenant))
-            .GetFromJsonAsync<List<GroupMember>>($"/api/groups/{group.GroupId}/members");
+            .GetApiAsync<List<GroupMember>>($"/api/persons?group_id={group.GroupId}");
 
         members.ShouldBe([
             new GroupMember(leader, "Kari", null, "Leder", "https://x"),
@@ -93,39 +93,44 @@ public class GroupMembershipListingDatabaseTests(DatabaseBackendFactory factory)
         var queriesBefore = factory.CoreApi.PersonQueries.Count();
 
         var members = await factory.CreateClient(TestUser.Member(tenant))
-            .GetFromJsonAsync<List<GroupMember>>($"/api/groups/{group.GroupId}/members");
+            .GetApiAsync<List<GroupMember>>($"/api/persons?group_id={group.GroupId}");
 
         members.ShouldBeEmpty();
         factory.CoreApi.PersonQueries.Count().ShouldBe(queriesBefore);
     }
 
+    // As with the Flask backend, which filters memberships by the user's church
     [DatabaseFact]
-    public async Task AnotherChurchsGroup_IsForbidden()
+    public async Task AnotherChurchsGroup_HasNoMembers()
     {
         var group = Seed.Group(Seed.NewTenant(), "Theirs");
-        await factory.StoreAsync(group);
+        await factory.StoreAsync(group, Seed.Member(group, Guid.NewGuid()));
 
-        var response = await factory.CreateClient(TestUser.Member(Seed.NewTenant()))
-            .GetAsync($"/api/groups/{group.GroupId}/members");
-
-        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await factory.CreateClient(TestUser.Member(Seed.NewTenant()))
+                .GetApiAsync<List<GroupMember>>($"/api/persons?group_id={group.GroupId}"))
+            .ShouldBeEmpty();
     }
 
     [DatabaseFact]
-    public async Task LocalAdminOfTheGroupsTenant_ReadsItFromAnotherChurch()
+    public async Task UnknownGroup_HasNoMembers() =>
+        (await factory.CreateClient(TestUser.Member(Seed.NewTenant()))
+            .GetApiAsync<List<GroupMember>>($"/api/persons?group_id={Guid.NewGuid()}"))
+        .ShouldBeEmpty();
+
+    [DatabaseTheory]
+    [InlineData("/api/persons", "No group_id provided")]
+    [InlineData("/api/persons?group_id=", "No group_id provided")]
+    [InlineData("/api/persons?group_id=12", "Invalid group_id")]
+    public async Task RejectsAMissingOrInvalidGroupId(string url, string error)
     {
-        var tenant = Seed.NewTenant();
-        var group = Seed.Group(tenant, "Styre");
-        await factory.StoreAsync(group);
+        var response = await factory.CreateClient(TestUser.Member(Seed.NewTenant())).GetAsync(url);
 
-        var response = await factory.CreateClient(TestUser.LocalAdmin(tenant, churchId: Seed.NewTenant()))
-            .GetAsync($"/api/groups/{group.GroupId}/members");
-
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        (await response.ReadJsonAsync()).ShouldBeJson(new { error });
     }
 
     [DatabaseFact]
-    public async Task UnknownGroup_IsNotFound() =>
-        (await factory.CreateClient(TestUser.Member(Seed.NewTenant())).GetAsync($"/api/groups/{Guid.NewGuid()}/members"))
-            .StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    public async Task RequiresSignIn() =>
+        (await factory.CreateClient().GetAsync($"/api/persons?group_id={Guid.NewGuid()}")).StatusCode
+            .ShouldBe(HttpStatusCode.Unauthorized);
 }

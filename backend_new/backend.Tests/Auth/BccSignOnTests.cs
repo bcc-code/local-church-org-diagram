@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Web;
 using Backend.Auth;
+using Backend.Tests.Api;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Shouldly;
 
@@ -74,7 +75,7 @@ public class BccSignOnTests(BackendFactory factory) : IClassFixture<BackendFacto
         var response = await factory.CreateClient(member).GetAsync("/api/test/auth/me");
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        (await response.Content.ReadFromJsonAsync<WhoAmI>())!.PersonUid.ShouldBe(member.PersonUid);
+        (await response.Content.ReadApiAsync<WhoAmI>())!.PersonUid.ShouldBe(member.PersonUid);
         (await factory.CreateClient(TestUser.NonMember()).GetAsync("/api/test/auth/me"))
             .StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }

@@ -265,21 +265,35 @@ dotnet run --project backend --no-launch-profile -- admins add <UID> --tenant <c
 
 Wolverine.Http endpoints under `/api`, one folder per feature in `backend/Features/`. They read the projections and need a
 signed-in member (the default policy). All but the search are scoped to the user's church (`GetChurchId()`) and check
-it with `TenantReader` in `Before` (see [Authentication and authorization](#authentication-and-authorization)); the group
-members endpoint checks the group's own tenant, so its admins can read it too. Groups and persons are identified by Guid (group stream ID, person UID).
+it with `TenantReader` in `Before` (see [Authentication and authorization](#authentication-and-authorization)). Groups
+and persons are identified by Guid (group stream ID, person UID).
 
 | Feature                   | Endpoint                               | Operation ID       | Reads                                   |
 | ------------------------- | -------------------------------------- | ------------------ | --------------------------------------- |
-| `MembershipTree`          | `GET /api/groups`                      | `ListGroups`       | `GroupView`                             |
-| `GroupMembershipListing`  | `GET /api/groups/{id}/members`         | `ListGroupMembers` | `GroupView`, `MembershipView`, Core API |
+| `MembershipTree`          | `GET /api/tree`                        | `ListGroups`       | `GroupView`                             |
+| `GroupMembershipListing`  | `GET /api/persons?group_id=`           | `ListGroupMembers` | `MembershipView`, Core API              |
 | `TitleSearch`             | `GET /api/titles`                      | `ListTitles`       | `MembershipView`                        |
 | `TitleSearch`             | `GET /api/titles/{title}/persons`      | `ListTitleHolders` | `MembershipView`, Core API              |
 | `PersonSearch`            | `GET /api/persons/search?q=`           | `SearchPersons`    | Core API (any church)                   |
 | `PersonMembershipListing` | `GET /api/persons/{personUid}/groups`  | `ListPersonGroups` | `MembershipView`, `GroupView`           |
 
-They replace the Flask backend's GET endpoints (`/api/tree`, `/api/persons?group_id=`, `/api/titles…`,
-`/api/persons/search`, `/api/persons/<uid>/groups`) with the same data and ordering, but camelCase JSON, Guid IDs and
-REST routes, so the frontend moves over to the generated client in one go once the write endpoints are ported too.
+They are drop-in replacements for the Flask backend's GET endpoints (`backend/api.py`), so the frontend works against
+either: the same routes, data and ordering, and the same JSON (`Api/ApiConventions`):
+
+- snake_case property names, from one global naming policy (`ConfigureHttpJsonOptions`), which the OpenAPI document and
+  the generated client follow too. Name record properties so the policy gives Flask's names (`GroupNode.GroupId` →
+  `group_id`, `Label` → `label`), rather than `[JsonPropertyName]` on each.
+- errors as `{"error": "..."}` (`ApiError`): a problem an endpoint returns (`ProblemDetails` from `Before`, FluentValidation
+  failures: the first message) is written in that shape by an `IProblemDetailsWriter` for `/api`, and the authorization
+  middleware answers 401 (`Authentication required`, never a redirect) and 403 with it. `ApiErrorsOpenApi` documents it.
+- a group of another church, or an unknown one, has no members (`[]`), as Flask's tenant-filtered query.
+
+Group IDs are Guid strings where Flask had integers: the frontend only compares them and sends them back.
+`backend.Tests/Api/FlaskContractTests` pins the exact JSON of each endpoint.
+
+The pages `GET /` and `GET /{tenantId}/admin` (`Api/AppPages`) serve the SPA's `index.html` from the web root to
+signed-in members, as Flask's `index()`: signed-out users are redirected to `/login?returnUrl=<path>`, and
+`/{tenantId}/admin` answers 403 `Unauthorized` unless `tenantId` is the user's church.
 Demo mode (`DEMO_MODE`) isn't ported.
 
 Tests: one file per feature, `backend.Tests/Features/<Feature>Tests.cs` (namespace `Backend.Tests.Features`), with unit

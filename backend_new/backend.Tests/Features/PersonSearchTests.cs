@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Backend.CoreApi;
 using Backend.Features.PersonSearch;
+using Backend.Tests.Api;
 using Backend.Tests.Auth;
 using Backend.Tests.CoreApi;
 using Shouldly;
@@ -57,7 +58,7 @@ public class PersonSearchEndpointTests
         await using var factory = new BackendFactory().WithStubbedCoreApi(stub);
 
         var results = await factory.CreateClient(TestUser.Member())
-            .GetFromJsonAsync<List<PersonSearchResult>>("/api/persons/search?q=%20hans%20");
+            .GetApiAsync<List<PersonSearchResult>>("/api/persons/search?q=%20hans%20");
 
         results!.Count.ShouldBe(Endpoints.Results);
         var query = stub.PersonQueries.ShouldHaveSingleItem().Query;
