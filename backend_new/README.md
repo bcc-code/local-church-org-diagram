@@ -28,6 +28,7 @@ dotnet format                   # CI runs it with --verify-no-changes
   - `Data/` – EF Core `AppDbContext` (`Admins`, Data Protection keys) and its migrations
   - `Groups/` – group events and projections (`GroupView`, `MembershipView`), see [Groups and memberships](#groups-and-memberships)
   - `LegacyImport/` – CLI commands importing the Flask backend's tables
+  - `Admins/` – the `admins` CLI command managing the Admins table, see [Admins](#admins)
 - `backend.Tests/` – xUnit + `WebApplicationFactory` tests; `CoreApiStub` stands in for login.bcc.no and the Core API
 
 ## Persistence and messaging
@@ -175,12 +176,7 @@ Through Vite (`:5173`), the callback URL is `http://localhost:5173/authorize`, w
 
 ### Adding admins
 
-Until the `admins` CLI commands exist, insert rows by hand (person UIDs from the Core API):
-
-```sql
-INSERT INTO "Admins" ("PersonUid", "Name", "TenantId") VALUES ('<person uid>', '<name>', 51);   -- Local Admin of 51
-INSERT INTO "Admins" ("PersonUid", "Name", "TenantId") VALUES ('<person uid>', '<name>', NULL); -- Global Admin
-```
+With the `admins` command, see [Admins](#admins).
 
 ### Tests
 
@@ -193,6 +189,77 @@ var client = factory.CreateClient(TestUser.Member(churchId: 51));     // also No
 
 Policy and handler unit tests use `TestUser.Principal()`. `Database/AdminsTests` cover the claims transformation and the
 table's constraints.
+
+## Admins
+
+The EF Core `Admins` table (`Data/Admin.cs`) holds one row per admin assignment: a person (BCC person UID) is a
+**Global Admin** (`TenantId` null, every tenant) or a **Local Admin** of a tenant (a BCC church ID, the groups'
+`tenant_id`), and can have both. The `admins` command manages it. It's built for agents running it on someone's behalf
+(see the `manage-admins` skill in `.agents/skills/`): it never prompts, `--json` prints one JSON document on stdout, add
+and remove are idempotent, and it exits 0 on success (no-ops included) and 1 on any error.
+
+```bash
+dotnet run --project backend -- admins search <name or UID> [--limit <n>] [--json]
+dotnet run --project backend -- admins list [<person UID>] [--tenant <id>] [--global] [--json]
+dotnet run --project backend -- admins add <person UID> (--tenant <id> | --global) [--name <name>] [--dry-run] [--json]
+dotnet run --project backend -- admins remove <person UID> (--tenant <id> | --global | --all) [--yes] [--dry-run] \
+                                              [--allow-last-global] [--json]
+```
+
+- `search` – persons in the BCC Core API matching a name (free text, at most `--limit`, default 10), or the person with
+  that UID, each with their admin rows. Resolve a name to a UID with it before `add`.
+- `list` – admin rows, Global Admins first, then by tenant and name. With a UID, only that person's rows. `--tenant` and
+  `--global` each select their rows; both together select both: everyone who can administer that tenant.
+- `add` – adds the row, named after the person's Core API display name unless `--name` is given (then the Core API isn't
+  called). An existing row is left as it is, name included (`unchanged`). Warns (`tenant_has_no_groups`) when no group
+  has the tenant, which usually means a wrong church ID.
+- `remove` – removes the row of one scope, or every row of the person (`--all`). Without `--yes` it removes nothing and
+  fails with `confirmation_required`, listing the rows it would remove. It refuses to remove the only Global Admin
+  (`last_global_admin`) without `--allow-last-global`. A row that isn't there is `not_found`, exit 0.
+- `--dry-run` (add, remove) reports what would change and changes nothing.
+- A flag that doesn't apply to the action (e.g. `add --yes`) is an error, not ignored.
+
+With `--json`, stdout carries only the result; logs, warnings and errors also go to stderr:
+
+```json
+{
+  "status": "added",
+  "admins": [
+    {
+      "id": 7,
+      "personUid": "1f0c…",
+      "name": "Kari Nordmann",
+      "scope": "local",
+      "tenantId": 4512,
+      "createdAt": "2026-11-27T12:00:00+00:00"
+    }
+  ],
+  "warnings": [{ "code": "tenant_has_no_groups", "message": "…" }]
+}
+```
+
+- `status`: `ok` (list, search), `added` / `unchanged` / `would_add` (add), `removed` / `not_found` / `would_remove`
+  (remove), or `error`.
+- `admins` (list, add, remove) – `scope` is `global` (`tenantId` null) or `local`; a dry run's new row has `id` and
+  `createdAt` null. `persons` (search) – `uid`, `displayName` and `admins`.
+- `error` (with `status: error`) – `code` is one of `invalid_input`, `person_not_found`, `person_has_no_name`,
+  `core_api_not_configured`, `core_api_error`, `migrations_pending`, `last_global_admin`, `confirmation_required`,
+  `unexpected`, and `message` says what to do.
+
+Like the import commands, `admins` doesn't start the app and, in Production, doesn't need `codegen write`. It needs
+`ConnectionStrings:Default`, and the Core API credentials for `search` and for `add` without `--name`. It never migrates
+the database: with migrations pending (the app applies them at startup) it fails with `migrations_pending`.
+
+Against production (Supabase session pooler, port 5432):
+
+```bash
+export ASPNETCORE_ENVIRONMENT=Production
+export ConnectionStrings__Default="Host=aws-0-<region>.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.<project-ref>;Password=...;SSL Mode=Require"
+export CoreApi__ClientId=... CoreApi__ClientSecret=...
+dotnet run --project backend --no-launch-profile -- admins search "Kari Nordmann" --json
+dotnet run --project backend --no-launch-profile -- admins add <UID> --tenant <church ID> --dry-run --json
+dotnet run --project backend --no-launch-profile -- admins add <UID> --tenant <church ID> --json
+```
 
 ## API
 
