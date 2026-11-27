@@ -125,6 +125,7 @@ def test_uuid_columns_load_as_str(db_app: Flask):
         with db.transaction() as conn, conn.cursor() as cur:
             cur.execute("SELECT %s::uuid AS uid", [uid])
             row = cur.fetchone()
+    assert row is not None
     assert row == {"uid": uid}
     assert type(row["uid"]) is str
 
