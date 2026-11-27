@@ -122,8 +122,12 @@ public sealed class TestUserAuthentication(IOptionsMonitor<AuthenticationSchemeO
 
 public static class TestAuthClientExtensions
 {
-    /// <summary>A client whose requests are signed in as the user (see <see cref="TestUserAuthentication"/>).</summary>
-    public static HttpClient CreateClient(this BackendFactory factory, TestUser user)
+    /// <summary>
+    /// A client whose requests are signed in as the user (see <see cref="TestUserAuthentication"/>), for any factory
+    /// that registers it (<see cref="BackendFactory"/>, <see cref="Database.DatabaseBackendFactory"/>).
+    /// </summary>
+    public static HttpClient CreateClient(
+        this Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> factory, TestUser user)
     {
         var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions
         {

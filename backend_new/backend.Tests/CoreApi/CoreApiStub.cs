@@ -85,16 +85,24 @@ public static class CoreApiTestHost
     /// </summary>
     public static WebApplicationFactory<Program> WithCoreApi(
         this WebApplicationFactory<Program> factory, CoreApiStub? stub = null, string clientId = "", string secret = "") =>
-        factory.WithWebHostBuilder(builder =>
-        {
-            builder.UseSetting($"{CoreApiSettings.Section}:ClientId", clientId);
-            builder.UseSetting($"{CoreApiSettings.Section}:ClientSecret", secret);
-            builder.UseSetting(CoreApiSettings.LegacyClientIdVariable, "");
-            builder.UseSetting(CoreApiSettings.LegacySecretVariable, "");
-            if (stub is not null)
-                builder.ConfigureTestServices(services => services.ConfigureHttpClientDefaults(
-                    http => http.ConfigurePrimaryHttpMessageHandler(() => stub)));
-        });
+        factory.WithWebHostBuilder(builder => builder.UseCoreApi(stub, clientId, secret));
+
+    /// <summary><see cref="WithCoreApi"/> for a factory's own <c>ConfigureWebHost</c>.</summary>
+    public static IWebHostBuilder UseCoreApi(
+        this IWebHostBuilder builder, CoreApiStub? stub = null, string clientId = "", string secret = "")
+    {
+        builder.UseSetting($"{CoreApiSettings.Section}:ClientId", clientId);
+        builder.UseSetting($"{CoreApiSettings.Section}:ClientSecret", secret);
+        builder.UseSetting(CoreApiSettings.LegacyClientIdVariable, "");
+        builder.UseSetting(CoreApiSettings.LegacySecretVariable, "");
+        if (stub is not null)
+            builder.ConfigureTestServices(services => services.ConfigureHttpClientDefaults(
+                http => http.ConfigurePrimaryHttpMessageHandler(() => stub)));
+        return builder;
+    }
+
+    /// <summary>A client ID unique to this test run: the SDK caches access tokens per client across the process.</summary>
+    public static string UniqueClientId() => $"test-client-{Guid.NewGuid()}";
 
     /// <summary>
     /// <see cref="WithCoreApi"/> with credentials; the client ID is unique (test-client-&lt;guid&gt;), because the SDK
@@ -102,5 +110,5 @@ public static class CoreApiTestHost
     /// </summary>
     public static WebApplicationFactory<Program> WithStubbedCoreApi(
         this WebApplicationFactory<Program> factory, CoreApiStub stub) =>
-        factory.WithCoreApi(stub, clientId: $"test-client-{Guid.NewGuid()}", secret: "test-secret");
+        factory.WithCoreApi(stub, clientId: UniqueClientId(), secret: "test-secret");
 }

@@ -5,8 +5,8 @@ namespace Backend.Auth;
 
 /// <summary>
 /// Every policy, including the default one behind a bare [Authorize] (and Wolverine.Http's RequireAuthorizeOnAll),
-/// requires a signed-in BCC member: a person UID and hasMembership. Endpoints can rely on
-/// <see cref="BccClaims.GetPersonUid"/>.
+/// requires a signed-in BCC member: a person UID, hasMembership and a church. Endpoints can rely on
+/// <see cref="BccClaims.GetPersonUid"/> and <see cref="BccClaims.GetChurchId"/>.
 /// </summary>
 public static class AuthPolicies
 {
@@ -48,5 +48,7 @@ public static class AuthPolicies
     private static AuthorizationPolicyBuilder RequireSignedInMember(this AuthorizationPolicyBuilder policy) =>
         policy
             .RequireAuthenticatedUser()
-            .RequireAssertion(context => context.User.GetPersonUid() is not null && context.User.GetHasMembership());
+            // Without a church there's no tenant to read: treated like a person without membership
+            .RequireAssertion(context => context.User.GetPersonUid() is not null && context.User.GetHasMembership() &&
+                                         context.User.GetChurchId() is not null);
 }

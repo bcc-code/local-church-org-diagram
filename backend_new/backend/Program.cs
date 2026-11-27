@@ -116,10 +116,12 @@ builder.UseWolverine(options =>
 // applies it once at startup. Everywhere else (Development, Testing, build-time OpenAPI and `codegen write` itself,
 // which run as Production) code is generated at runtime and schema objects are created/updated on demand.
 var isWritingCode = args.FirstOrDefault() == "codegen";
-// The one-off legacy import commands (LegacyImport/) run from a checkout against production, without `codegen write`
-var isLegacyImport = LegacyImporter.CommandNames.Contains(args.FirstOrDefault() ?? "");
+// One-off commands run from a checkout against production, without `codegen write`: the legacy import (LegacyImport/)
+// and `projections rebuild` (README, "Rebuilding projections")
+var isOneOffCommand = LegacyImporter.CommandNames.Contains(args.FirstOrDefault() ?? "") ||
+                      args.FirstOrDefault() == "projections";
 var usesPreGeneratedCode = builder.Environment.IsProduction() && !isGeneratingOpenApi && !isWritingCode &&
-                           !isLegacyImport;
+                           !isOneOffCommand;
 builder.Services.CritterStackDefaults(defaults =>
 {
     defaults.Production.GeneratedCodeMode = usesPreGeneratedCode ? TypeLoadMode.Static : TypeLoadMode.Dynamic;

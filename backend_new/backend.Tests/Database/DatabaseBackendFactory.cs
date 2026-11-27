@@ -1,3 +1,5 @@
+using Backend.Tests.Auth;
+using Backend.Tests.CoreApi;
 using JasperFx.CommandLine;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -10,8 +12,10 @@ namespace Backend.Tests.Database;
 /// <summary>
 /// Hosts the backend against a real Postgres: a fresh database, <see cref="DatabaseName"/>, is created on the server
 /// that <c>TEST_DATABASE_URL</c> points to (CI provides a postgres service), so startup creates every schema object
-/// (Marten, Wolverine, EF Core migrations) from scratch. Runs as "Testing". Tests use <see cref="DatabaseFactAttribute"/>,
-/// which skips them without <c>TEST_DATABASE_URL</c>.
+/// (Marten, Wolverine, EF Core migrations) from scratch. Runs as "Testing", with <see cref="CoreApi"/> for the Core
+/// API and <see cref="TestUserAuthentication"/> signing requests in. Tests share one instance through
+/// <see cref="DatabaseCollection"/> and use <see cref="DatabaseFactAttribute"/>, which skips them without
+/// <c>TEST_DATABASE_URL</c>.
 /// </summary>
 public class DatabaseBackendFactory : WebApplicationFactory<Program>
 {
@@ -21,14 +25,25 @@ public class DatabaseBackendFactory : WebApplicationFactory<Program>
 
     public string ConnectionString { get; } = CreateDatabase();
 
+    /// <summary>The Core API; tests in <see cref="DatabaseCollection"/> run one at a time, so each sets what it needs.</summary>
+    public CoreApiStub CoreApi { get; } = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:Default", ConnectionString);
+        builder.UseCoreApi(CoreApi, CoreApiTestHost.UniqueClientId(), "test-secret");
+        // Requests without a TestUser get the app's cookie scheme, whose 401 still needs BCC sign-on configured
+        builder.UseSetting("BccSignOn:ClientId", BackendFactory.TestClientId);
+        builder.UseSetting("BccSignOn:ClientSecret", "test-client-secret");
 
-        // Test-only messages, handlers and documents
         builder.ConfigureTestServices(services =>
-            services.ConfigureWolverine(options => options.Discovery.IncludeAssembly(typeof(DatabaseBackendFactory).Assembly)));
+        {
+            // Test-only messages, handlers and documents
+            services.ConfigureWolverine(options => options.Discovery.IncludeAssembly(typeof(DatabaseBackendFactory).Assembly));
+            // Requests with TestUser's header are signed in as that user (factory.CreateClient(TestUser))
+            TestUserAuthentication.Register(services);
+        });
     }
 
     private static string CreateDatabase()
@@ -100,4 +115,14 @@ public sealed class DatabaseFactAttribute : FactAttribute
 public sealed class DatabaseCollection : ICollectionFixture<DatabaseBackendFactory>
 {
     public const string Name = "Database";
+}
+
+/// <summary><see cref="DatabaseFactAttribute"/> for a theory.</summary>
+public sealed class DatabaseTheoryAttribute : TheoryAttribute
+{
+    public DatabaseTheoryAttribute()
+    {
+        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(TestDatabase.Variable)))
+            Skip = $"{TestDatabase.Variable} is not set";
+    }
 }
