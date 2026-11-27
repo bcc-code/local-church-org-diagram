@@ -27,3 +27,7 @@ ENV/
 
 .env
 .envrc
+# .NET
+backend_new/**/bin/
+backend_new/**/obj/
+backend_new/TestResults/

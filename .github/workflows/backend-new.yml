@@ -1,0 +1,58 @@
+name: Backend (.NET)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend_new/**"
+      - ".github/workflows/backend-new.yml"
+  push:
+    branches: [main]
+    paths:
+      - "backend_new/**"
+      - ".github/workflows/backend-new.yml"
+  workflow_call:
+  workflow_dispatch:
+
+concurrency:
+  group: backend-new-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend_new
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: "backend_new/**/*.csproj"
+
+      - run: dotnet restore backend.slnx
+
+      - run: dotnet format backend.slnx --verify-no-changes --no-restore
+
+      - run: dotnet build backend.slnx --no-restore -c Release
+
+      - run: >-
+          dotnet test backend.slnx --no-build -c Release
+          --logger "trx;LogFileName=results.trx" --results-directory TestResults
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-new-test-results
+          path: backend_new/TestResults/
