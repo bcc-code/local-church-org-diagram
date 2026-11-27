@@ -14,6 +14,9 @@ connection per worker; raise it only for threaded workers.
 Connections are checked on checkout (``ConnectionPool.check_connection``) so a
 connection killed by a Supavisor restart or idle timeout is replaced instead
 of failing the request.
+
+``uuid`` columns are loaded as ``str`` (see ``configure_connection``), matching
+psycopg2/PostgREST and the BCC API, which all represent person UIDs as strings.
 """
 
 import logging
@@ -29,6 +32,7 @@ from uuid import UUID
 import psycopg
 from flask import Flask, current_app, g
 from psycopg.rows import DictRow, dict_row
+from psycopg.types.string import TextLoader
 from psycopg_pool import ConnectionPool
 
 logger = logging.getLogger("db")
@@ -57,6 +61,11 @@ def _check_connection(conn: Connection) -> None:
     ConnectionPool.check_connection(cast(psycopg.Connection[Any], conn))
 
 
+def configure_connection(conn: Connection) -> None:
+    """Load ``uuid`` as ``str`` so UIDs compare equal to BCC API strings."""
+    conn.adapters.register_loader("uuid", TextLoader)
+
+
 def _get_pool() -> ConnectionPool[Connection]:
     global _pool, _pool_pid
     pid = os.getpid()
@@ -81,6 +90,7 @@ def _get_pool() -> ConnectionPool[Connection]:
                 min_size=1,
                 max_size=int(os.environ.get("DB_POOL_MAX", 1)),
                 timeout=10,
+                configure=configure_connection,
                 check=_check_connection,
                 name="org-diagram",
                 open=True,

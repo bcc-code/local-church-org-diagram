@@ -4,7 +4,7 @@ from pathlib import Path
 
 import psycopg
 import pytest
-from db import Connection
+from db import Connection, configure_connection
 from psycopg.conninfo import conninfo_to_dict
 from psycopg.rows import dict_row
 
@@ -49,6 +49,7 @@ def _db_schema() -> str:
 def db_conn(_db_schema: str) -> Generator[Connection]:
     """A dict_row connection to the test DB, rolled back after each test."""
     conn = Connection.connect(_db_schema, row_factory=dict_row)
+    configure_connection(conn)
     try:
         yield conn
     finally:

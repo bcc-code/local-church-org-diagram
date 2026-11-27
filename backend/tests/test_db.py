@@ -119,6 +119,17 @@ def test_get_conn_reused_within_app_context(db_app: Flask):
             assert cur.fetchone() == {"one": 1}
 
 
+def test_uuid_columns_load_as_str(db_app: Flask):
+    uid = "c286faa8-30e8-4828-87dc-15823fed324d"
+    with db_app.app_context():
+        with db.transaction() as conn, conn.cursor() as cur:
+            cur.execute("SELECT %s::uuid AS uid", [uid])
+            row = cur.fetchone()
+    assert row is not None
+    assert row == {"uid": uid}
+    assert type(row["uid"]) is str
+
+
 def test_teardown_rolls_back_uncommitted_work(db_app: Flask):
     with db_app.app_context():
         with db.get_conn().cursor() as cur:
