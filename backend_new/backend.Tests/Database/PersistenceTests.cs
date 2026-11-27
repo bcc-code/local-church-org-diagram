@@ -7,7 +7,8 @@ using Wolverine.Tracking;
 namespace Backend.Tests.Database;
 
 [Trait("Category", "Database")]
-public class PersistenceTests(DatabaseBackendFactory factory) : IClassFixture<DatabaseBackendFactory>
+[Collection(DatabaseCollection.Name)]
+public class PersistenceTests(DatabaseBackendFactory factory)
 {
     [DatabaseFact]
     public async Task Startup_CreatesMartenWolverineAndEfCoreSchemaObjects()

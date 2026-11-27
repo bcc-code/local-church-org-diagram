@@ -20,7 +20,7 @@ var backend = builder.AddProject<Projects.backend>("backend", launchProfileName:
     .WaitFor(database)
     .WithHttpHealthCheck("/up");
 
-// Vite proxies /api (and /login) to API_PROXY_TARGET; without Aspire it defaults to the Flask backend.
+// Vite proxies /api and the sign-in routes (/login, /authorize, /logout) to API_PROXY_TARGET; without Aspire it defaults to the Flask backend.
 // Port 5173 is pinned so the URL stays the same as with `pnpm dev`.
 builder.AddViteApp("frontend", "../../frontend")
     .WithPnpm()

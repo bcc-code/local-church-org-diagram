@@ -13,6 +13,8 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Npgsql" Version="13.6.5" />
     <PackageReference Include="BccCode.Core.Api.Client" Version="0.0.2007" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.15" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.15" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.15" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.15">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

@@ -91,3 +91,13 @@ public sealed class DatabaseFactAttribute : FactAttribute
             Skip = $"{TestDatabase.Variable} is not set";
     }
 }
+
+/// <summary>
+/// Test classes against the database share one <see cref="DatabaseBackendFactory"/> and run one after another: each
+/// factory drops and creates the same database.
+/// </summary>
+[CollectionDefinition(Name)]
+public sealed class DatabaseCollection : ICollectionFixture<DatabaseBackendFactory>
+{
+    public const string Name = "Database";
+}

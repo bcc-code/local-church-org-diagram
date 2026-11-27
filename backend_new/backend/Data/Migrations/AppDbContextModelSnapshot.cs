@@ -23,6 +23,64 @@ namespace Backend.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Backend.Data.Admin", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("PersonUid")
+                        .HasColumnType("uuid");
+
+                    b.Property<long?>("TenantId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonUid", "TenantId")
+                        .IsUnique();
+
+                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("PersonUid", "TenantId"), false);
+
+                    b.ToTable("Admins", t =>
+                        {
+                            t.HasCheckConstraint("CK_Admins_Name", "length(btrim(\"Name\")) > 0");
+
+                            t.HasCheckConstraint("CK_Admins_TenantId", "\"TenantId\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DataProtectionKeys");
+                });
+
             modelBuilder.Entity("Wolverine.EntityFrameworkCore.Internals.IncomingMessage", b =>
                 {
                     b.Property<Guid>("Id")

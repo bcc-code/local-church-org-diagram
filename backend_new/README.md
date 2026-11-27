@@ -20,7 +20,9 @@ dotnet format                   # CI runs it with --verify-no-changes
   - `GET /health` – readiness: `Healthy` (200) when Postgres and the BCC Core API answer, `Unhealthy` (503) otherwise
   - `CoreApi/` – BCC Core API client (`BccCode.Core.Api.Client`): `IPersonDirectory` gets person details
     (UID, display name, profile picture) by UID or by free-text search
-  - `Data/` – EF Core `AppDbContext` and its migrations
+  - `Auth/` – BCC sign-on (cookie session), claims, roles from the `Admins` table and policies, see
+    [Authentication and authorization](#authentication-and-authorization)
+  - `Data/` – EF Core `AppDbContext` (`Admins`, Data Protection keys) and its migrations
   - `Groups/` – group events and projections (`GroupView`, `MembershipView`), see [Groups and memberships](#groups-and-memberships)
   - `LegacyImport/` – CLI commands importing the Flask backend's tables
 - `backend.Tests/` – xUnit + `WebApplicationFactory` tests; `CoreApiStub` stands in for login.bcc.no and the Core API
@@ -105,6 +107,77 @@ dotnet run --project backend --no-launch-profile -- import-memberships --dry-run
 dotnet run --project backend --no-launch-profile -- import-memberships
 ```
 
+## Authentication and authorization
+
+Users sign in with BCC sign-on (OpenID Connect, code flow) and keep a cookie session (30 days, sliding), as with the
+Flask backend: the SPA needs no tokens. It uses the Flask backend's OIDC client and its registered callback `/authorize`.
+
+- `GET /login?returnUrl=/path` – signs in, then returns to the path (only paths on this site, otherwise `/`)
+- `GET /authorize` – the callback. One that fails (cancelled, stale, missing cookies) answers 400 with a link to sign in
+  again, not a redirect, so it can't loop with the SPA's 401 → `/login`
+- `GET /logout` – ends the session here (not at BCC sign-on), then goes to `/`
+- `/api` answers 401 (signed out) or 403 instead of redirecting
+
+Claims keep BCC sign-on's names (`Auth/BccClaims`): `GetPersonUid()` (`…/claims/personUid`, what memberships and
+`Admins` refer to), `GetPersonId()`, `GetChurchId()` (the user's tenant) and `GetHasMembership()`.
+
+Tenants are BCC church IDs (`TenantId` on groups and memberships). Roles come from the EF Core `Admins` table, read on
+every request (`RoleClaimsTransformation`), so changes apply on the next request:
+
+| `Admins` row                   | Role          | Claims added                                            |
+| ------------------------------ | ------------- | ------------------------------------------------------- |
+| `TenantId` null                | Global Admin  | `role=GlobalAdmin`: every tenant                        |
+| `TenantId` set (one per tenant) | Local Admin  | `role=LocalAdmin`, `admin_tenant=<id>`: that tenant, whatever the person's own church |
+
+A row has a required `Name` (who it is for) and is unique per person and tenant (one global row per person).
+
+Policies (`Auth/AuthPolicies`). Every policy, the default one included, requires a signed-in BCC member (person UID and
+`hasMembership`). Wolverine.Http endpoints require the default policy unless they say otherwise
+(`RequireAuthorizeOnAll`; `[AllowAnonymous]`, `[Authorize(Policy = …)]`).
+
+- default (`[Authorize]`, every `/api` endpoint) – a signed-in member
+- `GlobalAdmin` – Global Admins
+- `TenantReader` – against a tenant (`ITenantScoped`, e.g. `new Tenant(id)`): its admins and its church's members
+- `TenantAdmin` – against a tenant: Global Admins and its Local Admins. For changes
+
+An endpoint scoped to a tenant checks it in `Before`:
+
+```csharp
+public static Task<ProblemDetails> Before(long tenantId, ClaimsPrincipal user, IAuthorizationService authorization) =>
+    authorization.AuthorizeTenantAsync(user, tenantId, AuthPolicies.TenantReader); // 403 problem when denied
+```
+
+Endpoints use the user's own church (`user.GetChurchId()`) as the tenant for now; a tenant parameter for admins of other
+tenants comes later.
+
+The Data Protection key ring (session cookies, sign-in state) is stored in Postgres (`DataProtectionKeys`), so sessions
+survive restarts and deploys. Behind a TLS-terminating proxy, the request scheme must be forwarded
+(`ASPNETCORE_FORWARDEDHEADERS_ENABLED=true`), or the callback URL sent to BCC sign-on is `http://`.
+
+There is no local dev login yet: Development signs in with BCC sign-on too, so it needs the client's credentials.
+Through Vite (`:5173`), the callback URL is `http://localhost:5173/authorize`, which the client must allow.
+
+### Adding admins
+
+Until the `admins` CLI commands exist, insert rows by hand (person UIDs from the Core API):
+
+```sql
+INSERT INTO "Admins" ("PersonUid", "Name", "TenantId") VALUES ('<person uid>', '<name>', 51);   -- Local Admin of 51
+INSERT INTO "Admins" ("PersonUid", "Name", "TenantId") VALUES ('<person uid>', '<name>', NULL); -- Global Admin
+```
+
+### Tests
+
+`BackendFactory` signs requests in as a `TestUser` (`backend.Tests/Auth/TestAuth.cs`) carried in a header, roles
+included, so endpoint tests need neither BCC sign-on nor the `Admins` table; requests without it are signed out:
+
+```csharp
+var client = factory.CreateClient(TestUser.Member(churchId: 51));     // also NonMember, LocalAdmin(51), Global()
+```
+
+Policy and handler unit tests use `TestUser.Principal()`. `Database/AdminsTests` cover the claims transformation and the
+table's constraints.
+
 ## API client
 
 `dotnet build` writes the OpenAPI document to `openapi/backend.json` (gitignored). `pnpm generate:api` in `frontend/`
@@ -146,3 +219,18 @@ dotnet user-secrets --project backend set CoreApi:ClientSecret ...
 
 Without credentials the app still starts, Core API calls throw `CoreApiNotConfiguredException` and `/health` is
 unhealthy.
+
+### BCC sign-on
+
+The OpenID Connect client users sign in with (scopes `openid profile email church`), shared with the Flask backend.
+
+| Setting                  | Fallback                 | Default                |
+| ------------------------ | ------------------------ | ---------------------- |
+| `BccSignOn:Authority`    |                          | `https://login.bcc.no` |
+| `BccSignOn:ClientId`     | `BCC_OIDC_CLIENT_ID`     |                        |
+| `BccSignOn:ClientSecret` | `BCC_OIDC_CLIENT_SECRET` |                        |
+
+```bash
+dotnet user-secrets --project backend set BccSignOn:ClientId ...
+dotnet user-secrets --project backend set BccSignOn:ClientSecret ...
+```
