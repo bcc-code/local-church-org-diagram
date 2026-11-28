@@ -107,12 +107,19 @@ public class AppPageTests(AppPageTests.WithIndex factory) : IClassFixture<AppPag
         response.Headers.Location!.PathAndQuery.ShouldBe(location);
     }
 
-    [Theory]
-    [InlineData("/")]
-    [InlineData("/51/admin")]
-    public async Task SignedIn_GetsTheSpa(string url)
+    public static TheoryData<string, TestUser> SpaPages => new()
     {
-        var response = await factory.CreateClient(TestUser.Member(TestUser.Copenhagen)).GetAsync(url);
+        { "/", TestUser.Member(TestUser.Copenhagen) },
+        { "/51/admin", TestUser.LocalAdmin(TestUser.Copenhagen) },
+        { "/51/admin", TestUser.LocalAdmin(TestUser.Copenhagen, churchId: 1) },
+        { "/1/admin", TestUser.Global(TestUser.Copenhagen) },
+    };
+
+    [Theory]
+    [MemberData(nameof(SpaPages))]
+    public async Task SignedIn_GetsTheSpa(string url, TestUser user)
+    {
+        var response = await factory.CreateClient(user).GetAsync(url);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         response.Content.Headers.ContentType!.MediaType.ShouldBe("text/html");
@@ -134,10 +141,18 @@ public class AppPageTests(AppPageTests.WithIndex factory) : IClassFixture<AppPag
     public async Task UnknownFile_IsNotFound() =>
         (await Anonymous().GetAsync("/assets/missing.js")).StatusCode.ShouldBe(HttpStatusCode.NotFound);
 
-    [Fact]
-    public async Task AnotherChurchsAdmin_IsForbidden()
+    public static TheoryData<string, TestUser> ForbiddenAdminPages => new()
     {
-        var response = await factory.CreateClient(TestUser.Member(TestUser.Copenhagen)).GetAsync("/1/admin");
+        { "/51/admin", TestUser.Member(TestUser.Copenhagen) },
+        { "/1/admin", TestUser.LocalAdmin(TestUser.Copenhagen) },
+    };
+
+    // Only the tenant's admins: not its church's members, nor another tenant's Local Admins
+    [Theory]
+    [MemberData(nameof(ForbiddenAdminPages))]
+    public async Task AdminPage_IsForbiddenToAllButTheTenantsAdmins(string url, TestUser user)
+    {
+        var response = await factory.CreateClient(user).GetAsync(url);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
         (await response.Content.ReadAsStringAsync()).ShouldBe("Unauthorized");

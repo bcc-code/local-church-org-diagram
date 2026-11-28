@@ -1,3 +1,4 @@
+using Backend.Auth;
 using Marten.Events.Aggregation;
 
 namespace Backend.Groups;
@@ -11,7 +12,7 @@ public record GroupView(
     long TenantId,
     int? SortOrder,
     DateTimeOffset CreatedAt,
-    int MemberCount = 0);
+    int MemberCount = 0) : ITenantScoped;
 
 /// <summary>
 /// Inline: updated in the transaction that appends the group's events. A change here only reaches existing views
@@ -24,4 +25,12 @@ public class GroupViewProjection : SingleStreamProjection<GroupView, Guid>
 
     public static GroupView Apply(MembershipImported _, GroupView view) =>
         view with { MemberCount = view.MemberCount + 1 };
+
+    public static GroupView Apply(MembershipAdded _, GroupView view) =>
+        view with { MemberCount = view.MemberCount + 1 };
+
+    public static GroupView Apply(MembershipRemoved _, GroupView view) =>
+        view with { MemberCount = view.MemberCount - 1 };
+
+    public static GroupView Apply(GroupSortOrderChanged e, GroupView view) => view with { SortOrder = e.SortOrder };
 }

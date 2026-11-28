@@ -1,10 +1,11 @@
 using Backend.Auth;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Backend.Api;
 
 /// <summary>
 /// The SPA's pages, as the Flask backend's index(): signed-out users are sent to /login (and back afterwards), and
-/// /{tenantId}/admin is only for the user's own church. The SPA (index.html) is served from the web root; its assets
+/// /{tenantId}/admin is only for the tenant's admins (<see cref="AuthPolicies.TenantAdmin"/>). The SPA (index.html) is served from the web root; its assets
 /// are static files.
 /// </summary>
 public static class AppPages
@@ -17,8 +18,8 @@ public static class AppPages
             .RequireAuthorization()
             .ExcludeFromDescription();
 
-        app.MapGet("/{tenantId:long}/admin", (long tenantId, HttpContext context) =>
-                context.User.GetChurchId() == tenantId
+        app.MapGet("/{tenantId:long}/admin", async (long tenantId, HttpContext context, IAuthorizationService authorization) =>
+                await authorization.IsAllowedAsync(context.User, new Tenant(tenantId), AuthPolicies.TenantAdmin)
                     ? Index(context)
                     : Results.Text(Unauthorized, statusCode: StatusCodes.Status403Forbidden))
             .RequireAuthorization()

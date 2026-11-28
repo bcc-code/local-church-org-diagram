@@ -75,6 +75,13 @@ export class ApiClient {
             result403 = ApiError.fromJS(resultData403);
             return throwException("Forbidden", status, _responseText, _headers, result403);
             });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ApiError.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -148,6 +155,13 @@ export class ApiClient {
             return response.text().then((_responseText) => {
             return throwException("Not Found", status, _responseText, _headers);
             });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ApiError.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -219,6 +233,13 @@ export class ApiClient {
             result403 = ApiError.fromJS(resultData403);
             return throwException("Forbidden", status, _responseText, _headers, result403);
             });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ApiError.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -284,6 +305,13 @@ export class ApiClient {
         } else if (status === 404) {
             return response.text().then((_responseText) => {
             return throwException("Not Found", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ApiError.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -351,12 +379,331 @@ export class ApiClient {
             result403 = ApiError.fromJS(resultData403);
             return throwException("Forbidden", status, _responseText, _headers, result403);
             });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ApiError.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
         return Promise.resolve<GroupNode[]>(null as any);
+    }
+
+    /**
+     * PUT_groups_sort_order
+     * @return OK
+     */
+    reorderGroups(body: ReorderGroups): Promise<ApiSuccess> {
+        let url_ = this.baseUrl + "/api/groups/sort-order";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReorderGroups(_response);
+        });
+    }
+
+    protected processReorderGroups(response: Response): Promise<ApiSuccess> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiSuccess.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiError.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiError.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiError.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiError.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ApiError.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiSuccess>(null as any);
+    }
+
+    /**
+     * DELETE_group_membership
+     * @return OK
+     */
+    removeGroupMember(body: RemoveGroupMember): Promise<ApiSuccess> {
+        let url_ = this.baseUrl + "/api/group-membership";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRemoveGroupMember(_response);
+        });
+    }
+
+    protected processRemoveGroupMember(response: Response): Promise<ApiSuccess> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiSuccess.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiError.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiError.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiError.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiError.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ApiError.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiSuccess>(null as any);
+    }
+
+    /**
+     * PUT_group_membership
+     * @return OK
+     */
+    updateGroupMember(body: UpdateGroupMember): Promise<ApiSuccess> {
+        let url_ = this.baseUrl + "/api/group-membership";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateGroupMember(_response);
+        });
+    }
+
+    protected processUpdateGroupMember(response: Response): Promise<ApiSuccess> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApiSuccess.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 304) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Modified", status, _responseText, _headers);
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiError.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiError.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiError.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiError.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ApiError.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiSuccess>(null as any);
+    }
+
+    /**
+     * POST_group_membership
+     * @return Created
+     */
+    addGroupMember(body: AddGroupMember): Promise<ApiSuccess> {
+        let url_ = this.baseUrl + "/api/group-membership";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAddGroupMember(_response);
+        });
+    }
+
+    protected processAddGroupMember(response: Response): Promise<ApiSuccess> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = ApiSuccess.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ApiError.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ApiError.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ApiError.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ApiError.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ApiError.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApiSuccess>(null as any);
     }
 
     /**
@@ -422,6 +769,13 @@ export class ApiClient {
             result403 = ApiError.fromJS(resultData403);
             return throwException("Forbidden", status, _responseText, _headers, result403);
             });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ApiError.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -468,6 +822,62 @@ export class ApiClient {
     }
 }
 
+export class AddGroupMember implements IAddGroupMember {
+    group_id!: string | undefined;
+    person_uid!: string | undefined;
+    title!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IAddGroupMember) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.group_id = _data["group_id"];
+            this.person_uid = _data["person_uid"];
+            this.title = _data["title"];
+        }
+    }
+
+    static fromJS(data: any): AddGroupMember {
+        data = typeof data === 'object' ? data : {};
+        let result = new AddGroupMember();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["group_id"] = this.group_id;
+        data["person_uid"] = this.person_uid;
+        data["title"] = this.title;
+        return data;
+    }
+}
+
+export interface IAddGroupMember {
+    group_id: string | undefined;
+    person_uid: string | undefined;
+    title: string | undefined;
+
+    [key: string]: any;
+}
+
 export class ApiError implements IApiError {
     error!: string;
 
@@ -512,6 +922,54 @@ export class ApiError implements IApiError {
 
 export interface IApiError {
     error: string;
+
+    [key: string]: any;
+}
+
+export class ApiSuccess implements IApiSuccess {
+    success!: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: IApiSuccess) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.success = _data["success"];
+        }
+    }
+
+    static fromJS(data: any): ApiSuccess {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApiSuccess();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["success"] = this.success;
+        return data;
+    }
+}
+
+export interface IApiSuccess {
+    success: boolean;
 
     [key: string]: any;
 }
@@ -639,6 +1097,58 @@ export interface IGroupNode {
     label: string;
     parent_group_id: string | undefined;
     member_count: number;
+    sort_order: number | undefined;
+
+    [key: string]: any;
+}
+
+export class GroupSortOrderUpdate implements IGroupSortOrderUpdate {
+    group_id!: string | undefined;
+    sort_order!: number | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IGroupSortOrderUpdate) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.group_id = _data["group_id"];
+            this.sort_order = _data["sort_order"];
+        }
+    }
+
+    static fromJS(data: any): GroupSortOrderUpdate {
+        data = typeof data === 'object' ? data : {};
+        let result = new GroupSortOrderUpdate();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["group_id"] = this.group_id;
+        data["sort_order"] = this.sort_order;
+        return data;
+    }
+}
+
+export interface IGroupSortOrderUpdate {
+    group_id: string | undefined;
     sort_order: number | undefined;
 
     [key: string]: any;
@@ -815,6 +1325,114 @@ export interface IPersonSearchResult {
     [key: string]: any;
 }
 
+export class RemoveGroupMember implements IRemoveGroupMember {
+    group_id!: string | undefined;
+    person_uid!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IRemoveGroupMember) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.group_id = _data["group_id"];
+            this.person_uid = _data["person_uid"];
+        }
+    }
+
+    static fromJS(data: any): RemoveGroupMember {
+        data = typeof data === 'object' ? data : {};
+        let result = new RemoveGroupMember();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["group_id"] = this.group_id;
+        data["person_uid"] = this.person_uid;
+        return data;
+    }
+}
+
+export interface IRemoveGroupMember {
+    group_id: string | undefined;
+    person_uid: string | undefined;
+
+    [key: string]: any;
+}
+
+export class ReorderGroups implements IReorderGroups {
+    updates!: GroupSortOrderUpdate[] | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IReorderGroups) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["updates"])) {
+                this.updates = [] as any;
+                for (let item of _data["updates"])
+                    this.updates!.push(GroupSortOrderUpdate.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): ReorderGroups {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReorderGroups();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.updates)) {
+            data["updates"] = [];
+            for (let item of this.updates)
+                data["updates"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IReorderGroups {
+    updates: GroupSortOrderUpdate[] | undefined;
+
+    [key: string]: any;
+}
+
 export class TitleHolder implements ITitleHolder {
     person_uid!: string;
     name!: string;
@@ -867,6 +1485,66 @@ export interface ITitleHolder {
     person_uid: string;
     name: string;
     profile_picture: string | undefined;
+
+    [key: string]: any;
+}
+
+export class UpdateGroupMember implements IUpdateGroupMember {
+    group_id!: string | undefined;
+    person_uid!: string | undefined;
+    title!: string | undefined;
+    link!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateGroupMember) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.group_id = _data["group_id"];
+            this.person_uid = _data["person_uid"];
+            this.title = _data["title"];
+            this.link = _data["link"];
+        }
+    }
+
+    static fromJS(data: any): UpdateGroupMember {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateGroupMember();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["group_id"] = this.group_id;
+        data["person_uid"] = this.person_uid;
+        data["title"] = this.title;
+        data["link"] = this.link;
+        return data;
+    }
+}
+
+export interface IUpdateGroupMember {
+    group_id: string | undefined;
+    person_uid: string | undefined;
+    title: string | undefined;
+    link: string | undefined;
 
     [key: string]: any;
 }

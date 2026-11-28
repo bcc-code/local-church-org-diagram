@@ -25,3 +25,45 @@ public record MembershipImported(
     string? Link,
     long TenantId,
     DateTimeOffset CreatedAt);
+
+// Events the admin endpoints (backend/Features/) append to a group's stream. Each carries the signed-in admin's person
+// UID (ActorPersonUid) and when it happened (OccurredAt).
+
+/// <summary>A person was added to the group. <paramref name="TenantId"/> is the group's.</summary>
+public record MembershipAdded(
+    Guid GroupId,
+    Guid PersonUid,
+    string? Title,
+    long TenantId,
+    Guid ActorPersonUid,
+    DateTimeOffset OccurredAt);
+
+/// <summary>A person was removed from the group.</summary>
+public record MembershipRemoved(
+    Guid GroupId,
+    Guid PersonUid,
+    Guid ActorPersonUid,
+    DateTimeOffset OccurredAt);
+
+/// <summary>A member's title in the group was set, as entered; an empty string clears it.</summary>
+public record MembershipTitleChanged(
+    Guid GroupId,
+    Guid PersonUid,
+    string Title,
+    Guid ActorPersonUid,
+    DateTimeOffset OccurredAt);
+
+/// <summary>A member's link in the group was set, as entered; an empty string clears it.</summary>
+public record MembershipLinkChanged(
+    Guid GroupId,
+    Guid PersonUid,
+    string Link,
+    Guid ActorPersonUid,
+    DateTimeOffset OccurredAt);
+
+/// <summary>The group's position among its siblings was set.</summary>
+public record GroupSortOrderChanged(
+    Guid GroupId,
+    int SortOrder,
+    Guid ActorPersonUid,
+    DateTimeOffset OccurredAt);

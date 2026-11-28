@@ -14,6 +14,7 @@ using JasperFx.Events.Projections;
 using Marten;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Console;
 using Npgsql;
@@ -199,6 +200,8 @@ app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();
+// /api changes need a JSON body, as with the Flask backend (Api/ApiConventions)
+app.UseApiJsonBodies();
 
 // GET /login, /logout, and the sign-in callback /authorize (Development: /login and /logout only, see Auth/LocalDev)
 if (app.Environment.IsDevelopment())
@@ -222,7 +225,13 @@ app.MapWolverineEndpoints(options =>
     options.RoutePrefix("api");
     options.RequireAuthorizeOnAll();
     options.UseFluentValidationProblemDetailMiddleware();
-    options.MapMartenConcurrencyFailuresToConflict();
+    // Every chain: by default only those Wolverine sees as transactional when the policy runs, which leaves out
+    // endpoints whose transaction comes from a returned IMartenOp (the group commands, Groups/GroupStream)
+    options.MapMartenConcurrencyFailuresToConflict(_ => true, _ => new ProblemDetails
+    {
+        Status = StatusCodes.Status409Conflict,
+        Detail = ApiConventions.ConcurrentChange,
+    });
 });
 
 // JasperFx command line: `run` (the default) starts the app; `codegen write` generates the code production loads;

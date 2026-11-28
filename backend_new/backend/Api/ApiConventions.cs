@@ -1,12 +1,29 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
+using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Api;
 
 /// <summary>An /api error, in the Flask backend's shape: <c>{"error": "..."}</c>.</summary>
 public record ApiError(string Error);
+
+/// <summary>
+/// A problem whose /api error body has more fields than <c>error</c> (its detail), e.g.
+/// <c>{"error": "...", "missing_group_ids": [...]}</c>. Name the fields as they're written (snake_case).
+/// </summary>
+public sealed class ApiErrorProblem : ProblemDetails
+{
+    public Dictionary<string, object?> Fields { get; } = [];
+}
+
+/// <summary>The body of a successful /api change, as the Flask backend's: <c>{"success": true}</c>.</summary>
+public sealed record ApiSuccess(bool Success)
+{
+    public static readonly ApiSuccess Instance = new(true);
+}
 
 /// <summary>
 /// The /api routes answer like the Flask backend did, so the frontend works against either: snake_case JSON
@@ -18,6 +35,12 @@ public static class ApiConventions
     public const string ErrorContentType = "application/json";
     public const string AuthenticationRequired = "Authentication required";
     public const string Forbidden = "Forbidden";
+
+    public const string NoJsonData = "No JSON data provided";
+    public const string InvalidJson = "Invalid JSON";
+
+    /// <summary>A change that raced another on the same data (a Marten concurrency failure): 409.</summary>
+    public const string ConcurrentChange = "Changed by someone else at the same time; try again";
 
     public static bool IsApiRequest(this HttpRequest request) => request.Path.StartsWithSegments("/api");
 
@@ -35,10 +58,69 @@ public static class ApiConventions
         return services;
     }
 
+    /// <summary>
+    /// /api endpoints that read a JSON body (the changes) need one with something in it, as the Flask backend's
+    /// <c>if not data</c>:
+    /// a missing, empty, <c>null</c>, <c>{}</c> or <c>[]</c> body answers 400 <see cref="NoJsonData"/>, malformed JSON
+    /// 400 <see cref="InvalidJson"/>, before the endpoint binds it (Wolverine.Http would answer the serializer's message,
+    /// and a null body fails its validation middleware). Goes after authorization: signed-out requests still get 401.
+    /// </summary>
+    public static IApplicationBuilder UseApiJsonBodies(this IApplicationBuilder app) =>
+        app.Use(async (context, next) =>
+        {
+            if (!context.Request.IsApiRequest() ||
+                context.GetEndpoint()?.Metadata.GetMetadata<IAcceptsMetadata>() is not { RequestType: not null })
+            {
+                await next(context);
+                return;
+            }
+
+            context.Request.EnableBuffering();
+            string? error;
+            try
+            {
+                using var body = await JsonDocument.ParseAsync(context.Request.Body, cancellationToken: context.RequestAborted);
+                error = body.RootElement switch
+                {
+                    { ValueKind: JsonValueKind.Null } => NoJsonData,
+                    { ValueKind: JsonValueKind.Object } o when !o.EnumerateObject().Any() => NoJsonData,
+                    { ValueKind: JsonValueKind.Array } a when a.GetArrayLength() == 0 => NoJsonData,
+                    _ => null,
+                };
+            }
+            catch (JsonException)
+            {
+                error = context.Request.Body.Length == 0 ? NoJsonData : InvalidJson;
+            }
+
+            if (error is not null)
+            {
+                await context.WriteApiErrorAsync(StatusCodes.Status400BadRequest, error);
+                return;
+            }
+
+            context.Request.Body.Position = 0;
+            await next(context);
+        });
+
     public static Task WriteApiErrorAsync(this HttpContext context, int statusCode, string message)
     {
         context.Response.StatusCode = statusCode;
         return context.Response.WriteAsJsonAsync(new ApiError(message), ApiJson(context), ErrorContentType);
+    }
+
+    /// <summary>A problem's <see cref="ApiError"/>, with an <see cref="ApiErrorProblem"/>'s fields next to <c>error</c>.</summary>
+    private static Task WriteApiErrorAsync(this HttpContext context, int statusCode, ProblemDetails problem)
+    {
+        if (problem is not ApiErrorProblem { Fields.Count: > 0 } withFields)
+            return context.WriteApiErrorAsync(statusCode, Message(problem));
+
+        var options = ApiJson(context);
+        var body = new JsonObject { ["error"] = Message(problem) };
+        foreach (var (name, value) in withFields.Fields)
+            body[name] = JsonSerializer.SerializeToNode(value, options);
+        context.Response.StatusCode = statusCode;
+        return context.Response.WriteAsJsonAsync(body, options, ErrorContentType);
     }
 
     /// <summary>The message of a problem: its first validation error, otherwise its detail or title.</summary>
@@ -60,7 +142,7 @@ public static class ApiConventions
         public ValueTask WriteAsync(ProblemDetailsContext context)
         {
             var statusCode = context.ProblemDetails.Status ?? context.HttpContext.Response.StatusCode;
-            return new ValueTask(context.HttpContext.WriteApiErrorAsync(statusCode, Message(context.ProblemDetails)));
+            return new ValueTask(context.HttpContext.WriteApiErrorAsync(statusCode, context.ProblemDetails));
         }
     }
 
