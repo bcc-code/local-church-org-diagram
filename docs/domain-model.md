@@ -42,3 +42,4 @@ Owns **Person** identity: display name, profile picture, and other person attrib
 - **Attributes**: `title` (optional), `link` (optional)
 - **Invariant**: links exactly one Person (by UID) to exactly one Group, within one tenant. A person may hold multiple Memberships (different groups, or same group with different title over time — current schema allows only one row per group+person+tenant).
 - Membership is the aggregate root for admin mutations (`POST`/`PUT`/`DELETE /api/group-membership`) — Group and Person are referenced, not modified, through it.
+- In `backend_new`, the consistency boundary is the Group's event stream: memberships are events on it (`MembershipAdded`, `MembershipRemoved`, `MembershipTitleChanged`, `MembershipLinkChanged`), and so is the sort order (`GroupSortOrderChanged`), so the one-membership-per-group-and-person rule is checked against the stream's version (see `backend_new/README.md`, "Admin changes").

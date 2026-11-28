@@ -125,7 +125,7 @@ public class LocalDevTests(DevelopmentBackendFactory factory) : IClassFixture<De
     // Without a built SPA in the web root, the Vite dev server (appsettings.Development.json) serves it
     [Theory]
     [InlineData("/", "http://localhost:5173/")]
-    [InlineData("/51/admin?group=1", "http://localhost:5173/51/admin?group=1")]
+    [InlineData("/?group=1", "http://localhost:5173/?group=1")]
     public async Task Pages_redirect_to_the_Vite_dev_server(string path, string location)
     {
         var response = await Anonymous().GetAsync(path);
@@ -134,10 +134,13 @@ public class LocalDevTests(DevelopmentBackendFactory factory) : IClassFixture<De
         response.Headers.Location!.OriginalString.ShouldBe(location);
     }
 
-    [Fact]
-    public async Task Another_tenants_admin_page_is_still_forbidden()
+    // The admin pages need an Admins row (here there's no database, so no roles), even for the dev user's own church
+    [Theory]
+    [InlineData("/51/admin")]
+    [InlineData("/1/admin")]
+    public async Task Admin_pages_need_an_admin_role(string path)
     {
-        (await Anonymous().GetAsync("/1/admin")).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await Anonymous().GetAsync(path)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 
     [Fact]

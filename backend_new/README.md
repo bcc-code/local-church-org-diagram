@@ -82,6 +82,19 @@ derived from the legacy `groups.id` (`GroupIds`). Inline projections reproduce t
 
 Legacy IDs are only on the events (`LegacyId`, …), not on the views.
 
+Besides the imported events, the admin endpoints (see [Admin changes](#admin-changes)) append, each with the admin's
+person UID (`ActorPersonUid`) and the time (`OccurredAt`):
+
+| Event                    | Fields                              | `GroupView`        | `MembershipView`              |
+| ------------------------ | ----------------------------------- | ------------------ | ----------------------------- |
+| `MembershipAdded`        | group, person UID, title, tenant    | member count + 1   | created                       |
+| `MembershipRemoved`      | group, person UID                   | member count − 1   | deleted                       |
+| `MembershipTitleChanged` | group, person UID, title            |                    | title                         |
+| `MembershipLinkChanged`  | group, person UID, link             |                    | link                          |
+| `GroupSortOrderChanged`  | group, sort order                   | sort order         |                               |
+
+Events are a stored contract: never rename, remove or retype their fields (add an optional one, or a new event).
+
 ### Rebuilding projections
 
 An inline projection only applies to events appended after it changes. After changing one (e.g. a new field on
@@ -165,8 +178,9 @@ public static Task<ProblemDetails> Before(long tenantId, ClaimsPrincipal user, I
     authorization.AuthorizeTenantAsync(user, tenantId, AuthPolicies.TenantReader); // 403 problem when denied
 ```
 
-Endpoints use the user's own church (`user.GetChurchId()`) as the tenant for now; a tenant parameter for admins of other
-tenants comes later.
+The read endpoints use the user's own church (`user.GetChurchId()`) as the tenant for now; a tenant parameter for admins
+of other tenants comes later. The admin changes authorize with `TenantAdmin` against the tenant of the group they change
+(`GroupView` is `ITenantScoped`), never one from the request.
 
 The Data Protection key ring (session cookies, sign-in state) is stored in Postgres (`DataProtectionKeys`), so sessions
 survive restarts and deploys. Behind a TLS-terminating proxy, the request scheme must be forwarded
@@ -303,20 +317,52 @@ either: the same routes, data and ordering, and the same JSON (`Api/ApiConventio
   failures: the first message) is written in that shape by an `IProblemDetailsWriter` for `/api`, and the authorization
   middleware answers 401 (`Authentication required`, never a redirect) and 403 with it. `ApiErrorsOpenApi` documents it.
 - a group of another church, or an unknown one, has no members (`[]`), as Flask's tenant-filtered query.
+- endpoints that read a JSON body need one with something in it (`UseApiJsonBodies`): a missing, empty, `null`, `{}` or
+  `[]` body answers 400 `No JSON data provided`, malformed JSON 400 `Invalid JSON`.
 
 Group IDs are Guid strings where Flask had integers: the frontend only compares them and sends them back.
 `backend.Tests/Api/FlaskContractTests` pins the exact JSON of each endpoint.
 
 The pages `GET /` and `GET /{tenantId}/admin` (`Api/AppPages`) serve the SPA's `index.html` from the web root to
 signed-in members, as Flask's `index()`: signed-out users are redirected to `/login?returnUrl=<path>`, and
-`/{tenantId}/admin` answers 403 `Unauthorized` unless `tenantId` is the user's church. In Development, without a built
+`/{tenantId}/admin` answers 403 `Unauthorized` unless the user is an admin of that tenant (`TenantAdmin`: a Global
+Admin or its Local Admin; its church's members aren't). In Development, without a built
 SPA in the web root, they redirect to the same path on the Vite dev server (`Frontend:DevServerUrl`,
 `http://localhost:5173` in `appsettings.Development.json`), which serves the SPA and proxies `/api` and `/login` back.
 Demo mode (`DEMO_MODE`) isn't ported.
 
 Tests: one file per feature, `backend.Tests/Features/<Feature>Tests.cs` (namespace `Backend.Tests.Features`), with unit
 tests of the pure methods and database tests calling the endpoints over HTTP (see [Database tests](#database-tests)),
-seeded with `Seed` under a tenant of their own.
+seeded with `Seed` under a tenant of their own. The admin changes' tests also run the authorization matrix
+(`AdminWrites.Callers`).
+
+### Admin changes
+
+The admin UI's changes, drop-in replacements for the Flask backend's `backend/admin.py`. Each appends events to the
+groups' streams (see [Groups and memberships](#groups-and-memberships)) and answers `{"success": true}`:
+
+| Feature                   | Endpoint                         | Operation ID        | Body                                         | Events                                          |
+| ------------------------- | -------------------------------- | ------------------- | -------------------------------------------- | ----------------------------------------------- |
+| `GroupMembershipAddition` | `POST /api/group-membership`     | `AddGroupMember`    | `group_id`, `person_uid`, `title?`           | `MembershipAdded` (201)                         |
+| `GroupMembershipRemoval`  | `DELETE /api/group-membership`   | `RemoveGroupMember` | `group_id`, `person_uid`                     | `MembershipRemoved`                             |
+| `GroupMembershipEditing`  | `PUT /api/group-membership`      | `UpdateGroupMember` | `group_id`, `person_uid`, `title?`, `link?`  | `MembershipTitleChanged`, `MembershipLinkChanged` |
+| `GroupReordering`         | `PUT /api/groups/sort-order`     | `ReorderGroups`     | `updates: [{group_id, sort_order}]`          | `GroupSortOrderChanged` per group               |
+
+- **Who:** only the group's admins (`TenantAdmin` for the group's own tenant: Global Admins, and its Local Admins
+  whatever their church). For anyone else signed in, a group is unknown: 404, as Flask's tenant-filtered queries (Flask
+  let every signed-in member of the church change it).
+- **Rules:** 404 `Group not found` (add) or `Member not found in group` (edit, remove); 409 `Member already in group`.
+  Any person UID can be added (persons of other churches too); the membership takes the group's tenant. Edits store
+  titles and links as entered, an empty string clears one (the title listings leave blank titles out); `null` or a
+  missing field leaves it, and neither field answers 304. Reordering takes siblings only (one parent, one tenant: 400
+  otherwise); unknown or other tenants' groups answer 404 with `missing_group_ids`, and nothing changes.
+- **Idempotent where Flask was:** an edit or reorder that changes nothing appends nothing (200); removing twice is a 404,
+  adding twice a 409.
+- **Concurrency:** a command decides on the group's view and the stream version it reflects (`GroupStream`), and appends
+  expecting that version (`AppendGroupEvents`, an `IMartenOp` Wolverine applies in the request's transaction). A command
+  that raced another on the same group answers 409 (`Changed by someone else at the same time; try again`), so two
+  concurrent adds of one person don't both succeed. Reordering checks every group's stream, in one transaction.
+
 
 ## API client
 

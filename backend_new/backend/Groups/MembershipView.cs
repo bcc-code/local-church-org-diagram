@@ -24,9 +24,23 @@ public class MembershipViewProjection : MultiStreamProjection<MembershipView, Gu
     public MembershipViewProjection()
     {
         Identity<MembershipImported>(e => GroupIds.Membership(e.GroupId, e.PersonUid));
+        Identity<MembershipAdded>(e => GroupIds.Membership(e.GroupId, e.PersonUid));
+        Identity<MembershipTitleChanged>(e => GroupIds.Membership(e.GroupId, e.PersonUid));
+        Identity<MembershipLinkChanged>(e => GroupIds.Membership(e.GroupId, e.PersonUid));
+        Identity<MembershipRemoved>(e => GroupIds.Membership(e.GroupId, e.PersonUid));
+        // A removed membership's document is deleted; adding the person again creates a new one
+        DeleteEvent<MembershipRemoved>();
     }
 
     public static MembershipView Create(MembershipImported e) =>
         new(GroupIds.Membership(e.GroupId, e.PersonUid), e.GroupId, e.PersonUid, e.Title, e.Link, e.TenantId,
             e.CreatedAt);
+
+    public static MembershipView Create(MembershipAdded e) =>
+        new(GroupIds.Membership(e.GroupId, e.PersonUid), e.GroupId, e.PersonUid, e.Title, null, e.TenantId,
+            e.OccurredAt);
+
+    public static MembershipView Apply(MembershipTitleChanged e, MembershipView view) => view with { Title = e.Title };
+
+    public static MembershipView Apply(MembershipLinkChanged e, MembershipView view) => view with { Link = e.Link };
 }
